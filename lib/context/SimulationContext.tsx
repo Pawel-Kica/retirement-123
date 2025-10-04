@@ -186,6 +186,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
           ...state.inputs,
           nominalPension: results.nominalPension,
           realPension: results.realPension,
+          postalCode: state.inputs.postalCode || null,
         }),
       }).catch((err) => console.error("Failed to log simulation:", err));
     } catch (error) {
