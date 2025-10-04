@@ -142,7 +142,7 @@ export function EnhancedCareerTimeline({
       {/* Timeline Container */}
       <div className="relative w-full">
         {/* Year Labels */}
-        <div className="relative w-full h-6 mb-2">
+        <div className="relative w-full h-8 mb-2">
           {displayYears.map((year) => {
             const position = ((year - workStartYear) / totalYears) * 100;
             return (
@@ -152,7 +152,7 @@ export function EnhancedCareerTimeline({
                 style={{ left: `${position}%` }}
               >
                 <span
-                  className={`text-xs font-semibold ${
+                  className={`text-sm font-semibold ${
                     year === currentYear
                       ? "text-zus-orange"
                       : year > currentYear
@@ -200,8 +200,8 @@ export function EnhancedCareerTimeline({
 
               {/* Period Label (for wider periods) */}
               <div className="h-full flex items-center justify-center px-2">
-                <span className="text-white text-xs font-semibold truncate">
-                  <Briefcase className="w-4 h-4 inline mr-1" />
+                <span className="text-white text-sm font-semibold truncate">
+                  <Briefcase className="w-5 h-5 inline mr-1" />
                   {getContractLabel(period.contractType)}
                 </span>
               </div>
@@ -215,7 +215,7 @@ export function EnhancedCareerTimeline({
               left: `${((currentYear - workStartYear) / totalYears) * 100}%`,
             }}
           >
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs font-bold text-zus-orange whitespace-nowrap">
+            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 text-sm font-bold text-zus-orange whitespace-nowrap">
               Dzisiaj
             </div>
           </div>
@@ -316,35 +316,37 @@ export function EnhancedCareerTimeline({
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 justify-center text-xs mt-4">
+      <div className="flex flex-wrap gap-4 justify-center text-sm mt-4">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-zus-green"></div>
-          <span className="text-zus-grey-700">UOP</span>
+          <div className="w-5 h-5 rounded bg-zus-green"></div>
+          <span className="text-zus-grey-700 font-medium">UOP</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-zus-navy"></div>
-          <span className="text-zus-grey-700">UOZ</span>
+          <div className="w-5 h-5 rounded bg-zus-navy"></div>
+          <span className="text-zus-grey-700 font-medium">UOZ</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-zus-teal"></div>
-          <span className="text-zus-grey-700">B2B</span>
+          <div className="w-5 h-5 rounded bg-zus-teal"></div>
+          <span className="text-zus-grey-700 font-medium">B2B</span>
         </div>
-        <div className="w-px h-4 bg-zus-grey-300"></div>
+        <div className="w-px h-5 bg-zus-grey-300"></div>
         <div className="flex items-center gap-2">
-          <Baby className="w-4 h-4 text-pink-600" />
-          <span className="text-zus-grey-700">Urlop macierzyński</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Plane className="w-4 h-4 text-orange-600" />
-          <span className="text-zus-grey-700">Urlop bezpłatny</span>
+          <Baby className="w-5 h-5 text-pink-600" />
+          <span className="text-zus-grey-700 font-medium">
+            Urlop macierzyński
+          </span>
         </div>
         <div className="flex items-center gap-2">
-          <TrendingDown className="w-4 h-4 text-zus-grey-600" />
-          <span className="text-zus-grey-700">Bezrobocie</span>
+          <Plane className="w-5 h-5 text-orange-600" />
+          <span className="text-zus-grey-700 font-medium">Urlop bezpłatny</span>
         </div>
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-zus-error" />
-          <span className="text-zus-grey-700">Długie L4</span>
+          <TrendingDown className="w-5 h-5 text-zus-grey-600" />
+          <span className="text-zus-grey-700 font-medium">Bezrobocie</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Activity className="w-5 h-5 text-zus-error" />
+          <span className="text-zus-grey-700 font-medium">Długie L4</span>
         </div>
       </div>
     </div>

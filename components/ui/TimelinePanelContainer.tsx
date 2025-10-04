@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { EmploymentPeriod, EmploymentGapPeriod, LifeEvent } from "@/lib/types";
 import { X } from "lucide-react";
 
@@ -19,6 +19,20 @@ export function TimelinePanelContainer({
   onClose,
   children,
 }: TimelinePanelContainerProps) {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      setTimeout(() => setIsAnimating(true), 10);
+    } else {
+      setIsAnimating(false);
+      const timer = setTimeout(() => setShouldRender(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -37,7 +51,7 @@ export function TimelinePanelContainer({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   const getPanelTitle = () => {
     if (!panelType) return "";
@@ -71,14 +85,18 @@ export function TimelinePanelContainer({
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+        className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
+          isAnimating ? "opacity-100" : "opacity-0"
+        }`}
         onClick={onClose}
       />
 
       {/* Side Panel */}
       <div
-        className="fixed top-0 right-0 h-full w-full md:w-[500px] bg-white shadow-2xl z-50 
-                   transform transition-transform duration-300 ease-out overflow-y-auto"
+        className={`fixed top-0 right-0 h-full w-full md:w-[500px] bg-white shadow-2xl z-50 
+                   overflow-y-auto transition-transform duration-300 ease-out ${
+                     isAnimating ? "translate-x-0" : "translate-x-full"
+                   }`}
       >
         {/* Header */}
         <div className="sticky top-0 bg-zus-green p-6 flex items-center justify-between border-b-4 border-zus-green-dark z-10">
