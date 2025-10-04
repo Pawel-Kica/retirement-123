@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { NewSimulationButton } from "@/components/ui/NewSimulationButton";
 import { Card } from "@/components/ui/Card";
 import { PensionDisplay } from "@/components/ui/PensionDisplay";
+import { Tooltip as InfoTooltip } from "@/components/ui/Tooltip";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { formatPLN, formatPercent, formatYears } from "@/lib/utils/formatting";
 import { updateSimulationPostalCode } from "@/lib/utils/simulationHistory";
@@ -34,6 +35,23 @@ ChartJS.register(
   Tooltip,
   Legend,
   Filler
+);
+
+const InfoIcon = () => (
+  <svg
+    className="w-4 h-4 text-zus-grey-500 hover:text-zus-green transition-colors"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="10" strokeWidth="2" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M12 16v-4M12 8h.01"
+    />
+  </svg>
 );
 
 export default function WynikPage() {
@@ -485,7 +503,7 @@ export default function WynikPage() {
                 </div>
 
                 {/* Results - Real */}
-                <div className="py-2">
+                <div className="py-2 border-b border-zus-grey-300">
                   <p className="text-xs text-zus-grey-700">
                     Emerytura urealniona (w dzisiejszych złotych)
                   </p>
@@ -494,6 +512,18 @@ export default function WynikPage() {
                   </p>
                   <p className="text-xs text-zus-grey-600 mt-0.5">
                     Porównywalna do dzisiejszych kosztów życia
+                  </p>
+                </div>
+
+                {/* Replacement Rate */}
+                <div className="py-2">
+                  <p className="text-xs text-zus-grey-700">Stopa zastąpienia</p>
+                  <p className="text-lg font-bold text-zus-grey-900">
+                    {formatPercent(results.replacementRate / 100)}
+                  </p>
+                  <p className="text-xs text-zus-grey-600 mt-0.5">
+                    Wynagrodzenie zindeksowane w odniesieniu do prognozowanego
+                    świadczenia
                   </p>
                 </div>
               </div>
@@ -604,9 +634,11 @@ export default function WynikPage() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Oczekiwana emerytura
-                </p>
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs text-zus-grey-600">
+                    Oczekiwana emerytura
+                  </p>
+                </div>
                 <p className="text-sm font-bold text-zus-orange">
                   {formatPLN(expectedPension)}
                 </p>
@@ -657,19 +689,34 @@ export default function WynikPage() {
                 </p>
               </div>
               <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">Wynagrodzenie</p>
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs text-zus-grey-600">Wynagrodzenie</p>
+                  <InfoTooltip content="Twoje obecne miesięczne wynagrodzenie brutto (przed potrąceniem podatków i składek ZUS). Na tej podstawie obliczane są przyszłe składki emerytalne.">
+                    <InfoIcon />
+                  </InfoTooltip>
+                </div>
                 <p className="text-sm font-bold text-zus-grey-900">
                   {formatPLN(inputs.monthlyGross)}
                 </p>
               </div>
               <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">L4</p>
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs text-zus-grey-600">L4</p>
+                  <InfoTooltip content="Uwzględnienie zwolnień lekarskich (L4) w symulacji. Okres choroby nie generuje pełnych składek emerytalnych, co wpływa na wysokość przyszłej emerytury.">
+                    <InfoIcon />
+                  </InfoTooltip>
+                </div>
                 <p className="text-sm font-bold text-zus-grey-900">
                   {inputs.includeL4 ? "Tak" : "Nie"}
                 </p>
               </div>
               <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">Konto główne</p>
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs text-zus-grey-600">Konto główne</p>
+                  <InfoTooltip content="Stan Twojego głównego konta emerytalnego w ZUS. Informację o stanie konta możesz znaleźć w rocznej informacji przesyłanej przez ZUS lub na Platformie Usług Elektronicznych (PUE ZUS).">
+                    <InfoIcon />
+                  </InfoTooltip>
+                </div>
                 <p className="text-sm font-bold text-zus-grey-900">
                   {inputs.accountBalance
                     ? formatPLN(inputs.accountBalance)
@@ -677,7 +724,12 @@ export default function WynikPage() {
                 </p>
               </div>
               <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">Subkonto</p>
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs text-zus-grey-600">Subkonto</p>
+                  <InfoTooltip content="Stan subkonta emerytalnego w ZUS. Subkonto zostało utworzone dla osób urodzonych po 1948 roku i gromadzi składki odprowadzane od 1999 roku. Sprawdź stan na PUE ZUS.">
+                    <InfoIcon />
+                  </InfoTooltip>
+                </div>
                 <p className="text-sm font-bold text-zus-grey-900">
                   {inputs.subAccountBalance
                     ? formatPLN(inputs.subAccountBalance)
@@ -685,9 +737,14 @@ export default function WynikPage() {
                 </p>
               </div>
               <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">Kod pocztowy</p>
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs text-zus-grey-600">Stopa zastąpienia</p>
+                  <InfoTooltip content="Stopa zastąpienia to procent ostatniego wynagrodzenia, który będzie zastąpiony przez emeryturę. Na przykład 50% oznacza, że emerytura wyniesie połowę ostatniej pensji. Im wyższa stopa, tym lepiej.">
+                    <InfoIcon />
+                  </InfoTooltip>
+                </div>
                 <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.postalCode || "Nie podano"}
+                  {formatPercent(results.replacementRate / 100)}
                 </p>
               </div>
             </div>
