@@ -86,7 +86,7 @@ export default function AdminPage() {
     const [data, setData] = useState<StatisticsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [timePeriod, setTimePeriod] = useState<"24hours" | "7days" | "30days" | "3months" | "6months" | "all">("30days");
+    const [timePeriod, setTimePeriod] = useState<"24hours" | "7days" | "30days" | "3months" | "6months" | "all">("24hours");
 
     useEffect(() => {
         fetchStatistics();
@@ -433,7 +433,7 @@ export default function AdminPage() {
                         </div>
                     </div>
 
-                    {/* Average Age with Distribution */}
+                    {/* Average Age */}
                     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-medium text-gray-600">
@@ -443,34 +443,15 @@ export default function AdminPage() {
                                 <IconClock className="text-purple-600" size={20} />
                             </div>
                         </div>
-                        <div className="text-3xl font-bold text-gray-900 mb-3">
+                        <div className="text-3xl font-bold text-gray-900 mb-4">
                             {Math.round(parseFloat(data.overallStats.avg_age))} lat
                         </div>
-                        <div className="space-y-2 mb-2">
-                            {data.ageDistribution.slice(0, 3).map((age, idx) => {
-                                const maxCount = Math.max(
-                                    ...data.ageDistribution.map((a) => parseInt(a.count))
-                                );
-                                const percentage = (parseInt(age.count) / maxCount) * 100;
-                                return (
-                                    <div key={idx}>
-                                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                                            <span>{age.age_group}</span>
-                                            <span>{parseInt(age.count)}</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                            <div
-                                                className="bg-purple-600 h-1.5 rounded-full transition-all"
-                                                style={{ width: `${percentage}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                        <div className="text-sm text-gray-600">
+                            Średnia wieku użytkowników
                         </div>
                     </div>
 
-                    {/* Average Salary with Sparkline */}
+                    {/* Average Salary */}
                     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-medium text-gray-600">
@@ -480,22 +461,15 @@ export default function AdminPage() {
                                 <IconCurrencyDollar className="text-yellow-600" size={20} />
                             </div>
                         </div>
-                        <div className="text-3xl font-bold text-gray-900 mb-3">
+                        <div className="text-3xl font-bold text-gray-900 mb-4">
                             {(parseInt(data.overallStats.avg_salary) / 1000).toFixed(1)}k zł
                         </div>
-                        <div className="h-10 -mx-2 mb-2">
-                            <Sparklines
-                                data={data.salaryDistribution.map((s) => parseInt(s.count))}
-                                height={40}
-                            >
-                                <SparklinesLine color="#F5A623" style={{ fill: "none", strokeWidth: 2 }} />
-                                <SparklinesSpots size={2} style={{ fill: "#F5A623" }} />
-                            </Sparklines>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                            <span className="inline-flex items-center gap-1 text-yellow-600">
-                                <IconTrendingUp size={14} />
-                                <span className="font-medium">Rozkład wynagrodzeń</span>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Najczęstszy przedział:</span>
+                            <span className="font-semibold text-gray-900">
+                                {data.salaryDistribution.length > 0
+                                    ? `${(parseInt(data.salaryDistribution[0].salary_bucket) / 1000).toFixed(0)}-${(parseInt(data.salaryDistribution[0].salary_bucket) / 1000 + 1).toFixed(0)}k zł`
+                                    : 'Brak danych'}
                             </span>
                         </div>
                     </div>

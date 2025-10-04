@@ -74,21 +74,28 @@ export async function GET(request: NextRequest) {
       GROUP BY plec
     `;
 
-        // Age distribution
+        // Age distribution - simplified to 3 broad ranges
         const ageDistribution = await sql`
       SELECT 
-        CASE 
-          WHEN wiek < 30 THEN '<30'
-          WHEN wiek >= 30 AND wiek < 40 THEN '30-40'
-          WHEN wiek >= 40 AND wiek < 50 THEN '40-50'
-          WHEN wiek >= 50 AND wiek < 60 THEN '50-60'
-          ELSE '60+'
-        END as age_group,
+        age_group,
         COUNT(*) as count
-      FROM raport_zainteresowania
-      WHERE wiek IS NOT NULL
+      FROM (
+        SELECT 
+          CASE 
+            WHEN wiek < 40 THEN '<40'
+            WHEN wiek >= 40 AND wiek < 55 THEN '40-55'
+            ELSE '55+'
+          END as age_group
+        FROM raport_zainteresowania
+        WHERE wiek IS NOT NULL
+      ) as age_groups
       GROUP BY age_group
-      ORDER BY age_group
+      ORDER BY 
+        CASE age_group
+          WHEN '<40' THEN 1
+          WHEN '40-55' THEN 2
+          WHEN '55+' THEN 3
+        END
     `;
 
         // Salary distribution
