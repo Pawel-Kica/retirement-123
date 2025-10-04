@@ -1,0 +1,11 @@
+{
+    "_metadata": {
+        "source": "ZUS, GUS",
+        "description": "Wpływ zwolnień lekarskich na składki emerytalne - kobiety",
+        "version": "1.0",
+        "date": "2025-01"
+    },
+    "avgDaysPerYear": 18,
+    "reductionCoefficient": 0.978,
+    "description": "Średnia dla kobiet w Polsce: 18 dni L4 rocznie, redukcja bazy składkowej o 2,2%"
+}
