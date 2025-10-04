@@ -43,6 +43,7 @@ export default function SimulacjaPage() {
     workStartYear: 2010,
     workEndYear: 2050,
     includeL4: false,
+    earlyRetirement: false,
   });
 
   const [errors, setErrors] = useState<any[]>([]);
@@ -137,6 +138,47 @@ export default function SimulacjaPage() {
               "Rok rozpoczęcia pracy nie pasuje do podanego wieku (za wcześnie - musisz mieć co najmniej 18 lat)",
           },
         ]);
+      }
+    }
+
+    // Real-time validation for work end year (retirement year)
+    if (field === "workEndYear" && value !== undefined) {
+      if (formData.age && formData.sex && !formData.earlyRetirement) {
+        const retirementAge = formData.age + (value - currentYear);
+        const minRetirementAge = formData.sex === 'F' ? 60 : 65;
+        
+        if (retirementAge < minRetirementAge) {
+          setErrors((prev) => [
+            ...prev,
+            {
+              field: "workEndYear",
+              message: `Minimalny wiek emerytalny dla ${formData.sex === 'F' ? 'kobiet' : 'mężczyzn'} to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+            },
+          ]);
+        }
+      }
+    }
+
+    // Re-validate work end year when earlyRetirement checkbox changes
+    if (field === "earlyRetirement" && formData.workEndYear) {
+      setErrors((prevErrors) =>
+        prevErrors.filter((error) => error.field !== "workEndYear")
+      );
+      
+      // If unchecking early retirement, re-validate minimum age
+      if (!value && formData.age && formData.sex) {
+        const retirementAge = formData.age + (formData.workEndYear - currentYear);
+        const minRetirementAge = formData.sex === 'F' ? 60 : 65;
+        
+        if (retirementAge < minRetirementAge) {
+          setErrors((prev) => [
+            ...prev,
+            {
+              field: "workEndYear",
+              message: `Minimalny wiek emerytalny dla ${formData.sex === 'F' ? 'kobiet' : 'mężczyzn'} to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat.`,
+            },
+          ]);
+        }
       }
     }
 
@@ -247,6 +289,19 @@ export default function SimulacjaPage() {
         field: "workEndYear",
         message: "Rok zakończenia nie może przekraczać 2080",
       });
+    }
+
+    // Minimum retirement age validation (unless early retirement)
+    if (formData.age && formData.sex && formData.workEndYear && !formData.earlyRetirement) {
+      const retirementAge = formData.age + (formData.workEndYear - currentYear);
+      const minRetirementAge = formData.sex === 'F' ? 60 : 65;
+      
+      if (retirementAge < minRetirementAge) {
+        sectionErrors.push({
+          field: "workEndYear",
+          message: `Minimalny wiek emerytalny dla ${formData.sex === 'F' ? 'kobiet' : 'mężczyzn'} to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+        });
+      }
     }
 
     setErrors(sectionErrors);
@@ -401,13 +456,12 @@ export default function SimulacjaPage() {
           <div className="relative min-h-[600px]">
             {/* Step 0: Basic Info */}
             <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 0
+              className={`transition-all duration-500 ease-in-out ${currentStep === 0
                   ? "opacity-100 translate-x-0"
                   : currentStep > 0
-                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
+                    ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+                    : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+                }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -545,13 +599,12 @@ export default function SimulacjaPage() {
 
             {/* Step 1: Work History */}
             <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 1
+              className={`transition-all duration-500 ease-in-out ${currentStep === 1
                   ? "opacity-100 translate-x-0"
                   : currentStep > 1
-                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
+                    ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+                    : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+                }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -617,12 +670,32 @@ export default function SimulacjaPage() {
                       error={getFieldError(errors, "workEndYear")}
                       hint={
                         !getFieldError(errors, "workEndYear") &&
-                        formData.workEndYear
+                          formData.workEndYear
                           ? `💡 Możesz wybrać inny rok, jeśli planujesz pracować dłużej lub krócej.`
                           : undefined
                       }
                     />
                   </FieldWithVisual>
+
+                  {/* Early Retirement Checkbox */}
+                  <div className="mt-6 p-4 bg-zus-green-light border-l-4 border-zus-green rounded">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.earlyRetirement || false}
+                        onChange={(e) => handleChange("earlyRetirement", e.target.checked)}
+                        className="mt-1 w-5 h-5 text-zus-green border-zus-grey-300 rounded focus:ring-zus-green focus:ring-2"
+                      />
+                      <div className="flex-1">
+                        <div className="font-semibold text-zus-grey-900">
+                          🚨 Wcześniejsza emerytura (służby mundurowe, specjalne zawody)
+                        </div>
+                        <div className="text-sm text-zus-grey-700 mt-1">
+                          Zaznacz, jeśli masz prawo do wcześniejszej emerytury przed osiągnięciem standardowego wieku emerytalnego (60 lat dla kobiet, 65 lat dla mężczyzn). Dotyczy to m.in.: policjantów, strażaków, żołnierzy, górników oraz innych zawodów w szczególnych warunkach.
+                        </div>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
@@ -665,13 +738,12 @@ export default function SimulacjaPage() {
 
             {/* Step 2: Additional Info */}
             <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 2
+              className={`transition-all duration-500 ease-in-out ${currentStep === 2
                   ? "opacity-100 translate-x-0"
                   : currentStep > 2
-                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
+                    ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+                    : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+                }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -819,11 +891,10 @@ export default function SimulacjaPage() {
 
             {/* Step 3: Review */}
             <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 3
+              className={`transition-all duration-500 ease-in-out ${currentStep === 3
                   ? "opacity-100 translate-x-0"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
+                }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -922,8 +993,8 @@ export default function SimulacjaPage() {
                         <span className="font-semibold text-zus-grey-900">
                           {formData.accountBalance
                             ? `${formData.accountBalance.toLocaleString(
-                                "pl-PL"
-                              )} zł`
+                              "pl-PL"
+                            )} zł`
                             : "Nie podano (automatyczne oszacowanie)"}
                         </span>
                       </div>
@@ -934,8 +1005,8 @@ export default function SimulacjaPage() {
                         <span className="font-semibold text-zus-grey-900">
                           {formData.subAccountBalance
                             ? `${formData.subAccountBalance.toLocaleString(
-                                "pl-PL"
-                              )} zł`
+                              "pl-PL"
+                            )} zł`
                             : "Nie podano (automatyczne oszacowanie)"}
                         </span>
                       </div>
@@ -944,11 +1015,10 @@ export default function SimulacjaPage() {
                           Zwolnienia lekarskie (L4):
                         </span>
                         <span
-                          className={`font-semibold ${
-                            formData.includeL4
+                          className={`font-semibold ${formData.includeL4
                               ? "text-zus-green"
                               : "text-zus-grey-500"
-                          }`}
+                            }`}
                         >
                           {formData.includeL4
                             ? "✓ Uwzględnione"

@@ -76,6 +76,19 @@ export interface RetirementAgeData {
     note: string;
 }
 
+export interface LifeDurationData {
+    _metadata: {
+        source: string;
+        description: string;
+        version: string;
+        date: string;
+        unit: string; // "months"
+    };
+    [age: string]: {
+        [month: string]: number; // remaining months of life
+    } | object;
+}
+
 // User input types
 export interface SimulationInputs {
     age: number;
@@ -87,6 +100,7 @@ export interface SimulationInputs {
     subAccountBalance?: number;
     includeL4: boolean;
     postalCode?: string;
+    earlyRetirement?: boolean; // Special professions (police, firefighters, etc.)
 }
 
 // Calculation result types

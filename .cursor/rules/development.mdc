@@ -6,6 +6,8 @@ alwaysApply: true
 **ALL UI components, styles, and visual elements MUST strictly follow the ZUS.pl Design System.**
 Reference: `DESGIN_GUIDELINE.md` for complete specifications.
 
+Do not add comments in code you were generated.
+
 ## Color Palette (MANDATORY)
 
 ### Primary Colors - USE THESE
