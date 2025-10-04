@@ -73,3 +73,28 @@ export function deleteSimulationById(id: string): void {
     console.error("Failed to delete simulation from history:", error);
   }
 }
+
+export function updateSimulationPostalCode(
+  id: string,
+  postalCode: string
+): void {
+  const history = getSimulationHistory();
+  const updatedHistory = history.map((entry) => {
+    if (entry.id === id) {
+      return {
+        ...entry,
+        inputs: {
+          ...entry.inputs,
+          postalCode,
+        },
+      };
+    }
+    return entry;
+  });
+
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
+  } catch (error) {
+    console.error("Failed to update postal code in history:", error);
+  }
+}

@@ -104,6 +104,10 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   const setResults = (results: SimulationResults) => {
     setState((prev) => {
       if (prev.inputs && results) {
+        const simulationId = `sim_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+        sessionStorage.setItem("current-simulation-id", simulationId);
         saveSimulationToHistory(prev.expectedPension, prev.inputs, results);
       }
       return { ...prev, results };

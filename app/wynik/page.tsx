@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { PensionDisplay } from "@/components/ui/PensionDisplay";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { formatPLN, formatPercent, formatYears } from "@/lib/utils/formatting";
+import { updateSimulationPostalCode } from "@/lib/utils/simulationHistory";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -62,16 +63,27 @@ export default function WynikPage() {
   }, [state.results, router, loadFromHistory, getHistory]);
 
   useEffect(() => {
-    if (
-      !isLoading &&
-      state.results &&
-      state.inputs &&
-      !state.inputs.postalCode
-    ) {
-      const hasSeenModal = sessionStorage.getItem("zus-postal-modal-seen");
-      if (!hasSeenModal) {
+    if (!isLoading && state.results && state.inputs) {
+      const currentSimulationId = sessionStorage.getItem(
+        "current-simulation-id"
+      );
+      const lastAskedSimulationId = sessionStorage.getItem(
+        "postal-asked-for-simulation"
+      );
+
+      if (
+        currentSimulationId &&
+        currentSimulationId !== lastAskedSimulationId
+      ) {
         setShowPostalModal(true);
-        sessionStorage.setItem("zus-postal-modal-seen", "true");
+        sessionStorage.setItem(
+          "postal-asked-for-simulation",
+          currentSimulationId
+        );
+
+        if (state.inputs.postalCode) {
+          setPostalCode(state.inputs.postalCode);
+        }
       }
     }
   }, [isLoading, state.results, state.inputs]);
@@ -93,6 +105,11 @@ export default function WynikPage() {
         ...state.inputs,
         postalCode,
       });
+
+      const history = getHistory();
+      if (history.length > 0) {
+        updateSimulationPostalCode(history[0].id, postalCode);
+      }
     }
 
     setShowPostalModal(false);
@@ -163,10 +180,12 @@ export default function WynikPage() {
                 <span className="text-3xl">📍</span>
               </div>
               <h2 className="text-2xl font-bold text-zus-grey-900 mb-2">
-                Podaj kod pocztowy
+                {postalCode ? "Zaktualizuj kod pocztowy" : "Podaj kod pocztowy"}
               </h2>
               <p className="text-zus-grey-700">
-                Opcjonalnie - pomoże nam lepiej dopasować statystyki
+                {postalCode
+                  ? "Możesz zmienić swój kod pocztowy lub pozostawić obecny"
+                  : "Opcjonalnie - pomoże nam lepiej dopasować statystyki"}
               </p>
             </div>
 
@@ -219,7 +238,7 @@ export default function WynikPage() {
                 onClick={handlePostalSubmit}
                 variant="success"
                 size="lg"
-                className="w-full"
+                className="w-full cursor-pointer"
                 disabled={postalCode.length > 0 && postalCode.length !== 6}
               >
                 {postalCode ? "Zapisz" : "Pomiń"}
@@ -227,7 +246,7 @@ export default function WynikPage() {
               {postalCode && (
                 <button
                   onClick={handleSkipPostal}
-                  className="text-zus-grey-700 hover:text-zus-grey-900 font-semibold py-2 transition-colors"
+                  className="text-zus-grey-700 hover:text-zus-grey-900 font-semibold py-2 transition-colors cursor-pointer"
                 >
                   Pomiń
                 </button>
@@ -270,7 +289,7 @@ export default function WynikPage() {
                 </div>
                 <button
                   onClick={() => setShowReportPreview(false)}
-                  className="text-white hover:bg-zus-green-dark rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                  className="text-white hover:bg-zus-green-dark rounded-full w-8 h-8 flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="Zamknij"
                 >
                   ✕
@@ -415,7 +434,7 @@ export default function WynikPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => setShowReportPreview(false)}
-                  className="flex-1 px-6 py-3 bg-white border-2 border-zus-grey-300 text-zus-grey-900 font-semibold rounded-lg hover:bg-zus-grey-50 transition-colors"
+                  className="flex-1 px-6 py-3 bg-white border-2 border-zus-grey-300 text-zus-grey-900 font-semibold rounded-lg hover:bg-zus-grey-50 transition-colors cursor-pointer"
                 >
                   Anuluj
                 </button>
@@ -423,7 +442,7 @@ export default function WynikPage() {
                   onClick={handleDownloadReport}
                   variant="success"
                   size="lg"
-                  className="flex-1"
+                  className="flex-1 cursor-pointer"
                 >
                   📥 Pobierz raport PDF
                 </Button>
@@ -956,10 +975,18 @@ export default function WynikPage() {
           {/* Actions */}
           <div className="flex flex-col md:flex-row gap-4">
             <Button
+              onClick={() => router.push("/symulacja")}
+              variant="primary"
+              size="lg"
+              className="flex-1 cursor-pointer"
+            >
+              🔄 Nowa symulacja
+            </Button>
+            <Button
               onClick={() => router.push("/dashboard")}
               variant="secondary"
               size="lg"
-              className="flex-1"
+              className="flex-1 cursor-pointer"
             >
               📊 Przejdź do Dashboardu
             </Button>
@@ -967,7 +994,7 @@ export default function WynikPage() {
               onClick={() => setShowReportPreview(true)}
               variant="success"
               size="lg"
-              className="flex-1"
+              className="flex-1 cursor-pointer"
             >
               📄 Pobierz raport (PDF)
             </Button>
