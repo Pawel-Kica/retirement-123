@@ -766,34 +766,29 @@ export default function SimulacjaPage() {
                         </span>
                       </label>
                     </div>
-
-                    {formData.includeL4 && (
-                      <div className="mt-4 p-4 bg-white rounded border border-zus-grey-300">
-                        <h4 className="font-bold mb-2">
-                          Średnia długość L4 w Polsce:
-                        </h4>
-                        <ul className="list-disc pl-5 space-y-1 mb-3 text-sm">
-                          <li>
-                            Kobiety: średnio {data.sickImpactF.avgDaysPerYear}{" "}
-                            dni rocznie
-                          </li>
-                          <li>
-                            Mężczyźni: średnio {data.sickImpactM.avgDaysPerYear}{" "}
-                            dni rocznie
-                          </li>
-                        </ul>
-                        <p className="text-sm text-zus-grey-700">
-                          Podczas zwolnienia lekarskiego składki emerytalne są
-                          odprowadzane od zasiłku (zazwyczaj niższego niż pełne
-                          wynagrodzenie), co zmniejsza kapitał emerytalny.
-                          Średnio obniża to świadczenie o{" "}
-                          {((1 - l4Config.reductionCoefficient) * 100).toFixed(
-                            1
-                          )}
-                          %.
-                        </p>
-                      </div>
-                    )}
+                    <div className="mt-4 p-4 bg-white rounded border border-zus-grey-300">
+                      <h4 className="font-bold mb-2">
+                        Średnia długość L4 w Polsce:
+                      </h4>
+                      <ul className="list-disc pl-5 space-y-1 mb-3 text-sm">
+                        <li>
+                          Kobiety: średnio {data.sickImpactF.avgDaysPerYear} dni
+                          rocznie
+                        </li>
+                        <li>
+                          Mężczyźni: średnio {data.sickImpactM.avgDaysPerYear}{" "}
+                          dni rocznie
+                        </li>
+                      </ul>
+                      <p className="text-sm text-zus-grey-700">
+                        Podczas zwolnienia lekarskiego składki emerytalne są
+                        odprowadzane od zasiłku (zazwyczaj niższego niż pełne
+                        wynagrodzenie), co zmniejsza kapitał emerytalny. Średnio
+                        obniża to świadczenie o{" "}
+                        {((1 - l4Config.reductionCoefficient) * 100).toFixed(1)}
+                        %.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
