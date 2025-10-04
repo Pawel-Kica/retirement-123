@@ -67,6 +67,7 @@ export default function WynikPage() {
   const [postalError, setPostalError] = useState("");
   const postalInputRef = useRef<HTMLInputElement>(null);
   const [showReportPreview, setShowReportPreview] = useState(false);
+  const [showSimulationData, setShowSimulationData] = useState(false);
 
   useEffect(() => {
     if (!state.results) {
@@ -654,125 +655,144 @@ export default function WynikPage() {
 
           {/* Input Summary */}
           <Card className="mb-8 bg-zus-grey-50">
-            <h3 className="text-lg font-bold text-zus-grey-900 mb-4 pb-2 border-b-2 border-zus-green">
-              📋 Dane symulacji
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">
-                    Oczekiwana emerytura
+            <button
+              onClick={() => setShowSimulationData(!showSimulationData)}
+              className="w-full flex items-center justify-between text-lg font-bold text-zus-grey-900 pb-2 border-b-2 border-zus-green hover:text-zus-green transition-colors cursor-pointer"
+            >
+              <span>📋 Dane symulacji</span>
+              <svg
+                className={`w-5 h-5 transition-transform ${showSimulationData ? "rotate-180" : ""
+                  }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            {showSimulationData && (
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-4">
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <div className="flex items-center gap-1 mb-1">
+                    <p className="text-xs text-zus-grey-600">
+                      Oczekiwana emerytura
+                    </p>
+                  </div>
+                  <p className="text-sm font-bold text-zus-orange">
+                    {formatPLN(expectedPension)}
                   </p>
                 </div>
-                <p className="text-sm font-bold text-zus-orange">
-                  {formatPLN(expectedPension)}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">Wiek obecny</p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.age} lat
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">Płeć</p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.sex === "M" ? "M" : "K"}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Rozpoczęcie pracy
-                </p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.workStartYear}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Przejście na emeryturę
-                </p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.workEndYear}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Wiek emerytalny
-                </p>
-                <p className="text-sm font-bold text-zus-green">
-                  {inputs.age + (inputs.workEndYear - new Date().getFullYear())}{" "}
-                  lat
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Lata pracy (total)
-                </p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.workEndYear - inputs.workStartYear} lat
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Wynagrodzenie</p>
-                  <InfoTooltip content="Twoje obecne miesięczne wynagrodzenie brutto (przed potrąceniem podatków i składek ZUS). Na tej podstawie obliczane są przyszłe składki emerytalne.">
-                    <InfoIcon />
-                  </InfoTooltip>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-600 mb-1">Wiek obecny</p>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.age} lat
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {formatPLN(inputs.monthlyGross)}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Zwolnienia lekarskie</p>
-                  <InfoTooltip content="Uwzględnienie zwolnień lekarskich w symulacji. Okres choroby nie generuje pełnych składek emerytalnych, co wpływa na wysokość przyszłej emerytury.">
-                    <InfoIcon />
-                  </InfoTooltip>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-600 mb-1">Płeć</p>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.sex === "M" ? "M" : "K"}
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.includeL4 ? "Tak" : "Nie"}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Konto główne</p>
-                  <InfoTooltip content="Stan Twojego głównego konta emerytalnego w ZUS. Informację o stanie konta możesz znaleźć w rocznej informacji przesyłanej przez ZUS lub na Platformie Usług Elektronicznych (PUE ZUS).">
-                    <InfoIcon />
-                  </InfoTooltip>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-600 mb-1">
+                    Rozpoczęcie pracy
+                  </p>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.workStartYear}
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.accountBalance
-                    ? formatPLN(inputs.accountBalance)
-                    : "0,00 zł"}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Subkonto</p>
-                  <InfoTooltip content="Stan subkonta emerytalnego w ZUS. Subkonto zostało utworzone dla osób urodzonych po 1948 roku i gromadzi składki odprowadzane od 1999 roku. Sprawdź stan na PUE ZUS.">
-                    <InfoIcon />
-                  </InfoTooltip>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-600 mb-1">
+                    Przejście na emeryturę
+                  </p>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.workEndYear}
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.subAccountBalance
-                    ? formatPLN(inputs.subAccountBalance)
-                    : "0,00 zł"}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Stopa zastąpienia</p>
-                  <InfoTooltip content="Stopa zastąpienia to procent ostatniego wynagrodzenia, który będzie zastąpiony przez emeryturę. Na przykład 50% oznacza, że emerytura wyniesie połowę ostatniej pensji. Im wyższa stopa, tym lepiej.">
-                    <InfoIcon />
-                  </InfoTooltip>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-600 mb-1">
+                    Wiek emerytalny
+                  </p>
+                  <p className="text-sm font-bold text-zus-green">
+                    {inputs.age + (inputs.workEndYear - new Date().getFullYear())}{" "}
+                    lat
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {formatPercent(results.replacementRate / 100)}
-                </p>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-600 mb-1">
+                    Lata pracy (total)
+                  </p>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.workEndYear - inputs.workStartYear} lat
+                  </p>
+                </div>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <div className="flex items-center gap-1 mb-1">
+                    <p className="text-xs text-zus-grey-600">Wynagrodzenie</p>
+                    <InfoTooltip content="Twoje obecne miesięczne wynagrodzenie brutto (przed potrąceniem podatków i składek ZUS). Na tej podstawie obliczane są przyszłe składki emerytalne.">
+                      <InfoIcon />
+                    </InfoTooltip>
+                  </div>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {formatPLN(inputs.monthlyGross)}
+                  </p>
+                </div>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <div className="flex items-center gap-1 mb-1">
+                    <p className="text-xs text-zus-grey-600">Zwolnienia lekarskie</p>
+                    <InfoTooltip content="Uwzględnienie zwolnień lekarskich w symulacji. Okres choroby nie generuje pełnych składek emerytalnych, co wpływa na wysokość przyszłej emerytury.">
+                      <InfoIcon />
+                    </InfoTooltip>
+                  </div>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.includeL4 ? "Tak" : "Nie"}
+                  </p>
+                </div>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <div className="flex items-center gap-1 mb-1">
+                    <p className="text-xs text-zus-grey-600">Konto główne</p>
+                    <InfoTooltip content="Stan Twojego głównego konta emerytalnego w ZUS. Informację o stanie konta możesz znaleźć w rocznej informacji przesyłanej przez ZUS lub na Platformie Usług Elektronicznych (PUE ZUS).">
+                      <InfoIcon />
+                    </InfoTooltip>
+                  </div>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.accountBalance
+                      ? formatPLN(inputs.accountBalance)
+                      : "0,00 zł"}
+                  </p>
+                </div>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <div className="flex items-center gap-1 mb-1">
+                    <p className="text-xs text-zus-grey-600">Subkonto</p>
+                    <InfoTooltip content="Stan subkonta emerytalnego w ZUS. Subkonto zostało utworzone dla osób urodzonych po 1948 roku i gromadzi składki odprowadzane od 1999 roku. Sprawdź stan na PUE ZUS.">
+                      <InfoIcon />
+                    </InfoTooltip>
+                  </div>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.subAccountBalance
+                      ? formatPLN(inputs.subAccountBalance)
+                      : "0,00 zł"}
+                  </p>
+                </div>
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <div className="flex items-center gap-1 mb-1">
+                    <p className="text-xs text-zus-grey-600">Stopa zastąpienia</p>
+                    <InfoTooltip content="Stopa zastąpienia to procent ostatniego wynagrodzenia, który będzie zastąpiony przez emeryturę. Na przykład 50% oznacza, że emerytura wyniesie połowę ostatniej pensji. Im wyższa stopa, tym lepiej.">
+                      <InfoIcon />
+                    </InfoTooltip>
+                  </div>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {formatPercent(results.replacementRate / 100)}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </Card>
 
           {/* Deferral Scenarios */}
