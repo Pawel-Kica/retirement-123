@@ -128,5 +128,57 @@
     "nominalPension": 8037.962066823383,
     "realPension": 4229.650709581394,
     "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T15:41:48.908Z",
+    "expectedPension": 3000,
+    "age": 35,
+    "sex": "M",
+    "monthlyGross": 7000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 8037.962066823383,
+    "realPension": 4229.650709581394,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T15:46:34.153Z",
+    "expectedPension": 3000,
+    "age": 35,
+    "sex": "M",
+    "monthlyGross": 7000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 8037.962066823383,
+    "realPension": 4229.650709581394,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T15:49:06.207Z",
+    "expectedPension": 3000,
+    "age": 35,
+    "sex": "M",
+    "monthlyGross": 7000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 8037.962066823383,
+    "realPension": 4229.650709581394,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T15:50:47.244Z",
+    "expectedPension": 3000,
+    "age": 35,
+    "sex": "M",
+    "monthlyGross": 7000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 8037.962066823383,
+    "realPension": 4229.650709581394,
+    "postalCode": null
   }
 ]
