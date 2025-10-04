@@ -102,5 +102,31 @@
     "nominalPension": 5741.40147630242,
     "realPension": 3021.179078272426,
     "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T14:31:36.241Z",
+    "expectedPension": 1380,
+    "age": 30,
+    "sex": "M",
+    "monthlyGross": 5000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 6448.073314682471,
+    "realPension": 3073.1776059406825,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T14:34:23.334Z",
+    "expectedPension": 890,
+    "age": 35,
+    "sex": "M",
+    "monthlyGross": 7000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 8037.962066823383,
+    "realPension": 4229.650709581394,
+    "postalCode": null
   }
 ]

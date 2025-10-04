@@ -71,12 +71,12 @@ export function validateSimulationInputs(
     });
   } else if (
     inputs.age &&
-    inputs.workStartYear < currentYear - inputs.age + 15
+    inputs.workStartYear < currentYear - inputs.age + 18
   ) {
     errors.push({
       field: "workStartYear",
       message:
-        "Rok rozpoczęcia pracy nie pasuje do podanego wieku (musisz mieć co najmniej 15 lat)",
+        "Rok rozpoczęcia pracy nie pasuje do podanego wieku (musisz mieć co najmniej 18 lat)",
     });
   }
 

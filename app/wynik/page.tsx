@@ -34,6 +34,20 @@ export default function WynikPage() {
           Twoja Prognoza Emerytury
         </h1>
 
+        {/* Congratulations Message */}
+        {results.differenceVsExpected >= 0 && (
+          <Card variant="highlight" className="mb-8">
+            <h3 className="text-xl font-bold text-zus-green">
+              ✅ Gratulacje! Przekraczasz swoje oczekiwania
+            </h3>
+            <p className="mt-2">
+              Twoja prognozowana emerytura ({formatPLN(results.realPension)})
+              jest wyższa od oczekiwanej ({formatPLN(expectedPension)}) o{" "}
+              {formatPLN(results.differenceVsExpected)}.
+            </p>
+          </Card>
+        )}
+
         {/* Main Results */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card>
@@ -209,19 +223,6 @@ export default function WynikPage() {
                 </p>
               </div>
             )}
-          </Card>
-        )}
-
-        {results.differenceVsExpected >= 0 && (
-          <Card variant="highlight" className="mb-8">
-            <h3 className="text-xl font-bold text-zus-green">
-              ✅ Gratulacje! Przekraczasz swoje oczekiwania
-            </h3>
-            <p className="mt-2">
-              Twoja prognozowana emerytura ({formatPLN(results.realPension)})
-              jest wyższa od oczekiwanej ({formatPLN(expectedPension)}) o{" "}
-              {formatPLN(results.differenceVsExpected)}.
-            </p>
           </Card>
         )}
 

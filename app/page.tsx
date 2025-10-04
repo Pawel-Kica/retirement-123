@@ -482,7 +482,7 @@ export default function Home() {
         </Card>
 
         {/* Comparison to Average */}
-        <Card variant="highlight" className="mb-4">
+        <Card variant="info" className="mb-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-700 mb-1">
@@ -493,17 +493,19 @@ export default function Home() {
               </p>
             </div>
             <Tooltip content="Średnia emerytura brutto w Polsce (dane GUS, 2024). Połowa emerytów otrzymuje mniej, połowa więcej. Twoje oczekiwania mogą być wyższe lub niższe.">
-              <svg
-                className="w-6 h-6 text-zus-blue cursor-pointer"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-zus-green text-zus-green hover:bg-zus-green hover:text-white transition-all duration-200 cursor-help flex-shrink-0">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </span>
             </Tooltip>
           </div>
           {pension < 3518 && (
