@@ -387,19 +387,6 @@ export default function SimulacjaPage() {
                       <input
                         type="radio"
                         name="sex"
-                        value="F"
-                        checked={formData.sex === "F"}
-                        onChange={(e) =>
-                          handleChange("sex", e.target.value as "M" | "F")
-                        }
-                        className="w-5 h-5 accent-zus-green"
-                      />
-                      <span className="text-lg">Kobieta</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="sex"
                         value="M"
                         checked={formData.sex === "M"}
                         onChange={(e) =>
@@ -408,6 +395,19 @@ export default function SimulacjaPage() {
                         className="w-5 h-5 accent-zus-green"
                       />
                       <span className="text-lg">Mężczyzna</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="sex"
+                        value="F"
+                        checked={formData.sex === "F"}
+                        onChange={(e) =>
+                          handleChange("sex", e.target.value as "M" | "F")
+                        }
+                        className="w-5 h-5 accent-zus-green"
+                      />
+                      <span className="text-lg">Kobieta</span>
                     </label>
                   </div>
                 </FormField>
@@ -441,6 +441,7 @@ export default function SimulacjaPage() {
                     startYear={formData.workStartYear}
                     endYear={formData.workEndYear}
                     currentYear={currentYear}
+                    age={formData.age}
                     type="start"
                   />
                 }
@@ -469,6 +470,7 @@ export default function SimulacjaPage() {
                     startYear={formData.workStartYear}
                     endYear={formData.workEndYear}
                     currentYear={currentYear}
+                    age={formData.age}
                     type="end"
                   />
                 }
