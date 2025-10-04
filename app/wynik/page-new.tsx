@@ -219,6 +219,13 @@ export default function WynikPage() {
   return (
     <>
       <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        {/* KPIs - Sticky at top */}
+        <RetirementKPIs
+          results={results}
+          inputs={inputs}
+          isCalculating={isCalculating}
+        />
+
         {/* History Button - Floating */}
         <div className="fixed top-4 right-4 z-30">
           <HistoryButton />
@@ -228,13 +235,6 @@ export default function WynikPage() {
           <h1 className="text-4xl font-bold text-zus-grey-900 mb-8 text-center">
             Twoja Prognoza Emerytury
           </h1>
-
-          {/* Simulation Details */}
-          <RetirementKPIs
-            results={results}
-            inputs={inputs}
-            isCalculating={isCalculating}
-          />
 
           {/* Congratulations/Warning Message */}
           {results.differenceVsExpected >= 0 ? (
@@ -540,9 +540,9 @@ export default function WynikPage() {
             )}
 
             {deferralViewMode === "table" && (
-              <div className="h-[400px] overflow-y-auto">
+              <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="sticky top-0 bg-white z-10">
+                  <thead>
                     <tr className="bg-zus-grey-100 border-b-2 border-zus-green">
                       <th className="p-3 text-left font-semibold">
                         Scenariusz

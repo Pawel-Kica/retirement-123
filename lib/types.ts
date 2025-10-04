@@ -131,12 +131,11 @@ export interface LifeEvent {
   id: string;
   type: LifeEventType;
   year: number;
-  durationMonths?: number; // dla urlopów/zwolnień (1-12)
+  month?: Month;
+  durationYears?: number; // dla długich zwolnień (0.5-3 years)
+  durationMonths?: number; // converted from durationYears for calculations
   newMonthlyGross?: number; // dla zmian wynagrodzenia
   description?: string;
-  // Month/day fields for point-like events (e.g., L4)
-  month?: Month;
-  days?: number;
 }
 
 // Periods of gaps affecting contributions (month-precision)
@@ -145,8 +144,7 @@ export interface EmploymentGapPeriod {
   kind: "MATERNITY_LEAVE" | "UNPAID_LEAVE" | "UNEMPLOYMENT";
   startYear: number;
   startMonth: Month;
-  endYear: number;
-  endMonth: Month;
+  durationMonths: number; // Duration in months (1-36)
   description?: string;
 }
 

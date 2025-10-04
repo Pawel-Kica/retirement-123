@@ -14,6 +14,9 @@ import {
   ScenarioSnapshot,
   DashboardModifications,
   SimulationHistoryEntry,
+  EmploymentPeriod,
+  EmploymentGapPeriod,
+  LifeEvent,
 } from "../types";
 import { calculateSimulation } from "../engine";
 import {
@@ -21,10 +24,17 @@ import {
   loadSimulationById,
   getSimulationHistory,
   clearHistory,
+  getCurrentSimulationId,
+  setCurrentSimulationId,
+  createNewSimulation,
+  initializeDefaultTimelineForSimulation,
+  saveTimelineForSimulation,
+  loadTimelineForSimulation,
 } from "../utils/simulationHistory";
 
 interface SimulationContextType {
   state: SimulationState;
+  currentSimulationId: string | null;
   setExpectedPension: (amount: number) => void;
   setInputs: (inputs: SimulationInputs) => void;
   setResults: (results: SimulationResults) => void;
@@ -39,6 +49,11 @@ interface SimulationContextType {
   loadFromHistory: (id: string) => void;
   getHistory: () => SimulationHistoryEntry[];
   clearAllHistory: () => void;
+  updateContractPeriods: (periods: EmploymentPeriod[]) => Promise<void>;
+  updateGapPeriods: (gaps: EmploymentGapPeriod[]) => Promise<void>;
+  updateLifeEvents: (events: LifeEvent[]) => Promise<void>;
+  loadTimelineFromStorage: () => void;
+  startNewSimulation: () => void;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(
@@ -63,16 +78,29 @@ const initialState: SimulationState = {
 export function SimulationProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SimulationState>(initialState);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [currentSimulationId, setCurrentSimId] = useState<string | null>(null);
 
-  // Load from sessionStorage on mount
+  // Load from localStorage on mount
   useEffect(() => {
-    const saved = sessionStorage.getItem("zus-simulation-state");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setState((prev) => ({ ...prev, ...parsed }));
-      } catch (e) {
-        console.error("Failed to load saved state", e);
+    const simId = getCurrentSimulationId();
+    if (simId) {
+      setCurrentSimId(simId);
+      const entry = loadSimulationById(simId);
+      if (entry) {
+        setState((prev) => ({
+          ...prev,
+          expectedPension: entry.expectedPension,
+          inputs: entry.inputs,
+          results: entry.results,
+        }));
+
+        const timeline = loadTimelineForSimulation(simId);
+        if (timeline) {
+          setState((prev) => ({
+            ...prev,
+            dashboardModifications: timeline,
+          }));
+        }
       }
     }
 
@@ -88,10 +116,23 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Save to sessionStorage on changes
+  // Auto-save to localStorage when state changes (debounced)
   useEffect(() => {
-    sessionStorage.setItem("zus-simulation-state", JSON.stringify(state));
-  }, [state]);
+    if (!currentSimulationId || !state.inputs || !state.results) return;
+
+    const timeoutId = setTimeout(() => {
+      if (state.inputs && state.results) {
+        saveSimulationToHistory(
+          state.expectedPension,
+          state.inputs,
+          state.results,
+          state.dashboardModifications
+        );
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [state, currentSimulationId]);
 
   const setExpectedPension = (amount: number) => {
     setState((prev) => ({ ...prev, expectedPension: amount }));
@@ -99,16 +140,34 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
   const setInputs = (inputs: SimulationInputs) => {
     setState((prev) => ({ ...prev, inputs }));
+
+    if (!currentSimulationId) {
+      const newId = createNewSimulation();
+      setCurrentSimId(newId);
+
+      const defaultMods = initializeDefaultTimelineForSimulation(newId, inputs);
+      setState((prev) => ({
+        ...prev,
+        inputs,
+        dashboardModifications: defaultMods,
+      }));
+    }
   };
 
   const setResults = (results: SimulationResults) => {
     setState((prev) => {
       if (prev.inputs && results) {
-        const simulationId = `sim_${Date.now()}_${Math.random()
-          .toString(36)
-          .substr(2, 9)}`;
-        sessionStorage.setItem("current-simulation-id", simulationId);
-        saveSimulationToHistory(prev.expectedPension, prev.inputs, results);
+        const simId = currentSimulationId || createNewSimulation();
+        if (!currentSimulationId) {
+          setCurrentSimId(simId);
+        }
+
+        saveSimulationToHistory(
+          prev.expectedPension,
+          prev.inputs,
+          results,
+          prev.dashboardModifications
+        );
       }
       return { ...prev, results };
     });
@@ -192,23 +251,49 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       ...initialState,
       scenarios: state.scenarios,
     });
-    sessionStorage.removeItem("zus-simulation-state");
+    setCurrentSimId(null);
+  };
+
+  const startNewSimulation = () => {
+    const newId = createNewSimulation();
+    setCurrentSimId(newId);
+    setState(initialState);
   };
 
   const saveToHistory = () => {
     if (!state.inputs || !state.results) return;
-    saveSimulationToHistory(state.expectedPension, state.inputs, state.results);
+    const simId = currentSimulationId || createNewSimulation();
+    if (!currentSimulationId) {
+      setCurrentSimId(simId);
+    }
+    saveSimulationToHistory(
+      state.expectedPension,
+      state.inputs,
+      state.results,
+      state.dashboardModifications
+    );
   };
 
   const loadFromHistory = (id: string) => {
     const entry = loadSimulationById(id);
     if (entry) {
+      setCurrentSimId(id);
+      setCurrentSimulationId(id);
+
       setState((prev) => ({
         ...prev,
         expectedPension: entry.expectedPension,
         inputs: entry.inputs,
         results: entry.results,
       }));
+
+      const timeline = loadTimelineForSimulation(id);
+      if (timeline) {
+        setState((prev) => ({
+          ...prev,
+          dashboardModifications: timeline,
+        }));
+      }
     }
   };
 
@@ -220,8 +305,88 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     clearHistory();
   };
 
+  const updateContractPeriods = async (periods: EmploymentPeriod[]) => {
+    if (currentSimulationId) {
+      const updatedMods = {
+        ...state.dashboardModifications,
+        contractPeriods: periods,
+      };
+      saveTimelineForSimulation(currentSimulationId, updatedMods);
+    }
+
+    setState((prev) => ({
+      ...prev,
+      dashboardModifications: {
+        ...prev.dashboardModifications,
+        contractPeriods: periods,
+      },
+    }));
+    await recalculate();
+  };
+
+  const updateGapPeriods = async (gaps: EmploymentGapPeriod[]) => {
+    if (currentSimulationId) {
+      const updatedMods = {
+        ...state.dashboardModifications,
+        gapPeriods: gaps,
+      };
+      saveTimelineForSimulation(currentSimulationId, updatedMods);
+    }
+
+    setState((prev) => ({
+      ...prev,
+      dashboardModifications: {
+        ...prev.dashboardModifications,
+        gapPeriods: gaps,
+      },
+    }));
+    await recalculate();
+  };
+
+  const updateLifeEvents = async (events: LifeEvent[]) => {
+    if (currentSimulationId) {
+      const updatedMods = {
+        ...state.dashboardModifications,
+        lifeEvents: events,
+      };
+      saveTimelineForSimulation(currentSimulationId, updatedMods);
+    }
+
+    setState((prev) => ({
+      ...prev,
+      dashboardModifications: {
+        ...prev.dashboardModifications,
+        lifeEvents: events,
+      },
+    }));
+    await recalculate();
+  };
+
+  const loadTimelineFromStorage = () => {
+    if (!currentSimulationId) return;
+
+    const timelineData = loadTimelineForSimulation(currentSimulationId);
+
+    if (!timelineData && state.inputs) {
+      const defaultData = initializeDefaultTimelineForSimulation(
+        currentSimulationId,
+        state.inputs
+      );
+      setState((prev) => ({
+        ...prev,
+        dashboardModifications: defaultData,
+      }));
+    } else if (timelineData) {
+      setState((prev) => ({
+        ...prev,
+        dashboardModifications: timelineData,
+      }));
+    }
+  };
+
   const value: SimulationContextType = {
     state,
+    currentSimulationId,
     setExpectedPension,
     setInputs,
     setResults,
@@ -236,6 +401,11 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     loadFromHistory,
     getHistory,
     clearAllHistory,
+    updateContractPeriods,
+    updateGapPeriods,
+    updateLifeEvents,
+    loadTimelineFromStorage,
+    startNewSimulation,
   };
 
   return (

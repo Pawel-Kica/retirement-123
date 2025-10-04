@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { useSimulation } from "@/lib/context/SimulationContext";
 
 interface NewSimulationButtonProps {
   className?: string;
@@ -13,9 +14,16 @@ export function NewSimulationButton({
   size = "lg",
 }: NewSimulationButtonProps) {
   const router = useRouter();
+  const { startNewSimulation } = useSimulation();
+
+  const handleNewSimulation = () => {
+    startNewSimulation();
+    router.push("/symulacja");
+  };
+
   return (
     <Button
-      onClick={() => router.push("/symulacja")}
+      onClick={handleNewSimulation}
       variant="primary"
       size={size}
       className={className}
