@@ -1,53 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { FormField } from "@/components/ui/FormField";
-import { InputWithSlider } from "@/components/ui/InputWithSlider";
-import { FieldWithVisual } from "@/components/ui/FieldWithVisual";
-import { AgeVisual } from "@/components/ui/AgeVisual";
-import { SexVisual } from "@/components/ui/SexVisual";
-import { SalaryVisual } from "@/components/ui/SalaryVisual";
-import { UnifiedTimeline } from "@/components/ui/UnifiedTimeline";
 import { StepIndicator } from "@/components/ui/StepIndicator";
+import { UnifiedTimeline } from "@/components/ui/UnifiedTimeline";
 import { PostalCodeModal } from "@/components/ui/PostalCodeModal";
 import { useSimulation } from "@/lib/context/SimulationContext";
-import { SimulationInputs } from "@/lib/types";
+import { SimulationInputs, ContractType, EmploymentPeriod } from "@/lib/types";
 import {
   validateSimulationInputs,
-  getFieldError,
+  getFieldError as getFieldErrorUtil,
 } from "@/lib/utils/validation";
 import {
   shouldShowPostalCodeModal,
   getPostalCode,
   setPostalCode as savePostalCode,
 } from "@/lib/utils/postalCodeStorage";
-import {
-  LuLightbulb,
-  LuCalendar,
-  LuTriangleAlert,
-  LuBanknote,
-  LuHeartPulse,
-  LuClipboardList,
-  LuBriefcase,
-  LuCircleCheckBig,
-} from "react-icons/lu";
-
-// Helper to get error severity
-const getFieldSeverity = (
-  errors: any[],
-  field: string
-): "error" | "warning" => {
-  const error = errors.find((e) => e.field === field);
-  return error?.severity || "error";
-};
 import { loadAllData } from "@/lib/data/loader";
+import {
+  Step0BasicInfo,
+  Step1WorkHistory,
+  Step2AdditionalInfo,
+  Step3Review,
+  WorkHistoryEntry,
+} from "@/components/simulation-steps";
 
 const STEPS = [
-  { number: 1, title: "Dane podstawowe", subtitle: "Informacje osobiste" },
+  { number: 1, title: "O Tobie", subtitle: "Podstawowe informacje" },
   { number: 2, title: "Historia pracy", subtitle: "Zatrudnienie" },
   { number: 3, title: "Dodatkowe", subtitle: "Opcjonalne" },
   { number: 4, title: "Podsumowanie", subtitle: "Przegląd" },
@@ -62,13 +41,21 @@ export default function SimulacjaPage() {
   const currentYear = new Date().getFullYear();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+  const [workHistory, setWorkHistory] = useState<WorkHistoryEntry[]>([
+    {
+      id: `work-${Date.now()}`,
+      startYear: undefined,
+      endYear: undefined,
+      monthlyGross: undefined,
+      contractType: "UOP",
+    },
+  ]);
+
   const [formData, setFormData] = useState<Partial<SimulationInputs>>({
     age: 35,
     sex: "M",
-    monthlyGross: 7000,
-    workStartYear: undefined,
-    workEndYear: 2050,
-    includeL4: false,
+    includeZwolnienieZdrowotne: false,
     earlyRetirement: false,
     retirementPrograms: {
       ppk: {
@@ -84,1500 +71,458 @@ export default function SimulacjaPage() {
   });
 
   const [errors, setErrors] = useState<any[]>([]);
-  const [showL4Info, setShowL4Info] = useState(false);
   const [showPostalCodeModal, setShowPostalCodeModal] = useState(false);
+  const [postalCode, setPostalCode] = useState("");
+  const [hasInitializedDefaults, setHasInitializedDefaults] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
+    async function fetchData() {
       try {
-        setIsDataLoading(true);
         const loadedData = await loadAllData();
         setData(loadedData);
-
-        // Load postal code from storage
-        const savedPostalCode = getPostalCode();
-        if (savedPostalCode) {
-          setFormData((prev) => ({
-            ...prev,
-            postalCode: savedPostalCode,
-          }));
-        }
-
-        // Calculate default retirement year
-        if (formData.age && formData.sex) {
-          const retirementAge = loadedData.retirementAge[formData.sex];
-          const defaultRetirementYear =
-            currentYear + (retirementAge - formData.age);
-          setFormData((prev) => ({
-            ...prev,
-            workEndYear: defaultRetirementYear,
-          }));
-        }
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
         setIsDataLoading(false);
       }
-    };
-
-    loadData();
+    }
+    fetchData();
   }, []);
 
-  const handleChange = (field: keyof SimulationInputs, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-
-    // Clear existing errors for this field
-    setErrors((prevErrors) =>
-      prevErrors.filter((error) => error.field !== field)
-    );
-
-    // Real-time validation for age
-    if (field === "age" && value !== undefined) {
-      if (value < 18) {
-        setErrors((prev) => [
-          ...prev,
-          { field: "age", message: "Musisz mieć co najmniej 18 lat" },
-        ]);
-      } else if (value > 100) {
-        setErrors((prev) => [
-          ...prev,
-          {
-            field: "age",
-            message: "Wiek nie może przekraczać 100 lat",
-          },
-        ]);
-      } else if (value > 70) {
-        setErrors((prev) => [
-          ...prev,
-          {
-            field: "age",
-            message:
-              "Wiek powyżej 70 lat - prawdopodobnie jesteś już na emeryturze",
-          },
-        ]);
+  useEffect(() => {
+    if (shouldShowPostalCodeModal()) {
+      const saved = getPostalCode();
+      if (saved) {
+        setPostalCode(saved);
+      } else {
+        setShowPostalCodeModal(true);
       }
+    }
+  }, []);
 
-      // Re-validate and adjust work start year when age changes
-      if (formData.workStartYear) {
-        setErrors((prevErrors) =>
-          prevErrors.filter((error) => error.field !== "workStartYear")
-        );
-        const birthYear = currentYear - value;
-        const minWorkStartYear = birthYear + 18;
+  // Initialize work history defaults on mount if age and sex are already set
+  useEffect(() => {
+    if (!hasInitializedDefaults && formData.age && formData.sex) {
+      const minRetirementAge = formData.sex === "F" ? 60 : 65;
+      const yearTurned18 = currentYear - (formData.age - 18);
+      const retirementYear = currentYear + (minRetirementAge - formData.age);
 
-        // If current work start year is now invalid, adjust it
-        if (formData.workStartYear < minWorkStartYear) {
-          const adjustedWorkStart = Math.round(
-            (minWorkStartYear + currentYear) / 2
-          );
-          setFormData((prev) => ({
-            ...prev,
-            workStartYear: adjustedWorkStart,
-          }));
-        } else if (formData.workStartYear > currentYear) {
-          // If work start is in the future (shouldn't happen but safety check)
-          setFormData((prev) => ({
-            ...prev,
-            workStartYear: currentYear,
-          }));
-        }
-      }
+      setWorkHistory([
+        {
+          id: `work-${Date.now()}`,
+          startYear: yearTurned18,
+          endYear: retirementYear,
+          monthlyGross: 7000,
+          contractType: "UOP",
+        },
+      ]);
+      setHasInitializedDefaults(true);
+    }
+  }, [formData.age, formData.sex, hasInitializedDefaults, currentYear]);
 
-      // Re-validate work end year when age changes
-      if (formData.workEndYear && formData.sex && !formData.earlyRetirement) {
-        setErrors((prevErrors) =>
-          prevErrors.filter((error) => error.field !== "workEndYear")
-        );
-        const retirementAge = value + (formData.workEndYear - currentYear);
-        const minRetirementAge = formData.sex === "F" ? 60 : 65;
+  const minWorkStartYear = formData.age
+    ? currentYear - (formData.age - 18)
+    : 1980;
 
-        if (retirementAge < minRetirementAge) {
-          setErrors((prev) => [
-            ...prev,
+  const getFieldError = useCallback(
+    (errors: any[], field: string) => getFieldErrorUtil(errors, field),
+    []
+  );
+
+  const handleChange = useCallback(
+    (field: keyof SimulationInputs, value: any) => {
+      setFormData((prev) => {
+        const updated = { ...prev, [field]: value };
+
+        // Initialize work history defaults when age and sex are both set for the first time
+        if (
+          !hasInitializedDefaults &&
+          (field === "age" || field === "sex") &&
+          updated.age &&
+          updated.sex
+        ) {
+          const minRetirementAge = updated.sex === "F" ? 60 : 65;
+          // Calculate the year when user turned 18 based on their current age
+          const yearTurned18 = currentYear - (updated.age - 18);
+          const retirementYear = currentYear + (minRetirementAge - updated.age);
+
+          setWorkHistory([
             {
-              field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${
-                formData.sex === "F" ? "kobiet" : "mężczyzn"
-              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
-              severity: "warning" as const,
+              id: `work-${Date.now()}`,
+              startYear: yearTurned18,
+              endYear: retirementYear,
+              monthlyGross: 7000,
+              contractType: "UOP",
             },
           ]);
+          setHasInitializedDefaults(true);
         }
-      }
-    }
 
-    // Real-time validation for monthly gross
-    if (field === "monthlyGross" && value !== undefined) {
-      if (value < 1000) {
-        setErrors((prev) => [
-          ...prev,
-          {
-            field: "monthlyGross",
-            message: "Wynagrodzenie musi być co najmniej 1 000 zł",
-          },
-        ]);
-      } else if (value > 100000) {
-        setErrors((prev) => [
-          ...prev,
-          {
-            field: "monthlyGross",
-            message: "Wynagrodzenie nie może przekraczać 100 000 zł",
-          },
-        ]);
-      }
-    }
+        return updated;
+      });
+    },
+    [hasInitializedDefaults, currentYear]
+  );
 
-    // Real-time validation for work start year
-    if (field === "workStartYear" && value !== undefined) {
-      if (value > currentYear) {
-        setErrors((prev) => [
-          ...prev,
-          {
-            field: "workStartYear",
-            message: "Rok rozpoczęcia nie może być w przyszłości",
-          },
-        ]);
-      } else if (formData.age) {
-        const birthYear = currentYear - formData.age;
-        const minWorkStartYear = birthYear + 18;
-        if (value < minWorkStartYear) {
-          setErrors((prev) => [
-            ...prev,
-            {
-              field: "workStartYear",
-              message: `Rok rozpoczęcia pracy nie pasuje do podanego wieku. Najwcześniejszy możliwy rok: ${minWorkStartYear} (wiek 18 lat)`,
-            },
-          ]);
-        }
-      }
-    }
-
-    // Real-time validation for work end year (retirement year)
-    if (field === "workEndYear" && value !== undefined) {
-      if (formData.age && formData.sex && !formData.earlyRetirement) {
-        const retirementAge = formData.age + (value - currentYear);
-        const minRetirementAge = formData.sex === "F" ? 60 : 65;
-
-        if (retirementAge < minRetirementAge) {
-          setErrors((prev) => [
-            ...prev,
-            {
-              field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${
-                formData.sex === "F" ? "kobiet" : "mężczyzn"
-              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
-              severity: "warning" as const,
-            },
-          ]);
-        }
-      }
-    }
-
-    // Re-validate work end year when earlyRetirement checkbox changes
-    if (field === "earlyRetirement" && formData.workEndYear) {
-      setErrors((prevErrors) =>
-        prevErrors.filter((error) => error.field !== "workEndYear")
+  const updateWorkHistoryEntry = useCallback(
+    (id: string, field: keyof WorkHistoryEntry, value: any) => {
+      setWorkHistory((prev) =>
+        prev.map((entry) =>
+          entry.id === id ? { ...entry, [field]: value } : entry
+        )
       );
+    },
+    []
+  );
 
-      // If unchecking early retirement, re-validate minimum age
-      if (!value && formData.age && formData.sex) {
-        const retirementAge =
-          formData.age + (formData.workEndYear - currentYear);
-        const minRetirementAge = formData.sex === "F" ? 60 : 65;
+  const addWorkHistoryEntry = useCallback(() => {
+    const lastEntry = workHistory[workHistory.length - 1];
+    const newStartYear = lastEntry?.endYear
+      ? lastEntry.endYear + 1
+      : currentYear;
 
-        if (retirementAge < minRetirementAge) {
-          setErrors((prev) => [
-            ...prev,
-            {
-              field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${
-                formData.sex === "F" ? "kobiet" : "mężczyzn"
-              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
-              severity: "warning" as const,
-            },
-          ]);
-        }
-      }
-    }
+    setWorkHistory((prev) => [
+      ...prev,
+      {
+        id: `work-${Date.now()}`,
+        startYear: newStartYear,
+        endYear: undefined,
+        monthlyGross: lastEntry?.monthlyGross || undefined,
+        contractType: lastEntry?.contractType || "UOP",
+      },
+    ]);
+  }, [workHistory, currentYear]);
 
-    // Recalculate default retirement year when age or sex changes
-    if ((field === "age" || field === "sex") && data) {
-      const age = field === "age" ? value : formData.age;
-      const sex = field === "sex" ? value : formData.sex;
-      if (age && sex && data?.retirementAge) {
-        const retirementAge = data.retirementAge[sex];
-        const defaultRetirementYear = currentYear + (retirementAge - age);
-        setFormData((prev) => ({
-          ...prev,
-          workEndYear: defaultRetirementYear,
-        }));
+  const removeWorkHistoryEntry = useCallback((id: string) => {
+    setWorkHistory((prev) => prev.filter((entry) => entry.id !== id));
+  }, []);
 
-        // Re-validate work end year when sex changes
-        if (field === "sex" && formData.workEndYear) {
-          setErrors((prevErrors) =>
-            prevErrors.filter((error) => error.field !== "workEndYear")
-          );
-
-          if (!formData.earlyRetirement && age) {
-            const retirementAgeAtEnd =
-              age + (formData.workEndYear - currentYear);
-            const minRetirementAge = sex === "F" ? 60 : 65;
-
-            if (retirementAgeAtEnd < minRetirementAge) {
-              setErrors((prev) => [
-                ...prev,
-                {
-                  field: "workEndYear",
-                  message: `Minimalny wiek emerytalny dla ${
-                    sex === "F" ? "kobiet" : "mężczyzn"
-                  } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAgeAtEnd} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
-                  severity: "warning" as const,
-                },
-              ]);
-            }
-          }
-        }
-      }
-    }
-  };
-
-  // Validation functions for each step
-  const validateStep0 = (): boolean => {
-    const sectionErrors = [];
+  const validateStep0 = useCallback(() => {
+    const stepErrors: any[] = [];
 
     if (!formData.age) {
-      sectionErrors.push({ field: "age", message: "Wiek jest wymagany" });
-    } else if (formData.age < 18) {
-      sectionErrors.push({
+      stepErrors.push({ field: "age", message: "Wiek jest wymagany" });
+    } else if (formData.age < 18 || formData.age > 100) {
+      stepErrors.push({
         field: "age",
-        message: "Musisz mieć co najmniej 18 lat",
-      });
-    } else if (formData.age > 100) {
-      sectionErrors.push({
-        field: "age",
-        message: "Wiek nie może przekraczać 100 lat",
-      });
-    } else if (formData.age > 70) {
-      sectionErrors.push({
-        field: "age",
-        message:
-          "Wiek powyżej 70 lat - prawdopodobnie jesteś już na emeryturze",
+        message: "Wiek musi być w zakresie 18-100 lat",
       });
     }
 
     if (!formData.sex) {
-      sectionErrors.push({ field: "sex", message: "Płeć jest wymagana" });
+      stepErrors.push({ field: "sex", message: "Płeć jest wymagana" });
     }
 
-    if (!formData.monthlyGross) {
-      sectionErrors.push({
-        field: "monthlyGross",
-        message: "Wynagrodzenie jest wymagane",
+    setErrors(stepErrors);
+    return stepErrors.length === 0;
+  }, [formData]);
+
+  const validateStep1 = useCallback(() => {
+    const stepErrors: any[] = [];
+    const minRetirementAge = formData.sex === "F" ? 60 : 65;
+
+    if (workHistory.length === 0) {
+      stepErrors.push({
+        field: "workHistory",
+        message: "Wymagany jest co najmniej jeden okres pracy",
       });
-    } else if (formData.monthlyGross < 1000) {
-      sectionErrors.push({
-        field: "monthlyGross",
-        message: "Wynagrodzenie musi być co najmniej 1 000 zł",
-      });
-    } else if (formData.monthlyGross > 100000) {
-      sectionErrors.push({
-        field: "monthlyGross",
-        message: "Wynagrodzenie nie może przekraczać 100 000 zł",
-      });
-    }
-
-    setErrors(sectionErrors);
-    return sectionErrors.length === 0;
-  };
-
-  const validateStep1 = (): boolean => {
-    const sectionErrors = [];
-
-    if (!formData.workStartYear) {
-      sectionErrors.push({
-        field: "workStartYear",
-        message: "Rok rozpoczęcia pracy jest wymagany",
-      });
-    } else if (formData.workStartYear > currentYear) {
-      sectionErrors.push({
-        field: "workStartYear",
-        message: "Rok rozpoczęcia nie może być w przyszłości",
-      });
-    } else if (formData.age) {
-      const birthYear = currentYear - formData.age;
-      const minWorkStartYear = birthYear + 18;
-      if (formData.workStartYear < minWorkStartYear) {
-        sectionErrors.push({
-          field: "workStartYear",
-          message: `Rok rozpoczęcia pracy nie pasuje do podanego wieku. Najwcześniejszy możliwy rok: ${minWorkStartYear} (wiek 18 lat)`,
-        });
-      }
-    }
-
-    if (!formData.workEndYear) {
-      sectionErrors.push({
-        field: "workEndYear",
-        message: "Rok zakończenia pracy jest wymagany",
-      });
-    } else if (
-      formData.workStartYear &&
-      formData.workEndYear <= formData.workStartYear
-    ) {
-      sectionErrors.push({
-        field: "workEndYear",
-        message: "Rok zakończenia musi być po roku rozpoczęcia",
-      });
-    } else if (formData.workEndYear > 2080) {
-      sectionErrors.push({
-        field: "workEndYear",
-        message: "Rok zakończenia nie może przekraczać 2080",
-      });
-    }
-
-    // Minimum retirement age validation (unless early retirement)
-    if (
-      formData.age &&
-      formData.sex &&
-      formData.workEndYear &&
-      !formData.earlyRetirement
-    ) {
-      const retirementAge = formData.age + (formData.workEndYear - currentYear);
-      const minRetirementAge = formData.sex === "F" ? 60 : 65;
-
-      if (retirementAge < minRetirementAge) {
-        sectionErrors.push({
-          field: "workEndYear",
-          message: `Minimalny wiek emerytalny dla ${
-            formData.sex === "F" ? "kobiet" : "mężczyzn"
-          } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
-          severity: "warning" as const,
-        });
-      }
-    }
-
-    setErrors(sectionErrors);
-    return sectionErrors.length === 0;
-  };
-
-  const isStep0Complete = (): boolean => {
-    return !!(
-      formData.age &&
-      formData.age >= 18 &&
-      formData.age <= 100 &&
-      formData.sex &&
-      formData.monthlyGross &&
-      formData.monthlyGross >= 1000
-    );
-  };
-
-  const isStep1Complete = (): boolean => {
-    if (!formData.workStartYear || !formData.workEndYear) {
+      setErrors(stepErrors);
       return false;
     }
 
-    if (formData.workEndYear <= formData.workStartYear) {
-      return false;
-    }
-
-    // Check retirement age requirement (unless early retirement)
-    if (formData.age && formData.sex && !formData.earlyRetirement) {
-      const retirementAge = formData.age + (formData.workEndYear - currentYear);
-      const minRetirementAge = formData.sex === "F" ? 60 : 65;
-
-      if (retirementAge < minRetirementAge) {
-        return false; // Incomplete if below retirement age without early retirement flag
+    workHistory.forEach((entry, index) => {
+      if (!entry.startYear) {
+        stepErrors.push({
+          field: `work-${entry.id}-startYear`,
+          message: `Okres ${index + 1}: Rok rozpoczęcia jest wymagany`,
+        });
       }
-    }
 
-    return true;
-  };
-
-  const handleNext = () => {
-    if (currentStep === 0) {
-      if (validateStep0()) {
-        if (!completedSteps.includes(0)) {
-          setCompletedSteps([...completedSteps, 0]);
-        }
-
-        // Auto-adjust work start year when moving to step 1
-        if (formData.age && !formData.workStartYear) {
-          const birthYear = currentYear - formData.age;
-          const minWorkStart = birthYear + 18;
-          // Set to middle point between min and current year
-          const defaultWorkStart = Math.round((minWorkStart + currentYear) / 2);
-          setFormData((prev) => ({
-            ...prev,
-            workStartYear: defaultWorkStart,
-          }));
-        }
-
-        setCurrentStep(1);
+      if (!entry.endYear) {
+        stepErrors.push({
+          field: `work-${entry.id}-endYear`,
+          message: `Okres ${index + 1}: Rok zakończenia jest wymagany`,
+        });
       }
-    } else if (currentStep === 1) {
-      if (validateStep1()) {
-        if (!completedSteps.includes(1)) {
-          setCompletedSteps([...completedSteps, 1]);
-        }
-        setCurrentStep(2);
+
+      if (!entry.monthlyGross) {
+        stepErrors.push({
+          field: `work-${entry.id}-monthlyGross`,
+          message: `Okres ${index + 1}: Wynagrodzenie jest wymagane`,
+        });
       }
-    } else if (currentStep === 2) {
-      // Step 2 is optional, no validation needed
-      if (!completedSteps.includes(2)) {
-        setCompletedSteps([...completedSteps, 2]);
-      }
-      setCurrentStep(3);
-    }
-  };
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      setErrors([]);
-    }
-  };
-
-  const handleStepClick = (stepIndex: number) => {
-    // Can only navigate to completed steps or current step
-    if (
-      stepIndex === currentStep ||
-      completedSteps.includes(stepIndex) ||
-      stepIndex < currentStep
-    ) {
-      setCurrentStep(stepIndex);
-      setErrors([]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Final validation
-    const validation = validateSimulationInputs(formData);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
-      // Navigate to first step with errors
       if (
-        validation.errors.some((e) =>
-          ["age", "sex", "monthlyGross"].includes(e.field)
-        )
+        entry.startYear &&
+        entry.endYear &&
+        entry.startYear >= entry.endYear
       ) {
-        setCurrentStep(0);
-      } else if (
-        validation.errors.some((e) =>
-          ["workStartYear", "workEndYear"].includes(e.field)
-        )
-      ) {
-        setCurrentStep(1);
+        stepErrors.push({
+          field: `work-${entry.id}-endYear`,
+          message: `Okres ${
+            index + 1
+          }: Rok zakończenia musi być późniejszy niż rok rozpoczęcia`,
+        });
       }
+
+      if (index === workHistory.length - 1 && entry.endYear && formData.age) {
+        const retirementAge = formData.age + (entry.endYear - currentYear);
+        if (retirementAge < minRetirementAge && !formData.earlyRetirement) {
+          stepErrors.push({
+            field: `work-${entry.id}-endYear`,
+            message: `Wiek emerytalny (${retirementAge} lat) jest niższy od minimalnego (${minRetirementAge} lat). Zaznacz "Wcześniejsza emerytura" jeśli masz do niej prawo.`,
+          });
+        }
+      }
+
+      if (index > 0) {
+        const prevEntry = workHistory[index - 1];
+        if (
+          prevEntry.endYear &&
+          entry.startYear &&
+          entry.startYear < prevEntry.endYear
+        ) {
+          stepErrors.push({
+            field: `work-${entry.id}-startYear`,
+            message: `Okres ${index + 1}: Nakładka z poprzednim okresem pracy`,
+          });
+        }
+      }
+    });
+
+    setErrors(stepErrors);
+    return stepErrors.length === 0;
+  }, [workHistory, formData, currentYear]);
+
+  const isStep0Complete = useCallback(() => {
+    return formData.age !== undefined && formData.sex !== undefined;
+  }, [formData]);
+
+  const isStep1Complete = useCallback(() => {
+    return (
+      workHistory.length > 0 &&
+      workHistory.every(
+        (entry) =>
+          entry.startYear !== undefined &&
+          entry.endYear !== undefined &&
+          entry.monthlyGross !== undefined
+      )
+    );
+  }, [workHistory]);
+
+  const handleNext = useCallback(() => {
+    let isValid = true;
+
+    if (currentStep === 0) {
+      isValid = validateStep0();
+    } else if (currentStep === 1) {
+      isValid = validateStep1();
+    }
+
+    if (isValid) {
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps((prev) => [...prev, currentStep]);
+      }
+      setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+      setErrors([]);
+    }
+  }, [currentStep, validateStep0, validateStep1, completedSteps]);
+
+  const handleBack = useCallback(() => {
+    // Reset work history when going back from Step 1
+    if (currentStep === 1) {
+      setWorkHistory([
+        {
+          id: `work-${Date.now()}`,
+          startYear: undefined,
+          endYear: undefined,
+          monthlyGross: undefined,
+          contractType: "UOP",
+        },
+      ]);
+      setHasInitializedDefaults(false);
+    }
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+    setErrors([]);
+  }, [currentStep]);
+
+  const handleStepClick = useCallback(
+    (stepIndex: number) => {
+      if (completedSteps.includes(stepIndex - 1) || stepIndex === 0) {
+        setCurrentStep(stepIndex);
+        setErrors([]);
+      }
+    },
+    [completedSteps]
+  );
+
+  const proceedWithCalculation = useCallback(async () => {
+    const employmentPeriods: EmploymentPeriod[] = workHistory
+      .filter((entry) => entry.startYear && entry.endYear && entry.monthlyGross)
+      .map((entry) => ({
+        id: entry.id,
+        startYear: entry.startYear!,
+        endYear: entry.endYear!,
+        monthlyGross: entry.monthlyGross!,
+        contractType: entry.contractType,
+      }));
+
+    const workStartYear = workHistory[0]?.startYear;
+    const workEndYear = workHistory[workHistory.length - 1]?.endYear;
+    const currentSalary = workHistory[workHistory.length - 1]?.monthlyGross;
+    const contractType = workHistory[workHistory.length - 1]?.contractType;
+
+    const inputs: SimulationInputs = {
+      age: formData.age!,
+      sex: formData.sex!,
+      monthlyGross: currentSalary!,
+      workStartYear: workStartYear!,
+      workEndYear: workEndYear!,
+      contractType: contractType!,
+      accountBalance: formData.accountBalance,
+      subAccountBalance: formData.subAccountBalance,
+      includeZwolnienieZdrowotne: formData.includeZwolnienieZdrowotne || false,
+      earlyRetirement: formData.earlyRetirement || false,
+      retirementPrograms: formData.retirementPrograms,
+      employmentPeriods: employmentPeriods,
+    };
+
+    const validationResult = validateSimulationInputs(inputs);
+    if (!validationResult.isValid) {
+      setErrors(validationResult.errors);
       return;
     }
 
-    setErrors([]);
+    setInputs(inputs);
+    await recalculate();
+    router.push("/wynik");
+  }, [formData, workHistory, setInputs, recalculate, router]);
 
-    // Show postal code modal only if we haven't asked before
-    if (shouldShowPostalCodeModal()) {
-      setShowPostalCodeModal(true);
-    } else {
-      await proceedWithCalculation();
-    }
-  };
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      proceedWithCalculation();
+    },
+    [proceedWithCalculation]
+  );
 
-  const proceedWithCalculation = async (
-    dataWithPostalCode?: Partial<SimulationInputs>
-  ) => {
-    try {
-      const finalData = dataWithPostalCode
-        ? { ...formData, ...dataWithPostalCode }
-        : formData;
-      setInputs(finalData as SimulationInputs);
-      await recalculate();
-      router.push("/wynik");
-    } catch (error) {
-      console.error("Calculation error:", error);
-      alert("Wystąpił błąd podczas obliczania prognozy. Spróbuj ponownie.");
-    }
-  };
-
-  const handlePostalCodeSave = async (postalCode: string) => {
+  const handlePostalCodeSave = useCallback((code: string) => {
+    savePostalCode(code);
+    setPostalCode(code);
     setShowPostalCodeModal(false);
+  }, []);
 
-    // Update form data with postal code
-    const updatedData: Partial<SimulationInputs> = {};
-    if (postalCode && postalCode.trim()) {
-      updatedData.postalCode = postalCode.trim();
-      setFormData((prev) => ({ ...prev, postalCode: postalCode.trim() }));
-    }
+  const handleCancel = useCallback(() => {
+    router.push("/");
+  }, [router]);
 
-    // Proceed with calculation, passing the postal code
-    await proceedWithCalculation(updatedData);
-  };
-
-  const handlePostalCodeSkip = async () => {
-    setShowPostalCodeModal(false);
-    // Proceed without postal code
-    await proceedWithCalculation();
-  };
-
-  if (isDataLoading || !data)
+  if (isDataLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-zus-green-light via-white to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zus-green mx-auto mb-4"></div>
-          <p className="text-zus-grey-600">Ładowanie danych...</p>
+          <p className="text-zus-grey-700">Ładowanie danych...</p>
         </div>
       </div>
     );
+  }
 
-  const l4Config = formData.sex === "M" ? data?.sickImpactM : data?.sickImpactF;
-
-  const yearsWorked =
-    formData.workStartYear && formData.workEndYear
-      ? formData.workEndYear - formData.workStartYear
-      : 0;
-
-  const retirementAge =
-    formData.age && formData.workEndYear
-      ? formData.age + (formData.workEndYear - currentYear)
-      : 0;
-
-  const birthYear = formData.age
-    ? currentYear - formData.age
-    : currentYear - 35;
-  const minWorkStartYear = birthYear + 18;
-  const minRetirementYear =
-    formData.sex && formData.age
-      ? birthYear + (formData.sex === "F" ? 60 : 65)
-      : currentYear + 25;
+  const sickImpactConfig =
+    formData.sex === "F" ? data?.sickImpactF : data?.sickImpactM;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 pt-8 pb-16">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl pb-8">
-        <div className="mb-8">
-          <button
-            onClick={() => router.push("/")}
-            className="text-zus-green hover:underline mb-4 font-medium cursor-pointer"
-          >
-            ← Powrót do strony głównej
-          </button>
-          <h1 className="text-4xl font-bold text-zus-grey-900">
-            Symulacja Emerytury
-          </h1>
-          <p className="text-zus-grey-700 mt-2">
-            Wypełnij formularz, aby poznać prognozę swojej przyszłej emerytury
-          </p>
-        </div>
+    <>
+      <PostalCodeModal
+        isOpen={showPostalCodeModal}
+        onClose={() => setShowPostalCodeModal(false)}
+        onSave={handlePostalCodeSave}
+      />
 
-        {/* Step Indicator */}
-        <StepIndicator
-          steps={STEPS}
-          currentStep={currentStep}
-          completedSteps={completedSteps}
-          onStepClick={handleStepClick}
-        />
-
-        {/* Form Container with Animation */}
-        <form onSubmit={handleSubmit}>
-          <div className="relative min-h-[600px]">
-            {/* Step 0: Basic Info */}
-            <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 0
-                  ? "opacity-100 translate-x-0"
-                  : currentStep > 0
-                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
-            >
-              <Card className="p-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-zus-grey-900 mb-2">
-                    Dane podstawowe
-                  </h2>
-                  <p className="text-zus-grey-600">
-                    Podaj swoje podstawowe informacje
-                  </p>
-                </div>
-
-                <div className="space-y-6">
-                  <FieldWithVisual visual={<SexVisual sex={formData.sex} />}>
-                    <FormField
-                      label="Płeć"
-                      required
-                      error={getFieldError(errors, "sex")}
-                    >
-                      <div className="flex gap-6">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="sex"
-                            value="M"
-                            checked={formData.sex === "M"}
-                            onChange={(e) =>
-                              handleChange("sex", e.target.value as "M" | "F")
-                            }
-                            className="w-5 h-5 accent-zus-green"
-                          />
-                          <span className="text-lg">Mężczyzna</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="sex"
-                            value="F"
-                            checked={formData.sex === "F"}
-                            onChange={(e) =>
-                              handleChange("sex", e.target.value as "M" | "F")
-                            }
-                            className="w-5 h-5 accent-zus-green"
-                          />
-                          <span className="text-lg">Kobieta</span>
-                        </label>
-                      </div>
-                    </FormField>
-                  </FieldWithVisual>
-                  <FieldWithVisual visual={<AgeVisual age={formData.age} />}>
-                    <InputWithSlider
-                      label="Twój obecny wiek"
-                      value={formData.age}
-                      onChange={(value) => handleChange("age", value)}
-                      min={18}
-                      max={100}
-                      step={1}
-                      suffix="lat"
-                      placeholder="np. 35"
-                      required
-                      error={getFieldError(errors, "age")}
-                      reserveErrorSpace="46px"
-                    />
-                    {formData.age &&
-                      formData.age > 70 &&
-                      formData.age <= 100 &&
-                      !getFieldError(errors, "age") && (
-                        <div className="mt-2 p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm text-zus-grey-700 flex items-start gap-2">
-                          <LuLightbulb className="w-5 h-5 text-zus-orange flex-shrink-0 mt-0.5" />
-                          <span>
-                            W tym wieku prawdopodobnie jesteś już na emeryturze.
-                            Symulator służy do planowania przyszłej emerytury.
-                          </span>
-                        </div>
-                      )}
-                  </FieldWithVisual>
-
-                  <FieldWithVisual
-                    visual={<SalaryVisual salary={formData.monthlyGross} />}
-                  >
-                    <InputWithSlider
-                      label="Twoje obecne wynagrodzenie brutto miesięczne"
-                      value={formData.monthlyGross}
-                      onChange={(value) => handleChange("monthlyGross", value)}
-                      min={1000}
-                      max={50000}
-                      step={100}
-                      suffix="zł"
-                      placeholder="np. 5000"
-                      required
-                      error={getFieldError(errors, "monthlyGross")}
-                      hint={
-                        !getFieldError(errors, "monthlyGross")
-                          ? "Podaj kwotę brutto (przed potrąceniem podatków i składek)"
-                          : undefined
-                      }
-                    />
-                  </FieldWithVisual>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-zus-grey-300">
-                  {!isStep0Complete() && errors.length > 0 && (
-                    <div className="mb-4 p-4 bg-red-50 border-l-4 border-zus-error rounded">
-                      <p className="text-sm font-semibold text-zus-error mb-2 flex items-center gap-2">
-                        <LuTriangleAlert className="w-5 h-5 flex-shrink-0" />
-                        <span>Uzupełnij wszystkie wymagane pola:</span>
-                      </p>
-                      <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-                        {errors.map((error, idx) => (
-                          <li key={idx}>{error.message}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  <div className="flex gap-4">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="lg"
-                      onClick={() => router.push("/")}
-                      className="flex-1"
-                    >
-                      Anuluj
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      variant="success"
-                      size="lg"
-                      className="flex-1"
-                      disabled={!isStep0Complete()}
-                    >
-                      Dalej: Historia pracy →
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Step 1: Work History */}
-            <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 1
-                  ? "opacity-100 translate-x-0"
-                  : currentStep > 1
-                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
-            >
-              <Card className="p-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-zus-grey-900 mb-2">
-                    Historia pracy
-                  </h2>
-                  <p className="text-zus-grey-600">
-                    Kiedy rozpocząłeś pracę i kiedy planujesz przejść na
-                    emeryturę?
-                  </p>
-                </div>
-
-                <div className="space-y-6">
-                  <FieldWithVisual
-                    visual={
-                      <UnifiedTimeline
-                        startYear={formData.workStartYear}
-                        endYear={formData.workEndYear}
-                        currentYear={currentYear}
-                        age={formData.age}
-                        variant="work-start"
-                      />
-                    }
-                  >
-                    <InputWithSlider
-                      label="W którym roku rozpocząłeś/rozpoczęłaś pracę?"
-                      value={formData.workStartYear}
-                      onChange={(value) => handleChange("workStartYear", value)}
-                      min={minWorkStartYear}
-                      max={currentYear}
-                      step={1}
-                      placeholder="np. 2010"
-                      required
-                      error={getFieldError(errors, "workStartYear")}
-                      hint={
-                        !getFieldError(errors, "workStartYear") ? (
-                          <span className="flex items-center gap-1.5">
-                            <LuCalendar className="w-4 h-4 text-zus-blue flex-shrink-0" />
-                            <span>
-                              Rok urodzenia: {birthYear} | Najwcześniejszy rok
-                              pracy: {minWorkStartYear} (wiek 18 lat)
-                            </span>
-                          </span>
-                        ) : undefined
-                      }
-                    />
-                  </FieldWithVisual>
-
-                  <FieldWithVisual
-                    visual={
-                      <UnifiedTimeline
-                        startYear={formData.workStartYear}
-                        endYear={formData.workEndYear}
-                        currentYear={currentYear}
-                        age={formData.age}
-                        variant="work-end"
-                      />
-                    }
-                  >
-                    <InputWithSlider
-                      label="Planowany rok przejścia na emeryturę"
-                      value={formData.workEndYear}
-                      onChange={(value) => handleChange("workEndYear", value)}
-                      min={currentYear}
-                      max={2080}
-                      step={1}
-                      placeholder="np. 2050"
-                      required
-                      error={getFieldError(errors, "workEndYear")}
-                      errorSeverity={getFieldSeverity(errors, "workEndYear")}
-                      reserveErrorSpace="64px"
-                      hint={
-                        !getFieldError(errors, "workEndYear") &&
-                        formData.workEndYear ? (
-                          <span className="flex items-center gap-1.5">
-                            <LuLightbulb className="w-4 h-4 text-zus-orange flex-shrink-0" />
-                            <span>
-                              Wiek emerytalny: {retirementAge} lat | Staż pracy:{" "}
-                              {yearsWorked} lat | Minimalny wiek{" "}
-                              {formData.sex === "F" ? "kobiet" : "mężczyzn"}:{" "}
-                              {formData.sex === "F" ? 60 : 65} lat
-                            </span>
-                          </span>
-                        ) : undefined
-                      }
-                    />
-                  </FieldWithVisual>
-
-                  {/* Early Retirement Checkbox */}
-                  <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.earlyRetirement || false}
-                        onChange={(e) =>
-                          handleChange("earlyRetirement", e.target.checked)
-                        }
-                        className="mt-1 w-5 h-5 text-zus-green border-zus-grey-300 rounded focus:ring-zus-green focus:ring-2"
-                      />
-                      <div className="flex-1">
-                        <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
-                          <LuTriangleAlert className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                          <span>
-                            Wcześniejsza emerytura (służby mundurowe, specjalne
-                            zawody)
-                          </span>
-                        </div>
-                        <div className="text-sm text-zus-grey-700 mt-1">
-                          Zaznacz, jeśli masz prawo do wcześniejszej emerytury
-                          przed osiągnięciem standardowego wieku emerytalnego
-                          (60 lat dla kobiet, 65 lat dla mężczyzn). Dotyczy to
-                          m.in.: policjantów, strażaków, żołnierzy, górników
-                          oraz innych zawodów w szczególnych warunkach.
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
-                  {/* Typ umowy */}
-                  <div className="mt-6 p-4 bg-zus-green-light border-l-4 border-zus-green rounded">
-                    <h4 className="text-base font-bold text-zus-grey-900 mb-3">
-                      Typ zatrudnienia
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <label className="cursor-pointer">
-                        <input
-                          type="radio"
-                          name="contractType"
-                          value="UOP"
-                          checked={
-                            formData.contractType === "UOP" ||
-                            !formData.contractType
-                          }
-                          onChange={(e) =>
-                            handleChange("contractType", e.target.value)
-                          }
-                          className="peer sr-only"
-                        />
-                        <div className="p-3 bg-white border-2 border-zus-grey-300 rounded-lg peer-checked:border-zus-green peer-checked:bg-zus-green-light hover:border-zus-green transition-all">
-                          <div className="text-2xl mb-1">💼</div>
-                          <div className="text-sm font-semibold text-zus-grey-900">
-                            UOP
-                          </div>
-                          <div className="text-xs text-zus-grey-600 mt-1">
-                            Pełne składki
-                          </div>
-                        </div>
-                      </label>
-                      <label className="cursor-pointer">
-                        <input
-                          type="radio"
-                          name="contractType"
-                          value="UOZ"
-                          checked={formData.contractType === "UOZ"}
-                          onChange={(e) =>
-                            handleChange("contractType", e.target.value)
-                          }
-                          className="peer sr-only"
-                        />
-                        <div className="p-3 bg-white border-2 border-zus-grey-300 rounded-lg peer-checked:border-zus-green peer-checked:bg-zus-green-light hover:border-zus-green transition-all">
-                          <div className="text-2xl mb-1">📝</div>
-                          <div className="text-sm font-semibold text-zus-grey-900">
-                            Zlecenie
-                          </div>
-                          <div className="text-xs text-zus-grey-600 mt-1">
-                            Bez chorobowego
-                          </div>
-                        </div>
-                      </label>
-                      <label className="cursor-pointer">
-                        <input
-                          type="radio"
-                          name="contractType"
-                          value="B2B"
-                          checked={formData.contractType === "B2B"}
-                          onChange={(e) =>
-                            handleChange("contractType", e.target.value)
-                          }
-                          className="peer sr-only"
-                        />
-                        <div className="p-3 bg-white border-2 border-zus-grey-300 rounded-lg peer-checked:border-zus-green peer-checked:bg-zus-green-light hover:border-zus-green transition-all">
-                          <div className="text-2xl mb-1">🏢</div>
-                          <div className="text-sm font-semibold text-zus-grey-900">
-                            B2B
-                          </div>
-                          <div className="text-xs text-zus-grey-600 mt-1">
-                            Składki opcjonalne
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Dodatkowe programy emerytalne - PPK i IKZE */}
-                  <div className="mt-6 p-4 bg-blue-50 border-l-4 border-zus-blue rounded">
-                    <h4 className="text-base font-bold text-zus-grey-900 mb-3">
-                      Dodatkowe programy emerytalne
-                    </h4>
-                    <div className="space-y-3">
-                      {/* PPK Checkbox */}
-                      <label className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-colors border-2 border-transparent hover:border-zus-blue">
-                        <input
-                          type="checkbox"
-                          checked={
-                            formData.retirementPrograms?.ppk.enabled || false
-                          }
-                          onChange={(e) =>
-                            handleChange("retirementPrograms", {
-                              ...formData.retirementPrograms,
-                              ppk: {
-                                ...(formData.retirementPrograms?.ppk || {
-                                  employeeRate: 0.02,
-                                  employerRate: 0.015,
-                                }),
-                                enabled: e.target.checked,
-                              },
-                            })
-                          }
-                          className="w-5 h-5 accent-zus-blue flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                          <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
-                            <span>Uczestniczę w PPK</span>
-                            <span className="px-2 py-0.5 bg-zus-blue/10 text-zus-blue text-xs font-bold rounded">
-                              +~3.5%
-                            </span>
-                          </div>
-                        </div>
-                      </label>
-
-                      {/* IKZE Checkbox */}
-                      <label className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-orange-50 transition-colors border-2 border-transparent hover:border-zus-orange">
-                        <input
-                          type="checkbox"
-                          checked={
-                            formData.retirementPrograms?.ikze.enabled || false
-                          }
-                          onChange={(e) =>
-                            handleChange("retirementPrograms", {
-                              ...formData.retirementPrograms,
-                              ikze: {
-                                ...(formData.retirementPrograms?.ikze || {
-                                  contributionRate: 0.1,
-                                }),
-                                enabled: e.target.checked,
-                              },
-                            })
-                          }
-                          className="w-5 h-5 accent-zus-orange flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                          <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
-                            <span>Mam IKZE</span>
-                            <span className="px-2 py-0.5 bg-zus-orange/10 text-zus-orange text-xs font-bold rounded">
-                              +~10%
-                            </span>
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-zus-grey-300">
-                  {!isStep1Complete() &&
-                    errors.filter((e) => e.field !== "workEndYear").length >
-                      0 && (
-                      <div className="mb-4 p-4 bg-red-50 border-l-4 border-zus-error rounded">
-                        <p className="text-sm font-semibold text-zus-error mb-2 flex items-center gap-2">
-                          <LuTriangleAlert className="w-5 h-5 flex-shrink-0" />
-                          <span>Uzupełnij wszystkie wymagane pola:</span>
-                        </p>
-                        <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-                          {errors
-                            .filter((e) => e.field !== "workEndYear")
-                            .map((error, idx) => (
-                              <li key={idx}>{error.message}</li>
-                            ))}
-                        </ul>
-                      </div>
-                    )}
-                  <div className="flex gap-4">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="lg"
-                      onClick={handleBack}
-                      className="flex-1"
-                    >
-                      ← Wstecz
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      variant="success"
-                      size="lg"
-                      className="flex-1"
-                      disabled={!isStep1Complete()}
-                    >
-                      Dalej: Dodatkowe informacje →
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Step 2: Additional Info */}
-            <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 2
-                  ? "opacity-100 translate-x-0"
-                  : currentStep > 2
-                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
-            >
-              <Card className="p-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-zus-grey-900 mb-2">
-                    Dodatkowe informacje
-                  </h2>
-                  <p className="text-zus-grey-600">
-                    Te informacje są opcjonalne, ale mogą zwiększyć dokładność
-                    prognozy
-                  </p>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="p-4 bg-blue-50 border-l-4 border-zus-navy rounded">
-                    <p className="text-sm text-zus-grey-700 flex items-start gap-2">
-                      <LuBanknote className="w-5 h-5 text-zus-green flex-shrink-0 mt-0.5" />
-                      <span>
-                        <strong>Zgromadzony kapitał</strong>
-                        <br />
-                        Jeśli znasz stan swojego konta w ZUS, możesz go tutaj
-                        wpisać dla dokładniejszej prognozy.
-                      </span>
-                    </p>
-                  </div>
-
-                  <FormField
-                    label="Środki na koncie podstawowym"
-                    tooltip="Kapitał zgromadzony na Twoim koncie emerytalnym (19,52% składki). Znajdziesz go na wyciągu z ZUS lub w systemie PUE ZUS."
-                  >
-                    <div className="relative">
-                      <input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={
-                          formData.accountBalance !== undefined
-                            ? formData.accountBalance
-                            : ""
-                        }
-                        onChange={(e) =>
-                          handleChange(
-                            "accountBalance",
-                            e.target.value !== ""
-                              ? Number(e.target.value)
-                              : undefined
-                          )
-                        }
-                        placeholder="Pozostaw puste, jeśli nie znasz"
-                        className="w-full px-4 py-2 pr-12 border border-zus-grey-300 rounded focus:outline-none focus:ring-2 focus:ring-zus-green focus:border-zus-green"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
-                        zł
-                      </span>
-                    </div>
-                  </FormField>
-
-                  <FormField
-                    label="Środki na subkoncie (OFE)"
-                    tooltip="Kapitał zgromadzony na subkoncie (dla osób urodzonych po 1968 roku). Znajdziesz go na wyciągu z ZUS."
-                  >
-                    <div className="relative">
-                      <input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={
-                          formData.subAccountBalance !== undefined
-                            ? formData.subAccountBalance
-                            : ""
-                        }
-                        onChange={(e) =>
-                          handleChange(
-                            "subAccountBalance",
-                            e.target.value !== ""
-                              ? Number(e.target.value)
-                              : undefined
-                          )
-                        }
-                        placeholder="Pozostaw puste, jeśli nie znasz"
-                        className="w-full px-4 py-2 pr-12 border border-zus-grey-300 rounded focus:outline-none focus:ring-2 focus:ring-zus-green focus:border-zus-green"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zus-grey-500">
-                        zł
-                      </span>
-                    </div>
-                  </FormField>
-
-                  <div className="pt-4">
-                    <div className="p-5 bg-blue-50 border-l-4 border-zus-navy rounded-lg shadow-sm">
-                      <div className="flex items-start gap-3 mb-4">
-                        <LuHeartPulse className="w-6 h-6 text-zus-error flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <h4 className="text-lg font-bold text-zus-grey-900 mb-1">
-                            Zwolnienia lekarskie
-                          </h4>
-                          <p className="text-sm text-zus-grey-700">
-                            Uwzględnij statystyczne prawdopodobieństwo zwolnień
-                            lekarskich
-                          </p>
-                        </div>
-                      </div>
-
-                      <label className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-zus-green-light transition-colors border-2 border-transparent hover:border-zus-green mb-4">
-                        <input
-                          type="checkbox"
-                          checked={formData.includeL4 || false}
-                          onChange={(e) =>
-                            handleChange("includeL4", e.target.checked)
-                          }
-                          className="w-5 h-5 accent-zus-green flex-shrink-0"
-                        />
-                        <span className="font-semibold text-zus-grey-900">
-                          Uwzględnij prawdopodobieństwo zwolnień lekarskich
-                        </span>
-                      </label>
-
-                      <div className="bg-white/70 rounded-lg p-4 space-y-3">
-                        <h5 className="font-bold text-zus-grey-900">
-                          Średnia długość zwolnienia lekarskiego w Polsce:
-                        </h5>
-                        <ul className="space-y-2 text-sm">
-                          <li className="flex items-start gap-2">
-                            <span className="text-zus-green font-bold">•</span>
-                            <span className="text-zus-grey-700">
-                              <strong>Kobiety:</strong> średnio{" "}
-                              {data?.sickImpactF?.avgDaysPerYear || 0} dni
-                              rocznie
-                            </span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-zus-green font-bold">•</span>
-                            <span className="text-zus-grey-700">
-                              <strong>Mężczyźni:</strong> średnio{" "}
-                              {data?.sickImpactM?.avgDaysPerYear || 0} dni
-                              rocznie
-                            </span>
-                          </li>
-                        </ul>
-                        <p className="text-sm text-zus-grey-700 pt-2 border-t border-zus-grey-300">
-                          Podczas zwolnienia lekarskiego składki emerytalne są
-                          odprowadzane od zasiłku (zazwyczaj niższego niż pełne
-                          wynagrodzenie), co zmniejsza kapitał emerytalny.
-                          Średnio obniża to świadczenie o{" "}
-                          <strong className="text-zus-error">
-                            {(
-                              (1 - l4Config.reductionCoefficient) *
-                              100
-                            ).toFixed(1)}
-                            %
-                          </strong>
-                          .
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-zus-grey-300">
-                  <div className="flex gap-4">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="lg"
-                      onClick={handleBack}
-                      className="flex-1"
-                    >
-                      ← Wstecz
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      variant="success"
-                      size="lg"
-                      className="flex-1"
-                    >
-                      Dalej: Podsumowanie →
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Step 3: Review */}
-            <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 3
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
-            >
-              <Card className="p-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-zus-grey-900 mb-2">
-                    Podsumowanie danych
-                  </h2>
-                  <p className="text-zus-grey-600">
-                    Sprawdź wprowadzone dane przed wygenerowaniem prognozy
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Basic Info Summary */}
-                  <Card className="bg-zus-green-light border-zus-green p-4">
-                    <h3 className="text-base font-bold text-zus-grey-900 mb-3 flex items-center gap-2">
-                      <LuClipboardList className="w-5 h-5 text-zus-green flex-shrink-0" />
-                      <span>Dane podstawowe</span>
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="flex justify-between sm:flex-col">
-                        <div className="text-sm text-zus-grey-600">Wiek</div>
-                        <div className="text-lg font-bold text-zus-grey-900">
-                          {formData.age} lat
-                        </div>
-                      </div>
-                      <div className="flex justify-between sm:flex-col">
-                        <div className="text-sm text-zus-grey-600">Płeć</div>
-                        <div className="text-lg font-bold text-zus-grey-900">
-                          {formData.sex === "M" ? "Mężczyzna" : "Kobieta"}
-                        </div>
-                      </div>
-                      <div className="flex justify-between sm:flex-col">
-                        <div className="text-sm text-zus-grey-600">
-                          Wynagrodzenie brutto
-                        </div>
-                        <div className="text-lg font-bold text-zus-green">
-                          {formData.monthlyGross?.toLocaleString("pl-PL")} zł/mc
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Work History Summary */}
-                  <Card className="bg-blue-50 border-zus-navy p-4">
-                    <h3 className="text-base font-bold text-zus-grey-900 mb-3 flex items-center gap-2">
-                      <LuCalendar className="w-5 h-5 text-zus-blue flex-shrink-0" />
-                      <span>Historia pracy</span>
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                      <div className="flex justify-between sm:flex-col">
-                        <div className="text-sm text-zus-grey-600">
-                          Rok rozpoczęcia pracy
-                        </div>
-                        <div className="text-lg font-bold text-zus-grey-900">
-                          {formData.workStartYear}
-                        </div>
-                      </div>
-                      <div className="flex justify-between sm:flex-col">
-                        <div className="text-sm text-zus-grey-600">
-                          Planowana emerytura
-                        </div>
-                        <div className="text-lg font-bold text-zus-grey-900">
-                          {formData.workEndYear}
-                        </div>
-                      </div>
-                      <div className="flex justify-between sm:flex-col">
-                        <div className="text-sm text-zus-grey-600">
-                          Łączny staż pracy
-                        </div>
-                        <div className="text-lg font-bold text-zus-green">
-                          {yearsWorked} lat
-                        </div>
-                      </div>
-                      <div className="flex justify-between sm:flex-col">
-                        <div className="text-sm text-zus-grey-600">
-                          Wiek emerytalny
-                        </div>
-                        <div className="text-lg font-bold text-zus-green">
-                          {retirementAge} lat
-                        </div>
-                      </div>
-                    </div>
-                    <div className="pt-3 border-t border-zus-navy/20 space-y-2 text-sm">
-                      <div className="flex justify-between items-center">
-                        <span className="text-zus-grey-600">
-                          Wcześniejsza emerytura:
-                        </span>
-                        <span
-                          className={`font-semibold ${
-                            formData.earlyRetirement
-                              ? "text-zus-green"
-                              : "text-zus-grey-500"
-                          }`}
-                        >
-                          {formData.earlyRetirement ? "✓ Tak" : "✗ Nie"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-zus-grey-600">Typ umowy:</span>
-                        <span className="font-semibold text-zus-grey-900">
-                          {formData.contractType === "UOP"
-                            ? "💼 Umowa o Pracę (UOP)"
-                            : formData.contractType === "UOZ"
-                            ? "📝 Umowa Zlecenie (UOZ)"
-                            : formData.contractType === "B2B"
-                            ? "🏢 Działalność / B2B"
-                            : "💼 Umowa o Pracę (UOP)"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-zus-grey-600">PPK:</span>
-                        <span
-                          className={`font-semibold ${
-                            formData.retirementPrograms?.ppk.enabled
-                              ? "text-zus-blue"
-                              : "text-zus-grey-500"
-                          }`}
-                        >
-                          {formData.retirementPrograms?.ppk.enabled
-                            ? "✓ Uczestniczę"
-                            : "✗ Nie uczestniczę"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-zus-grey-600">IKZE:</span>
-                        <span
-                          className={`font-semibold ${
-                            formData.retirementPrograms?.ikze.enabled
-                              ? "text-zus-orange"
-                              : "text-zus-grey-500"
-                          }`}
-                        >
-                          {formData.retirementPrograms?.ikze.enabled
-                            ? "✓ Posiadam"
-                            : "✗ Nie posiadam"}
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Additional Info Summary */}
-                  <Card className="bg-gray-50 border-zus-grey-300 p-4">
-                    <h3 className="text-base font-bold text-zus-grey-900 mb-3 flex items-center gap-2">
-                      <LuBriefcase className="w-5 h-5 text-zus-navy flex-shrink-0" />
-                      <span>Dodatkowe informacje</span>
-                    </h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-zus-grey-600">
-                          Konto podstawowe:
-                        </span>
-                        <span className="font-semibold text-zus-grey-900">
-                          {formData.accountBalance
-                            ? `${formData.accountBalance.toLocaleString(
-                                "pl-PL"
-                              )} zł`
-                            : "Nie podano (automatyczne oszacowanie)"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-zus-grey-600">
-                          Subkonto (OFE):
-                        </span>
-                        <span className="font-semibold text-zus-grey-900">
-                          {formData.subAccountBalance
-                            ? `${formData.subAccountBalance.toLocaleString(
-                                "pl-PL"
-                              )} zł`
-                            : "Nie podano (automatyczne oszacowanie)"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-1">
-                        <span className="text-zus-grey-600">
-                          Zwolnienia lekarskie:
-                        </span>
-                        <span
-                          className={`font-semibold ${
-                            formData.includeL4
-                              ? "text-zus-green"
-                              : "text-zus-grey-500"
-                          }`}
-                        >
-                          {formData.includeL4
-                            ? "✓ Uwzględnione"
-                            : "✗ Pominięte"}
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Ready to Calculate */}
-                  <div className="p-4 bg-zus-green-light border-2 border-zus-green rounded-lg text-center">
-                    <p className="text-base font-semibold text-zus-green mb-1 flex items-center justify-center gap-2">
-                      <LuCircleCheckBig className="w-6 h-6 flex-shrink-0" />
-                      <span>Wszystkie dane są gotowe!</span>
-                    </p>
-                    <p className="text-sm text-zus-grey-700">
-                      Kliknij poniżej, aby wygenerować szczegółową prognozę
-                      Twojej przyszłej emerytury
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-zus-grey-300">
-                  <div className="flex gap-4">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="lg"
-                      onClick={handleBack}
-                      className="flex-1"
-                    >
-                      ← Wstecz
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="success"
-                      size="lg"
-                      loading={isCalculating}
-                      disabled={isCalculating}
-                      className="flex-1"
-                    >
-                      {isCalculating
-                        ? "Obliczanie prognozy..."
-                        : "Zaprognozuj moją emeryturę"}
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </div>
+      <main className="min-h-screen bg-gradient-to-br from-zus-green-light via-white to-blue-50 py-12">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-zus-grey-900 mb-2">
+              Symulacja emerytury
+            </h1>
+            <p className="text-zus-grey-600">
+              Przewiduj swoją przyszłość emerytalną w kilku prostych krokach
+            </p>
           </div>
-        </form>
 
-        {/* Postal Code Modal */}
-        <PostalCodeModal
-          isOpen={showPostalCodeModal}
-          onClose={handlePostalCodeSkip}
-          onSave={handlePostalCodeSave}
-        />
-      </div>
-    </main>
+          <div className="max-w-4xl mx-auto">
+            <StepIndicator
+              steps={STEPS}
+              currentStep={currentStep}
+              completedSteps={completedSteps}
+              onStepClick={handleStepClick}
+            />
+
+            <form onSubmit={handleSubmit} className="mt-8">
+              {currentStep === 0 && (
+                <Step0BasicInfo
+                  formData={formData}
+                  errors={errors}
+                  isComplete={isStep0Complete()}
+                  onFieldChange={handleChange}
+                  onNext={handleNext}
+                  onCancel={handleCancel}
+                  getFieldError={getFieldError}
+                />
+              )}
+
+              {currentStep === 1 && (
+                <Step1WorkHistory
+                  formData={formData}
+                  workHistory={workHistory}
+                  errors={errors}
+                  isComplete={isStep1Complete()}
+                  currentYear={currentYear}
+                  minWorkStartYear={minWorkStartYear}
+                  onFieldChange={handleChange}
+                  onWorkHistoryUpdate={updateWorkHistoryEntry}
+                  onAddEntry={addWorkHistoryEntry}
+                  onRemoveEntry={removeWorkHistoryEntry}
+                  onNext={handleNext}
+                  onBack={handleBack}
+                  getFieldError={getFieldError}
+                />
+              )}
+
+              {currentStep === 2 && (
+                <Step2AdditionalInfo
+                  formData={formData}
+                  sickImpactConfig={sickImpactConfig}
+                  onFieldChange={handleChange}
+                  onNext={handleNext}
+                  onBack={handleBack}
+                />
+              )}
+
+              {currentStep === 3 && (
+                <Step3Review
+                  formData={formData}
+                  workHistory={workHistory}
+                  currentYear={currentYear}
+                  onSubmit={proceedWithCalculation}
+                  onBack={handleBack}
+                  isLoading={isCalculating}
+                />
+              )}
+            </form>
+
+            {/* Timeline sidebar - commented out for now */}
+            {/* <div className="mt-8">
+                <UnifiedTimeline
+                  startYear={workHistory[0]?.startYear}
+                  endYear={workHistory[workHistory.length - 1]?.endYear}
+                  currentYear={currentYear}
+                  age={formData.age}
+                  variant="full"
+                />
+              </div> */}
+          </div>
+        </div>
+      </main>
+    </>
   );
 }

@@ -15,7 +15,7 @@ interface InputWithSliderProps {
   required?: boolean;
   placeholder?: string;
   tooltip?: string;
-  reserveErrorSpace?: FormFieldProps['reserveErrorSpace']
+  reserveErrorSpace?: FormFieldProps["reserveErrorSpace"];
 }
 
 export function InputWithSlider({
@@ -32,7 +32,7 @@ export function InputWithSlider({
   required = false,
   placeholder,
   tooltip,
-  reserveErrorSpace 
+  reserveErrorSpace,
 }: InputWithSliderProps) {
   const [sliderValue, setSliderValue] = useState<number>(
     value !== undefined ? value : Math.round((min + max) / 2)
@@ -44,6 +44,19 @@ export function InputWithSlider({
       setSliderValue(value);
     }
   }, [value]);
+
+  // Clamp value when min/max changes
+  useEffect(() => {
+    if (value !== undefined) {
+      if (value < min) {
+        onChange(min);
+        setSliderValue(min);
+      } else if (value > max) {
+        onChange(max);
+        setSliderValue(max);
+      }
+    }
+  }, [min, max]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;

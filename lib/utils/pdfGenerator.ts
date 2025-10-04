@@ -157,7 +157,7 @@ export const generatePDFReport = async (data: PDFReportData): Promise<void> => {
   );
   yPos += 6;
   doc.text(
-    `Zwolnienia lekarskie: ${inputs.includeL4 ? "Uwzglednione" : "Pominiete"}`,
+    `Zwolnienia lekarskie: ${inputs.includeZwolnienieZdrowotne ? "Uwzglednione" : "Pominiete"}`,
     10,
     yPos
   );

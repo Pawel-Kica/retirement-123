@@ -363,7 +363,7 @@ export function InteractiveCareerTimeline({
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-lg">🏥</span>
-                <span>Długotrwałe L4</span>
+                <span>Długotrwałe zwolnienie zdrowotne</span>
               </div>
             </>
           )}
@@ -407,13 +407,13 @@ export function InteractiveCareerTimeline({
                 type: "LONG_TERM_SICK",
                 year: currentYear + 1,
                 durationMonths: 6,
-                description: "Długotrwałe zwolnienie L4",
+                description: "Długotrwałe zwolnienie zdrowotne",
               });
             }}
             className="px-4 py-2 bg-white border-2 border-zus-grey-300 rounded-lg hover:border-zus-orange hover:bg-orange-50 transition-all text-sm font-semibold flex items-center gap-2"
           >
             <span>🏥</span>
-            Dodaj długie L4
+            Dodaj długie zwolnienie zdrowotne
           </button>
         </div>
       )}

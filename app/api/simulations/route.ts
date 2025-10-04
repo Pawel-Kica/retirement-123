@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       wiek: body.age,
       plec: body.sex,
       wysokosc_wynagrodzenia: body.monthlyGross,
-      uwzglednial_okresy_choroby: body.includeL4 || false,
+      uwzglednial_okresy_choroby: body.includeZwolnienieZdrowotne || false,
       wysokosc_srodkow: body.accountBalance || body.subAccountBalance || null,
       emerytura_rzeczywista: body.nominalPension,
       emerytura_urealniona: body.realPension,

@@ -138,7 +138,7 @@ export function SickLeavePanel({
               Długotrwałe zwolnienie lekarskie
             </p>
             <p className="text-xs text-zus-grey-700">
-              Podczas długotrwałego zwolnienia lekarskiego (L4) składki
+              Podczas długotrwałego zwolnienia zdrowotnego składki
               emerytalne są odprowadzane od zasiłku chorobowego, który jest
               niższy niż pełne wynagrodzenie. To zmniejsza kapitał emerytalny.
             </p>

@@ -37,11 +37,17 @@ export function saveSimulationToHistory(
   expectedPension: number,
   inputs: SimulationInputs,
   results: SimulationResults,
-  dashboardModifications?: DashboardModifications
+  dashboardModifications?: DashboardModifications,
+  forceNewEntry: boolean = false
 ): SimulationHistoryEntry {
   const currentId = getCurrentSimulationId();
-  const id =
-    currentId || `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // If forceNewEntry is true, always create a new ID, otherwise reuse current
+  const id = forceNewEntry
+    ? `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    : currentId ||
+      `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
   const timestamp = new Date().toISOString();
 
   const entry: SimulationHistoryEntry = {
@@ -57,10 +63,12 @@ export function saveSimulationToHistory(
   const existingIndex = history.findIndex((h) => h.id === id);
   let updatedHistory;
 
-  if (existingIndex >= 0) {
+  if (existingIndex >= 0 && !forceNewEntry) {
+    // Update existing entry
     updatedHistory = [...history];
     updatedHistory[existingIndex] = entry;
   } else {
+    // Add new entry at the beginning
     updatedHistory = [entry, ...history].slice(0, MAX_HISTORY_ITEMS);
   }
 
@@ -237,7 +245,7 @@ export function initializeDefaultTimelineForSimulation(
     gapPeriods: [],
     lifeEvents: [],
     customSalaries: {},
-    customL4Periods: [],
+    customZwolnienieZdrwotnePeriods: [],
     customWageGrowth: {},
   };
 

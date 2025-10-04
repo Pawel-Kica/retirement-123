@@ -259,12 +259,12 @@ export function TimelineSidePanel({
             <input
               name="days"
               className="border border-zus-grey-300 rounded px-3 py-2"
-              placeholder="Dni L4"
+              placeholder="Dni zwolnienia"
               defaultValue={182}
             />
           </div>
           <button className="w-full bg-transparent border-2 border-zus-green text-zus-green hover:bg-zus-green-light rounded px-3 py-2">
-            Dodaj L4
+            Dodaj zwolnienie zdrowotne
           </button>
         </form>
       )}

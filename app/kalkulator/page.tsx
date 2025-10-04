@@ -358,7 +358,7 @@ export default function Home() {
               <h2 className="text-xl md:text-2xl font-semibold text-zus-grey-700 mb-6">
                 Jaka emerytura Cię zadowoli?
               </h2>
-              
+
               <div className="flex items-center justify-center text-3xl md:text-4xl mb-2">
                 <DynamicNumberInput
                   value={pension}
@@ -369,7 +369,7 @@ export default function Home() {
                   className="text-3xl md:text-4xl"
                 />
               </div>
-              
+
               <p className="text-xs text-gray-400 mb-6">
                 W dzisiejszych złotych (wartość realna)
               </p>
@@ -402,17 +402,17 @@ export default function Home() {
                   #0B4C7C 100%)`,
                 }}
               />
-              
+
               {/* Average pension marker */}
               {(() => {
-                const avgPension = 4045.20;
+                const avgPension = 4045.2;
                 const avgPosition = pensionToPercentage(avgPension);
                 return (
                   <div
                     className="absolute top-0 h-4 w-0.5 bg-white pointer-events-none shadow-md"
                     style={{
                       left: `${avgPosition}%`,
-                      transform: 'translateX(-50%)',
+                      transform: "translateX(-50%)",
                     }}
                     title="Średnia emerytura"
                   >
@@ -420,7 +420,7 @@ export default function Home() {
                   </div>
                 );
               })()}
-              
+
               <input
                 type="range"
                 min={0}
@@ -461,12 +461,14 @@ export default function Home() {
           <div className="border-t border-zus-grey-300 pt-6">
             <div className="text-center">
               {(() => {
-                const avgPension = 4045.20;
+                const avgPension = 4045.2;
                 const difference = pension - avgPension;
-                const percentDiff = ((difference / avgPension) * 100).toFixed(0);
+                const percentDiff = ((difference / avgPension) * 100).toFixed(
+                  0
+                );
                 const isHigher = pension > avgPension;
                 const isEqual = Math.abs(difference) < 50;
-                
+
                 if (isEqual) {
                   return (
                     <p className="text-sm text-zus-grey-700">
@@ -474,17 +476,26 @@ export default function Home() {
                     </p>
                   );
                 }
-                
+
                 return (
-                  <p className={`text-sm font-medium ${isHigher ? 'text-zus-green' : 'text-zus-error'}`}>
-                    Twoje oczekiwania są <strong>{isHigher ? 'wyższe' : 'niższe'}</strong> o{' '}
-                    <strong>{Math.abs(Number(percentDiff))}%</strong> ({isHigher ? '+' : ''}{difference.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł)
-                    od średniej
+                  <p
+                    className={`text-sm font-medium ${
+                      isHigher ? "text-zus-green" : "text-zus-error"
+                    }`}
+                  >
+                    Twoje oczekiwania są{" "}
+                    <strong>{isHigher ? "wyższe" : "niższe"}</strong> o{" "}
+                    <strong>{Math.abs(Number(percentDiff))}%</strong> (
+                    {isHigher ? "+" : ""}
+                    {difference.toLocaleString("pl-PL", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    zł) od średniej
                   </p>
                 );
               })()}
             </div>
-
           </div>
 
           <style jsx>{`
@@ -497,13 +508,15 @@ export default function Home() {
               background: white;
               border: 4px solid ${groups[activeCategory]?.color || "#0B4C7C"};
               cursor: grab;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(0, 132, 61, 0.1);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15),
+                0 0 0 4px rgba(0, 132, 61, 0.1);
               transition: all 150ms ease-in-out;
             }
 
             .slider-thumb::-webkit-slider-thumb:hover {
               transform: scale(1.15);
-              box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 0 0 6px rgba(0, 132, 61, 0.15);
+              box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2),
+                0 0 0 6px rgba(0, 132, 61, 0.15);
             }
 
             .slider-thumb::-webkit-slider-thumb:active {
@@ -518,13 +531,15 @@ export default function Home() {
               background: white;
               border: 4px solid ${groups[activeCategory]?.color || "#0B4C7C"};
               cursor: grab;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(0, 132, 61, 0.1);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15),
+                0 0 0 4px rgba(0, 132, 61, 0.1);
               transition: all 150ms ease-in-out;
             }
 
             .slider-thumb::-moz-range-thumb:hover {
               transform: scale(1.15);
-              box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 0 0 6px rgba(0, 132, 61, 0.15);
+              box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2),
+                0 0 0 6px rgba(0, 132, 61, 0.15);
             }
 
             .slider-thumb::-moz-range-thumb:active {

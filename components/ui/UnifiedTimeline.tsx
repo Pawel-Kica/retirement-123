@@ -1,12 +1,12 @@
 import React from "react";
-import { 
-  LuGraduationCap, 
-  LuBriefcase, 
-  LuMapPin, 
-  LuPartyPopper, 
-  LuCalendarDays, 
-  LuTarget, 
-  LuChartBar 
+import {
+  LuGraduationCap,
+  LuBriefcase,
+  LuMapPin,
+  LuPartyPopper,
+  LuCalendarDays,
+  LuTarget,
+  LuChartBar,
 } from "react-icons/lu";
 
 interface TimelineEvent {
@@ -190,7 +190,7 @@ export function UnifiedTimeline({
 
     // Full variant
     return {
-      icon: <LuBarChart3 className="w-7 h-7 text-zus-green" />,
+      icon: <></>,
       number: totalYears,
       label: totalYears === 1 ? "rok" : totalYears < 5 ? "lata" : "lat",
       suffix: "kariery zawodowej",

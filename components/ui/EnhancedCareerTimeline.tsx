@@ -288,7 +288,7 @@ export function EnhancedCareerTimeline({
 
                   {/* Tooltip */}
                   <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-zus-grey-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
-                    <div className="font-bold">Długie zwolnienie (L4)</div>
+                    <div className="font-bold">Długie zwolnienie zdrowotne</div>
                     <div>
                       {event.month}/{event.year}
                     </div>
@@ -346,7 +346,7 @@ export function EnhancedCareerTimeline({
         </div>
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-zus-error" />
-          <span className="text-zus-grey-700 font-medium">Długie L4</span>
+          <span className="text-zus-grey-700 font-medium">Długie zwolnienie zdrowotne</span>
         </div>
       </div>
     </div>

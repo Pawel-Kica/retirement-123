@@ -98,17 +98,25 @@ export default function WynikPage() {
   const [showEventsSection, setShowEventsSection] = useState(true);
 
   useEffect(() => {
-    if (!state.results) {
-      const history = getHistory();
-      if (history.length > 0) {
-        loadFromHistory(history[0].id);
-        setIsLoading(false);
+    // Small delay to allow state to be loaded from localStorage
+    const checkResults = async () => {
+      // Wait a moment for any pending state updates
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      if (!state.results) {
+        const history = getHistory();
+        if (history.length > 0) {
+          loadFromHistory(history[0].id);
+          setIsLoading(false);
+        } else {
+          router.push("/kalkulator");
+        }
       } else {
-        router.push("/kalkulator");
+        setIsLoading(false);
       }
-    } else {
-      setIsLoading(false);
-    }
+    };
+
+    checkResults();
   }, [state.results, router, loadFromHistory, getHistory]);
 
   useEffect(() => {
@@ -396,7 +404,7 @@ export default function WynikPage() {
                 className="flex items-center gap-2 bg-zus-error hover:bg-red-700 text-white"
               >
                 <Activity className="w-4 h-4" />
-                Dodaj Długie L4
+                Dodaj Długie zwolnienie zdrowotne
               </Button>
             </div>
 
@@ -495,7 +503,7 @@ export default function WynikPage() {
                           <Activity className="w-5 h-5 text-zus-error" />
                           <div>
                             <p className="font-semibold text-sm text-zus-grey-900">
-                              Długie zwolnienie L4
+                              Długie zwolnienie zdrowotne
                             </p>
                             <p className="text-xs text-zus-grey-600">
                               {event.month}/{event.year} ({event.durationYears}{" "}

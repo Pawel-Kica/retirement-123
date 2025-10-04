@@ -249,7 +249,7 @@ export function PDFPreviewModal({
                   Zwolnienia lekarskie
                 </div>
                 <div className="text-sm font-bold text-zus-grey-900">
-                  {inputs.includeL4 ? "✓ Uwzględnione" : "✗ Pominięte"}
+                  {inputs.includeZwolnienieZdrowotne ? "✓ Uwzględnione" : "✗ Pominięte"}
                 </div>
               </div>
             </div>

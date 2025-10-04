@@ -40,12 +40,12 @@ interface SimulationContextType {
   setExpectedPension: (amount: number) => void;
   setInputs: (inputs: SimulationInputs) => void;
   updateInputs: (inputs: Partial<SimulationInputs>) => Promise<void>;
-  setResults: (results: SimulationResults) => void;
+  setResults: (results: SimulationResults, isNewSimulation?: boolean) => void;
   updateDashboardModifications: (mods: Partial<DashboardModifications>) => void;
   saveScenario: (slot: "A" | "B", description: string) => void;
   loadScenario: (slot: "A" | "B") => void;
   clearScenario: (slot: "A" | "B") => void;
-  recalculate: () => Promise<void>;
+  recalculate: (isNewSimulation?: boolean) => Promise<void>;
   reset: () => void;
   isCalculating: boolean;
   saveToHistory: () => void;
@@ -69,7 +69,7 @@ const initialState: SimulationState = {
   results: null,
   dashboardModifications: {
     customSalaries: {},
-    customL4Periods: [],
+    customZwolnienieZdrwotnePeriods: [],
     customWageGrowth: {},
   },
   scenarios: {
@@ -142,8 +142,6 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   };
 
   const setInputs = (inputs: SimulationInputs) => {
-    setState((prev) => ({ ...prev, inputs }));
-
     if (!currentSimulationId) {
       const newId = createNewSimulation();
       setCurrentSimId(newId);
@@ -154,6 +152,8 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         inputs,
         dashboardModifications: defaultMods,
       }));
+    } else {
+      setState((prev) => ({ ...prev, inputs }));
     }
   };
 
@@ -196,20 +196,42 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     ]
   );
 
-  const setResults = (results: SimulationResults) => {
+  const setResults = (
+    results: SimulationResults,
+    isNewSimulation: boolean = false
+  ) => {
     setState((prev) => {
       if (prev.inputs && results) {
-        const simId = currentSimulationId || createNewSimulation();
-        if (!currentSimulationId) {
+        let simId = currentSimulationId;
+
+        // If this is a new simulation or no current ID exists, create a new one
+        if (isNewSimulation || !currentSimulationId) {
+          simId = createNewSimulation();
           setCurrentSimId(simId);
         }
+
+        console.log("💾 Saving simulation to history:", {
+          expectedPension: prev.expectedPension,
+          hasInputs: !!prev.inputs,
+          hasResults: !!results,
+          simId,
+          isNewSimulation,
+        });
 
         saveSimulationToHistory(
           prev.expectedPension,
           prev.inputs,
           results,
-          prev.dashboardModifications
+          prev.dashboardModifications,
+          isNewSimulation
         );
+
+        console.log("✅ Simulation saved to history");
+      } else {
+        console.warn("⚠️ Cannot save to history - missing inputs or results", {
+          hasInputs: !!prev.inputs,
+          hasResults: !!results,
+        });
       }
       return { ...prev, results };
     });
@@ -268,7 +290,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("zus-scenarios", JSON.stringify(newScenarios));
   };
 
-  const recalculate = async () => {
+  const recalculate = async (isNewSimulation: boolean = false) => {
     if (!state.inputs) return;
 
     setIsCalculating(true);
@@ -279,7 +301,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         modifications: state.dashboardModifications,
       });
 
-      setResults(results);
+      setResults(results, isNewSimulation);
     } catch (error) {
       console.error("Calculation error:", error);
       throw error;

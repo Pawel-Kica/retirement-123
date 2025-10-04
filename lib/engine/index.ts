@@ -10,7 +10,7 @@ import {
 } from "../types";
 import { loadAllData } from "../data/loader";
 import { buildSalaryPath } from "./salaryPath";
-import { calculateL4Comparison } from "./l4Impact";
+import { calculateZwolnienieZdrowotneComparison } from "./l4Impact";
 import { applyTimelineAdjustments } from "./timelineAdjustments";
 import { accumulateCapital, getFinalCapital } from "./capitalAccumulation";
 import {
@@ -67,25 +67,25 @@ export async function calculateSimulation(
     customOverrides: modifications?.customSalaries,
   });
 
-  // Step 2: Calculate L4 impact (if enabled)
-  let pathWithoutL4 = baseSalaryPath;
-  let pathWithL4 = baseSalaryPath;
+  // Step 2: Calculate zwolnienie zdrowotne impact (if enabled)
+  let pathWithoutZwolnienieZdrowotne = baseSalaryPath;
+  let pathWithZwolnienieZdrowotne = baseSalaryPath;
 
-  if (inputs.includeL4) {
-    const l4Comparison = calculateL4Comparison(
+  if (inputs.includeZwolnienieZdrowotne) {
+    const zwolnienieZdrowotneComparison = calculateZwolnienieZdrowotneComparison(
       baseSalaryPath,
       inputs.sex,
       data.sickImpactM,
       data.sickImpactF,
-      modifications?.customL4Periods
+      modifications?.customZwolnienieZdrwotnePeriods
     );
-    pathWithoutL4 = l4Comparison.withoutL4;
-    pathWithL4 = l4Comparison.withL4;
+    pathWithoutZwolnienieZdrowotne = zwolnienieZdrowotneComparison.withoutZwolnienieZdrowotne;
+    pathWithZwolnienieZdrowotne = zwolnienieZdrowotneComparison.withZwolnienieZdrowotne;
   }
 
-  // Apply unified timeline adjustments (contract/gaps/L4 points)
+  // Apply unified timeline adjustments (contract/gaps/zwolnienie zdrowotne points)
   const adjustedPath = applyTimelineAdjustments({
-    path: inputs.includeL4 ? pathWithL4 : pathWithoutL4,
+    path: inputs.includeZwolnienieZdrowotne ? pathWithZwolnienieZdrowotne : pathWithoutZwolnienieZdrowotne,
     contractPeriods: modifications?.contractPeriods,
     gapPeriods: modifications?.gapPeriods,
     lifeEvents: modifications?.lifeEvents,
@@ -93,60 +93,60 @@ export async function calculateSimulation(
   });
 
   // Step 3: Calculate capital accumulation for adjusted path
-  const capitalPathWithoutL4 = accumulateCapital({
+  const capitalPathWithoutZwolnienieZdrowotne = accumulateCapital({
     salaryPath: adjustedPath,
     initialMainAccount: inputs.accountBalance,
     initialSubAccount: inputs.subAccountBalance,
     valorizationData: data.wageGrowth,
   });
 
-  const capitalPathWithL4 = capitalPathWithoutL4;
+  const capitalPathWithZwolnienieZdrowotne = capitalPathWithoutZwolnienieZdrowotne;
 
   // Get final capitals
-  const finalCapitalWithoutL4 = getFinalCapital(capitalPathWithoutL4);
-  const finalCapitalWithL4 = getFinalCapital(capitalPathWithL4);
+  const finalCapitalWithoutZwolnienieZdrowotne = getFinalCapital(capitalPathWithoutZwolnienieZdrowotne);
+  const finalCapitalWithZwolnienieZdrowotne = getFinalCapital(capitalPathWithZwolnienieZdrowotne);
 
   // Step 4: Calculate pensions
   const actualRetirementAge = inputs.age + (inputs.workEndYear - currentYear);
 
-  // Without L4
-  const nominalPensionWithoutL4 = calculatePension(
-    finalCapitalWithoutL4.total,
+  // Without zwolnienie zdrowotne
+  const nominalPensionWithoutZwolnienieZdrowotne = calculatePension(
+    finalCapitalWithoutZwolnienieZdrowotne.total,
     actualRetirementAge,
     inputs.sex,
     data.annuityDivisors
   );
 
-  const realPensionWithoutL4 = calculateRealValue(
-    nominalPensionWithoutL4,
+  const realPensionWithoutZwolnienieZdrowotne = calculateRealValue(
+    nominalPensionWithoutZwolnienieZdrowotne,
     inputs.workEndYear,
     currentYear,
     data.cpi
   );
 
-  // With L4
-  const nominalPensionWithL4 = calculatePension(
-    finalCapitalWithL4.total,
+  // With zwolnienie zdrowotne
+  const nominalPensionWithZwolnienieZdrowotne = calculatePension(
+    finalCapitalWithZwolnienieZdrowotne.total,
     actualRetirementAge,
     inputs.sex,
     data.annuityDivisors
   );
 
-  const realPensionWithL4 = calculateRealValue(
-    nominalPensionWithL4,
+  const realPensionWithZwolnienieZdrowotne = calculateRealValue(
+    nominalPensionWithZwolnienieZdrowotne,
     inputs.workEndYear,
     currentYear,
     data.cpi
   );
 
-  // Use the appropriate values based on whether L4 is enabled
-  const nominalPension = inputs.includeL4
-    ? nominalPensionWithL4
-    : nominalPensionWithoutL4;
-  const realPension = inputs.includeL4
-    ? realPensionWithL4
-    : realPensionWithoutL4;
-  const capitalPath = capitalPathWithoutL4;
+  // Use the appropriate values based on whether zwolnienie zdrowotne is enabled
+  const nominalPension = inputs.includeZwolnienieZdrowotne
+    ? nominalPensionWithZwolnienieZdrowotne
+    : nominalPensionWithoutZwolnienieZdrowotne;
+  const realPension = inputs.includeZwolnienieZdrowotne
+    ? realPensionWithZwolnienieZdrowotne
+    : realPensionWithoutZwolnienieZdrowotne;
+  const capitalPath = capitalPathWithoutZwolnienieZdrowotne;
 
   // Step 5: Calculate replacement rate
   const finalSalaryEntry = baseSalaryPath[baseSalaryPath.length - 1];
@@ -168,18 +168,18 @@ export async function calculateSimulation(
   const deferrals = calculateDeferralScenarios({
     baseRetirementYear: inputs.workEndYear,
     baseRetirementAge: actualRetirementAge,
-    baseTotalCapital: inputs.includeL4
-      ? finalCapitalWithL4.total
-      : finalCapitalWithoutL4.total,
+    baseTotalCapital: inputs.includeZwolnienieZdrowotne
+      ? finalCapitalWithZwolnienieZdrowotne.total
+      : finalCapitalWithoutZwolnienieZdrowotne.total,
     baseRealPension: realPension,
     deferralYears: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-    completeSalaryPath: inputs.includeL4
-      ? calculateL4Comparison(
+    completeSalaryPath: inputs.includeZwolnienieZdrowotne
+      ? calculateZwolnienieZdrowotneComparison(
           completeSalaryPath,
           inputs.sex,
           data.sickImpactM,
           data.sickImpactF
-        ).withL4
+        ).withZwolnienieZdrowotne
       : completeSalaryPath,
     sex: inputs.sex,
     annuityDivisors: data.annuityDivisors,
@@ -196,13 +196,13 @@ export async function calculateSimulation(
       baseRetirementYear: inputs.workEndYear,
       baseRetirementAge: actualRetirementAge,
       baseRealPension: realPension,
-      completeSalaryPath: inputs.includeL4
-        ? calculateL4Comparison(
+      completeSalaryPath: inputs.includeZwolnienieZdrowotne
+        ? calculateZwolnienieZdrowotneComparison(
             completeSalaryPath,
             inputs.sex,
             data.sickImpactM,
             data.sickImpactF
-          ).withL4
+          ).withZwolnienieZdrowotne
         : completeSalaryPath,
       sex: inputs.sex,
       annuityDivisors: data.annuityDivisors,
@@ -220,7 +220,7 @@ export async function calculateSimulation(
 
   if (inputs.retirementPrograms) {
     const additionalPrograms = calculateAdditionalProgramsCapital({
-      salaryPath: inputs.includeL4 ? pathWithL4 : pathWithoutL4,
+      salaryPath: inputs.includeZwolnienieZdrowotne ? pathWithZwolnienieZdrowotne : pathWithoutZwolnienieZdrowotne,
       programs: inputs.retirementPrograms,
     });
 
@@ -239,17 +239,17 @@ export async function calculateSimulation(
     avgPensionInRetirementYear,
     differenceVsAverage,
     differenceVsExpected,
-    withoutL4: {
-      nominalPension: nominalPensionWithoutL4,
-      realPension: realPensionWithoutL4,
-      totalCapital: finalCapitalWithoutL4.total,
+    withoutZwolnienieZdrowotne: {
+      nominalPension: nominalPensionWithoutZwolnienieZdrowotne,
+      realPension: realPensionWithoutZwolnienieZdrowotne,
+      totalCapital: finalCapitalWithoutZwolnienieZdrowotne.total,
     },
-    withL4: {
-      nominalPension: nominalPensionWithL4,
-      realPension: realPensionWithL4,
-      totalCapital: finalCapitalWithL4.total,
+    withZwolnienieZdrowotne: {
+      nominalPension: nominalPensionWithZwolnienieZdrowotne,
+      realPension: realPensionWithZwolnienieZdrowotne,
+      totalCapital: finalCapitalWithZwolnienieZdrowotne.total,
     },
-    l4Difference: realPensionWithoutL4 - realPensionWithL4,
+    zwolnienieZdrwotneDifference: realPensionWithoutZwolnienieZdrowotne - realPensionWithZwolnienieZdrowotne,
     deferrals,
     yearsNeeded,
     capitalPath,

@@ -52,7 +52,7 @@ export function accumulateCapital(params: AccumulateCapitalParams): CapitalEntry
             (subAccount - subAccountBefore);
 
         // Step 2: Add this year's contributions
-        // Use effectiveSalary if L4 was applied, otherwise use annual gross
+        // Use effectiveSalary if zwolnienie zdrowotne was applied, otherwise use annual gross
         const baseSalary = entry.effectiveSalary
             ? entry.effectiveSalary * 12
             : entry.annualGross;

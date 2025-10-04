@@ -181,7 +181,7 @@ export function CareerTimeline(props: CareerTimelineProps) {
           );
         })}
 
-        {/* Life events (L4) */}
+        {/* Life events (zwolnienie zdrowotne) */}
         {lifeEvents.map((event) => {
           const pos = getPositionForYear(event.year);
 
@@ -228,7 +228,7 @@ export function CareerTimeline(props: CareerTimelineProps) {
         {lifeEvents.length > 0 && (
           <div className="flex items-center gap-2">
             <span>🏥</span>
-            <span>Długie L4</span>
+            <span>Długie zwolnienie zdrowotne</span>
           </div>
         )}
       </div>

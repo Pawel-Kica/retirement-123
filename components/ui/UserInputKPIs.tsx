@@ -82,8 +82,8 @@ export function UserInputKPIs({
           fieldsToUpdate.accountBalance = editedValues.accountBalance;
         if (editedValues.subAccountBalance !== inputs.subAccountBalance)
           fieldsToUpdate.subAccountBalance = editedValues.subAccountBalance;
-        if (editedValues.includeL4 !== inputs.includeL4)
-          fieldsToUpdate.includeL4 = editedValues.includeL4;
+        if (editedValues.includeZwolnienieZdrowotne !== inputs.includeZwolnienieZdrowotne)
+          fieldsToUpdate.includeZwolnienieZdrowotne = editedValues.includeZwolnienieZdrowotne;
         if (editedValues.postalCode !== inputs.postalCode) {
           fieldsToUpdate.postalCode = editedValues.postalCode;
           // Also save postal code to local storage
@@ -172,7 +172,7 @@ export function UserInputKPIs({
     },
     {
       label: "Zwolnienia lekarskie",
-      value: inputs.includeL4 ? "✓ Uwzględnione" : "✗ Pominięte",
+      value: inputs.includeZwolnienieZdrowotne ? "✓ Uwzględnione" : "✗ Pominięte",
     },
     {
       label: "Kod pocztowy",
@@ -596,17 +596,17 @@ export function UserInputKPIs({
               <label className="flex items-center gap-1 mt-1">
                 <input
                   type="checkbox"
-                  checked={displayInputs.includeL4 || false}
+                  checked={displayInputs.includeZwolnienieZdrowotne || false}
                   onChange={(e) =>
                     setEditedValues((prev) => ({
                       ...prev,
-                      includeL4: e.target.checked,
+                      includeZwolnienieZdrowotne: e.target.checked,
                     }))
                   }
                   className="w-4 h-4 accent-zus-green"
                 />
                 <span className="text-xs font-bold text-zus-grey-900">
-                  {displayInputs.includeL4 ? "Uwzględnione" : "Pominięte"}
+                  {displayInputs.includeZwolnienieZdrowotne ? "Uwzględnione" : "Pominięte"}
                 </span>
               </label>
             </div>

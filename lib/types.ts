@@ -172,7 +172,7 @@ export interface SimulationInputs {
   workEndYear: number;
   accountBalance?: number;
   subAccountBalance?: number;
-  includeL4: boolean;
+  includeZwolnienieZdrowotne: boolean;
   postalCode?: string;
   earlyRetirement?: boolean; // Special professions (police, firefighters, etc.)
 
@@ -193,7 +193,7 @@ export interface SalaryPathEntry {
   isFuture: boolean;
   isCurrentYear: boolean;
   effectiveSalary?: number;
-  l4Impact?: number;
+  zwolnienieZdrowotneImpact?: number;
 }
 
 export interface CapitalEntry {
@@ -231,18 +231,18 @@ export interface SimulationResults {
   differenceVsAverage: number;
   differenceVsExpected: number;
 
-  // L4 impact
-  withoutL4: {
+  // Zwolnienie zdrowotne impact
+  withoutZwolnienieZdrowotne: {
     nominalPension: number;
     realPension: number;
     totalCapital: number;
   };
-  withL4: {
+  withZwolnienieZdrowotne: {
     nominalPension: number;
     realPension: number;
     totalCapital: number;
   };
-  l4Difference: number;
+  zwolnienieZdrwotneDifference: number;
 
   // Deferrals
   deferrals: DeferralScenario[];
@@ -267,14 +267,14 @@ export interface SimulationResults {
 }
 
 // Dashboard modifications
-export interface L4Period {
+export interface ZwolnienieZdrwotnePeriod {
   year: number;
   days: number;
 }
 
 export interface DashboardModifications {
   customSalaries: Record<number, number>;
-  customL4Periods: L4Period[];
+  customZwolnienieZdrwotnePeriods: ZwolnienieZdrwotnePeriod[];
   customWageGrowth: Record<number, number>;
   // New unified timeline data
   contractPeriods?: EmploymentPeriod[];
@@ -310,7 +310,7 @@ export interface SimulationRecord {
   age: number;
   sex: Sex;
   monthlyGross: number;
-  includeL4: boolean;
+  includeZwolnienieZdrowotne: boolean;
   accountBalance: number | null;
   subAccountBalance: number | null;
   nominalPension: number;
