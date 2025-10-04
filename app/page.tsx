@@ -210,6 +210,23 @@ export default function Home() {
           <CTAButton onClick={() => router.push("/kalkulator")}>
             Rozpocznij Symulację
           </CTAButton>
+
+          {/* Navigation Links */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+    
+            <div 
+              onClick={() => router.push("/zus")}
+              className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-zus-orange"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-zus-orange/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl">📅</span>
+                </div>
+                <h3 className="text-xl font-bold text-zus-grey-900 mb-2">Timeline</h3>
+                <p className="text-zus-grey-700 text-sm">Planuj okresy pracy i bezrobocia</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         </div>
