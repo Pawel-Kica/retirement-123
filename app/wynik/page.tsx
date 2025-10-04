@@ -66,6 +66,7 @@ export default function WynikPage() {
   const [postalError, setPostalError] = useState("");
   const postalInputRef = useRef<HTMLInputElement>(null);
   const [showReportPreview, setShowReportPreview] = useState(false);
+  const deferralChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!state.results) {
@@ -180,9 +181,34 @@ export default function WynikPage() {
     setPostalCode(formatted);
   };
 
-  const handleDownloadReport = () => {
-    alert("Funkcja pobierania PDF w przygotowaniu");
-    setShowReportPreview(false);
+  const handleDownloadReport = async () => {
+    if (!state.inputs || !state.results) {
+      alert("No data available to generate report");
+      return;
+    }
+
+    try {
+      // Import the PDF generator dynamically to avoid SSR issues
+      const { generatePDFReport } = await import("@/lib/utils/pdfGenerator");
+
+      await generatePDFReport(
+        {
+          inputs: state.inputs,
+          results: state.results,
+          expectedPension: state.expectedPension,
+          timestamp: new Date(),
+          postalCode: state.inputs.postalCode,
+        },
+        {
+          deferralChart: deferralChartRef.current || undefined,
+        }
+      );
+
+      setShowReportPreview(false);
+    } catch (error) {
+      console.error("Error generating PDF report:", error);
+      alert("Error generating PDF report. Please try again.");
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -258,10 +284,11 @@ export default function WynikPage() {
                 }}
                 placeholder="XX-XXX"
                 maxLength={6}
-                className={`w-full h-12 px-4 text-center text-lg font-semibold border-2 rounded-lg focus:outline-none transition-colors ${postalError
-                  ? "border-zus-error focus:border-zus-error"
-                  : "border-zus-grey-300 focus:border-zus-green"
-                  }`}
+                className={`w-full h-12 px-4 text-center text-lg font-semibold border-2 rounded-lg focus:outline-none transition-colors ${
+                  postalError
+                    ? "border-zus-error focus:border-zus-error"
+                    : "border-zus-grey-300 focus:border-zus-green"
+                }`}
                 aria-invalid={!!postalError}
                 aria-describedby={postalError ? "postal-error" : undefined}
               />
@@ -447,10 +474,11 @@ export default function WynikPage() {
                       Uwzględnienie okresów choroby (L4)
                     </p>
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1 ${inputs.includeL4
-                        ? "bg-zus-error/10 text-zus-error"
-                        : "bg-zus-green/10 text-zus-green"
-                        }`}
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1 ${
+                        inputs.includeL4
+                          ? "bg-zus-error/10 text-zus-error"
+                          : "bg-zus-green/10 text-zus-green"
+                      }`}
                     >
                       {inputs.includeL4 ? "Tak" : "Nie"}
                     </span>
@@ -752,35 +780,41 @@ export default function WynikPage() {
 
           {/* Deferral Scenarios */}
           <Card className="mb-8">
-            <div className="flex justify-between items-center mb-6">
+            <div
+              ref={deferralChartRef}
+              className="flex justify-between items-center mb-6"
+            >
               <h3 className="text-xl font-bold text-zus-grey-900">
                 Co jeśli będziesz pracować dłużej?
               </h3>
               <div className="flex gap-2 bg-zus-grey-100 p-1 rounded-lg">
                 <button
                   onClick={() => setDeferralViewMode("bar")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${deferralViewMode === "bar"
-                    ? "bg-zus-green text-white shadow-md"
-                    : "text-zus-grey-700 hover:bg-white"
-                    }`}
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
+                    deferralViewMode === "bar"
+                      ? "bg-zus-green text-white shadow-md"
+                      : "text-zus-grey-700 hover:bg-white"
+                  }`}
                 >
                   📊 Wykres słupkowy
                 </button>
                 <button
                   onClick={() => setDeferralViewMode("line")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${deferralViewMode === "line"
-                    ? "bg-zus-green text-white shadow-md"
-                    : "text-zus-grey-700 hover:bg-white"
-                    }`}
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
+                    deferralViewMode === "line"
+                      ? "bg-zus-green text-white shadow-md"
+                      : "text-zus-grey-700 hover:bg-white"
+                  }`}
                 >
                   📈 Wykres liniowy
                 </button>
                 <button
                   onClick={() => setDeferralViewMode("table")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${deferralViewMode === "table"
-                    ? "bg-zus-green text-white shadow-md"
-                    : "text-zus-grey-700 hover:bg-white"
-                    }`}
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
+                    deferralViewMode === "table"
+                      ? "bg-zus-green text-white shadow-md"
+                      : "text-zus-grey-700 hover:bg-white"
+                  }`}
                 >
                   📋 Tabela
                 </button>
@@ -794,14 +828,16 @@ export default function WynikPage() {
                   <Bar
                     data={{
                       labels: [
-                        `Bazowy (wiek ${inputs.age +
-                        (inputs.workEndYear - new Date().getFullYear())
+                        `Bazowy (wiek ${
+                          inputs.age +
+                          (inputs.workEndYear - new Date().getFullYear())
                         })`,
                         ...results.deferrals.map(
                           (d) =>
-                            `+${d.additionalYears} ${d.additionalYears === 1
-                              ? "rok"
-                              : d.additionalYears < 5
+                            `+${d.additionalYears} ${
+                              d.additionalYears === 1
+                                ? "rok"
+                                : d.additionalYears < 5
                                 ? "lata"
                                 : "lat"
                             } (wiek ${d.retirementAge})`
@@ -957,8 +993,9 @@ export default function WynikPage() {
                   <Line
                     data={{
                       labels: [
-                        `Bazowy\n${inputs.age +
-                        (inputs.workEndYear - new Date().getFullYear())
+                        `Bazowy\n${
+                          inputs.age +
+                          (inputs.workEndYear - new Date().getFullYear())
                         } lat`,
                         ...results.deferrals.map(
                           (d) => `+${d.additionalYears}\n${d.retirementAge} lat`
