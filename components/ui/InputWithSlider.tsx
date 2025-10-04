@@ -10,6 +10,7 @@ interface InputWithSliderProps {
   step: number;
   suffix?: string;
   error?: string;
+  errorSeverity?: "error" | "warning";
   hint?: string;
   required?: boolean;
   placeholder?: string;
@@ -25,6 +26,7 @@ export function InputWithSlider({
   step,
   suffix,
   error,
+  errorSeverity = "error",
   hint,
   required = false,
   placeholder,
@@ -63,6 +65,7 @@ export function InputWithSlider({
       label={label}
       required={required}
       error={error}
+      errorSeverity={errorSeverity}
       hint={hint}
       tooltip={tooltip}
     >
@@ -76,7 +79,13 @@ export function InputWithSlider({
             value={value !== undefined ? value : ""}
             onChange={handleInputChange}
             placeholder={placeholder}
-            className="w-full px-4 py-2 pr-16 border border-zus-grey-300 rounded focus:outline-none focus:ring-2 focus:ring-zus-green focus:border-zus-green transition-colors duration-150"
+            className={`w-full px-4 py-2 pr-16 border rounded focus:outline-none focus:ring-2 transition-colors duration-150 ${
+              error
+                ? errorSeverity === "warning"
+                  ? "border-zus-warning focus:ring-zus-warning focus:border-zus-warning"
+                  : "border-zus-error focus:ring-zus-error focus:border-zus-error"
+                : "border-zus-grey-300 focus:ring-zus-green focus:border-zus-green"
+            }`}
             required={required}
           />
           {suffix && (
@@ -86,6 +95,11 @@ export function InputWithSlider({
           )}
         </div>
         <div className="relative pt-2 pb-1">
+          {/* Min/Max labels */}
+          <div className="flex justify-between text-xs text-zus-grey-500 mb-1 px-1">
+            <span className="font-medium">Min: {min}</span>
+            <span className="font-medium">Max: {max}</span>
+          </div>
           <input
             type="range"
             min={min}

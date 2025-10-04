@@ -3,6 +3,14 @@
  */
 
 import { SimulationInputs } from "../types";
+import {
+  VALIDATION_CONSTANTS,
+  RETIREMENT_AGES,
+  ERROR_MESSAGES,
+  calculateBirthYear,
+  calculateMinWorkStartYear,
+  calculateRetirementAge,
+} from "../config/validationRules";
 
 export interface ValidationError {
   field: string;
@@ -26,10 +34,15 @@ export function validateSimulationInputs(
   // Age validation
   if (!inputs.age) {
     errors.push({ field: "age", message: "Wiek jest wymagany" });
-  } else if (inputs.age < 18 || inputs.age > 70) {
+  } else if (inputs.age < VALIDATION_CONSTANTS.MIN_AGE) {
     errors.push({
       field: "age",
-      message: "Wiek musi być w przedziale 18-70 lat",
+      message: `Musisz mieć co najmniej ${VALIDATION_CONSTANTS.MIN_AGE} lat`,
+    });
+  } else if (inputs.age > VALIDATION_CONSTANTS.MAX_AGE) {
+    errors.push({
+      field: "age",
+      message: `Wiek nie może przekraczać ${VALIDATION_CONSTANTS.MAX_AGE} lat`,
     });
   }
 
@@ -69,15 +82,15 @@ export function validateSimulationInputs(
       field: "workStartYear",
       message: "Rok rozpoczęcia nie może być w przyszłości",
     });
-  } else if (
-    inputs.age &&
-    inputs.workStartYear < currentYear - inputs.age + 18
-  ) {
-    errors.push({
-      field: "workStartYear",
-      message:
-        "Rok rozpoczęcia pracy nie pasuje do podanego wieku (musisz mieć co najmniej 18 lat)",
-    });
+  } else if (inputs.age) {
+    const birthYear = calculateBirthYear(inputs.age, currentYear);
+    const minWorkStartYear = calculateMinWorkStartYear(birthYear);
+    if (inputs.workStartYear < minWorkStartYear) {
+      errors.push({
+        field: "workStartYear",
+        message: `Rok rozpoczęcia pracy nie pasuje do podanego wieku. Najwcześniejszy możliwy rok: ${minWorkStartYear} (wiek 18 lat)`,
+      });
+    }
   }
 
   // Work end year validation
@@ -102,14 +115,21 @@ export function validateSimulationInputs(
   }
 
   // Minimum retirement age validation (unless early retirement for special professions)
-  if (inputs.age && inputs.sex && inputs.workEndYear && !inputs.earlyRetirement) {
+  if (
+    inputs.age &&
+    inputs.sex &&
+    inputs.workEndYear &&
+    !inputs.earlyRetirement
+  ) {
     const retirementAge = inputs.age + (inputs.workEndYear - currentYear);
-    const minRetirementAge = inputs.sex === 'F' ? 60 : 65;
-    
+    const minRetirementAge = inputs.sex === "F" ? 60 : 65;
+
     if (retirementAge < minRetirementAge) {
       errors.push({
         field: "workEndYear",
-        message: `Minimalny wiek emerytalny dla ${inputs.sex === 'F' ? 'kobiet' : 'mężczyzn'} to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+        message: `Minimalny wiek emerytalny dla ${
+          inputs.sex === "F" ? "kobiet" : "mężczyzn"
+        } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
       });
     }
   }

@@ -19,6 +19,15 @@ import {
   validateSimulationInputs,
   getFieldError,
 } from "@/lib/utils/validation";
+
+// Helper to get error severity
+const getFieldSeverity = (
+  errors: any[],
+  field: string
+): "error" | "warning" => {
+  const error = errors.find((e) => e.field === field);
+  return error?.severity || "error";
+};
 import { loadAllData } from "@/lib/data/loader";
 
 const STEPS = [
@@ -40,7 +49,7 @@ export default function SimulacjaPage() {
     age: 35,
     sex: "M",
     monthlyGross: 7000,
-    workStartYear: 2010,
+    workStartYear: undefined,
     workEndYear: 2050,
     includeL4: false,
     earlyRetirement: false,
@@ -77,13 +86,12 @@ export default function SimulacjaPage() {
           ...prev,
           { field: "age", message: "Musisz mieć co najmniej 18 lat" },
         ]);
-      } else if (value > 120) {
+      } else if (value > 100) {
         setErrors((prev) => [
           ...prev,
           {
             field: "age",
-            message:
-              "Podany wiek przekracza maksymalny realistyczny wiek (120 lat)",
+            message: "Wiek nie może przekraczać 100 lat",
           },
         ]);
       } else if (value > 70) {
@@ -95,6 +103,54 @@ export default function SimulacjaPage() {
               "Wiek powyżej 70 lat - prawdopodobnie jesteś już na emeryturze",
           },
         ]);
+      }
+
+      // Re-validate and adjust work start year when age changes
+      if (formData.workStartYear) {
+        setErrors((prevErrors) =>
+          prevErrors.filter((error) => error.field !== "workStartYear")
+        );
+        const birthYear = currentYear - value;
+        const minWorkStartYear = birthYear + 18;
+
+        // If current work start year is now invalid, adjust it
+        if (formData.workStartYear < minWorkStartYear) {
+          const adjustedWorkStart = Math.round(
+            (minWorkStartYear + currentYear) / 2
+          );
+          setFormData((prev) => ({
+            ...prev,
+            workStartYear: adjustedWorkStart,
+          }));
+        } else if (formData.workStartYear > currentYear) {
+          // If work start is in the future (shouldn't happen but safety check)
+          setFormData((prev) => ({
+            ...prev,
+            workStartYear: currentYear,
+          }));
+        }
+      }
+
+      // Re-validate work end year when age changes
+      if (formData.workEndYear && formData.sex && !formData.earlyRetirement) {
+        setErrors((prevErrors) =>
+          prevErrors.filter((error) => error.field !== "workEndYear")
+        );
+        const retirementAge = value + (formData.workEndYear - currentYear);
+        const minRetirementAge = formData.sex === "F" ? 60 : 65;
+
+        if (retirementAge < minRetirementAge) {
+          setErrors((prev) => [
+            ...prev,
+            {
+              field: "workEndYear",
+              message: `Minimalny wiek emerytalny dla ${
+                formData.sex === "F" ? "kobiet" : "mężczyzn"
+              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              severity: "warning" as const,
+            },
+          ]);
+        }
       }
     }
 
@@ -129,15 +185,18 @@ export default function SimulacjaPage() {
             message: "Rok rozpoczęcia nie może być w przyszłości",
           },
         ]);
-      } else if (formData.age && value < currentYear - formData.age + 18) {
-        setErrors((prev) => [
-          ...prev,
-          {
-            field: "workStartYear",
-            message:
-              "Rok rozpoczęcia pracy nie pasuje do podanego wieku (za wcześnie - musisz mieć co najmniej 18 lat)",
-          },
-        ]);
+      } else if (formData.age) {
+        const birthYear = currentYear - formData.age;
+        const minWorkStartYear = birthYear + 18;
+        if (value < minWorkStartYear) {
+          setErrors((prev) => [
+            ...prev,
+            {
+              field: "workStartYear",
+              message: `Rok rozpoczęcia pracy nie pasuje do podanego wieku. Najwcześniejszy możliwy rok: ${minWorkStartYear} (wiek 18 lat)`,
+            },
+          ]);
+        }
       }
     }
 
@@ -145,14 +204,17 @@ export default function SimulacjaPage() {
     if (field === "workEndYear" && value !== undefined) {
       if (formData.age && formData.sex && !formData.earlyRetirement) {
         const retirementAge = formData.age + (value - currentYear);
-        const minRetirementAge = formData.sex === 'F' ? 60 : 65;
-        
+        const minRetirementAge = formData.sex === "F" ? 60 : 65;
+
         if (retirementAge < minRetirementAge) {
           setErrors((prev) => [
             ...prev,
             {
               field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${formData.sex === 'F' ? 'kobiet' : 'mężczyzn'} to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              message: `Minimalny wiek emerytalny dla ${
+                formData.sex === "F" ? "kobiet" : "mężczyzn"
+              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              severity: "warning" as const,
             },
           ]);
         }
@@ -164,18 +226,22 @@ export default function SimulacjaPage() {
       setErrors((prevErrors) =>
         prevErrors.filter((error) => error.field !== "workEndYear")
       );
-      
+
       // If unchecking early retirement, re-validate minimum age
       if (!value && formData.age && formData.sex) {
-        const retirementAge = formData.age + (formData.workEndYear - currentYear);
-        const minRetirementAge = formData.sex === 'F' ? 60 : 65;
-        
+        const retirementAge =
+          formData.age + (formData.workEndYear - currentYear);
+        const minRetirementAge = formData.sex === "F" ? 60 : 65;
+
         if (retirementAge < minRetirementAge) {
           setErrors((prev) => [
             ...prev,
             {
               field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${formData.sex === 'F' ? 'kobiet' : 'mężczyzn'} to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat.`,
+              message: `Minimalny wiek emerytalny dla ${
+                formData.sex === "F" ? "kobiet" : "mężczyzn"
+              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              severity: "warning" as const,
             },
           ]);
         }
@@ -193,6 +259,32 @@ export default function SimulacjaPage() {
           ...prev,
           workEndYear: defaultRetirementYear,
         }));
+
+        // Re-validate work end year when sex changes
+        if (field === "sex" && formData.workEndYear) {
+          setErrors((prevErrors) =>
+            prevErrors.filter((error) => error.field !== "workEndYear")
+          );
+
+          if (!formData.earlyRetirement && age) {
+            const retirementAgeAtEnd =
+              age + (formData.workEndYear - currentYear);
+            const minRetirementAge = sex === "F" ? 60 : 65;
+
+            if (retirementAgeAtEnd < minRetirementAge) {
+              setErrors((prev) => [
+                ...prev,
+                {
+                  field: "workEndYear",
+                  message: `Minimalny wiek emerytalny dla ${
+                    sex === "F" ? "kobiet" : "mężczyzn"
+                  } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAgeAtEnd} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+                  severity: "warning" as const,
+                },
+              ]);
+            }
+          }
+        }
       }
     }
   };
@@ -208,11 +300,10 @@ export default function SimulacjaPage() {
         field: "age",
         message: "Musisz mieć co najmniej 18 lat",
       });
-    } else if (formData.age > 120) {
+    } else if (formData.age > 100) {
       sectionErrors.push({
         field: "age",
-        message:
-          "Podany wiek przekracza maksymalny realistyczny wiek (120 lat)",
+        message: "Wiek nie może przekraczać 100 lat",
       });
     } else if (formData.age > 70) {
       sectionErrors.push({
@@ -260,15 +351,15 @@ export default function SimulacjaPage() {
         field: "workStartYear",
         message: "Rok rozpoczęcia nie może być w przyszłości",
       });
-    } else if (
-      formData.age &&
-      formData.workStartYear < currentYear - formData.age + 18
-    ) {
-      sectionErrors.push({
-        field: "workStartYear",
-        message:
-          "Rok rozpoczęcia pracy nie pasuje do podanego wieku (za wcześnie - musisz mieć co najmniej 18 lat)",
-      });
+    } else if (formData.age) {
+      const birthYear = currentYear - formData.age;
+      const minWorkStartYear = birthYear + 18;
+      if (formData.workStartYear < minWorkStartYear) {
+        sectionErrors.push({
+          field: "workStartYear",
+          message: `Rok rozpoczęcia pracy nie pasuje do podanego wieku. Najwcześniejszy możliwy rok: ${minWorkStartYear} (wiek 18 lat)`,
+        });
+      }
     }
 
     if (!formData.workEndYear) {
@@ -292,14 +383,22 @@ export default function SimulacjaPage() {
     }
 
     // Minimum retirement age validation (unless early retirement)
-    if (formData.age && formData.sex && formData.workEndYear && !formData.earlyRetirement) {
+    if (
+      formData.age &&
+      formData.sex &&
+      formData.workEndYear &&
+      !formData.earlyRetirement
+    ) {
       const retirementAge = formData.age + (formData.workEndYear - currentYear);
-      const minRetirementAge = formData.sex === 'F' ? 60 : 65;
-      
+      const minRetirementAge = formData.sex === "F" ? 60 : 65;
+
       if (retirementAge < minRetirementAge) {
         sectionErrors.push({
           field: "workEndYear",
-          message: `Minimalny wiek emerytalny dla ${formData.sex === 'F' ? 'kobiet' : 'mężczyzn'} to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+          message: `Minimalny wiek emerytalny dla ${
+            formData.sex === "F" ? "kobiet" : "mężczyzn"
+          } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+          severity: "warning" as const,
         });
       }
     }
@@ -312,7 +411,7 @@ export default function SimulacjaPage() {
     return !!(
       formData.age &&
       formData.age >= 18 &&
-      formData.age <= 120 &&
+      formData.age <= 100 &&
       formData.sex &&
       formData.monthlyGross &&
       formData.monthlyGross >= 1000
@@ -320,11 +419,25 @@ export default function SimulacjaPage() {
   };
 
   const isStep1Complete = (): boolean => {
-    return !!(
-      formData.workStartYear &&
-      formData.workEndYear &&
-      formData.workEndYear > formData.workStartYear
-    );
+    if (!formData.workStartYear || !formData.workEndYear) {
+      return false;
+    }
+
+    if (formData.workEndYear <= formData.workStartYear) {
+      return false;
+    }
+
+    // Check retirement age requirement (unless early retirement)
+    if (formData.age && formData.sex && !formData.earlyRetirement) {
+      const retirementAge = formData.age + (formData.workEndYear - currentYear);
+      const minRetirementAge = formData.sex === "F" ? 60 : 65;
+
+      if (retirementAge < minRetirementAge) {
+        return false; // Incomplete if below retirement age without early retirement flag
+      }
+    }
+
+    return true;
   };
 
   const handleNext = () => {
@@ -333,6 +446,19 @@ export default function SimulacjaPage() {
         if (!completedSteps.includes(0)) {
           setCompletedSteps([...completedSteps, 0]);
         }
+
+        // Auto-adjust work start year when moving to step 1
+        if (formData.age && !formData.workStartYear) {
+          const birthYear = currentYear - formData.age;
+          const minWorkStart = birthYear + 18;
+          // Set to middle point between min and current year
+          const defaultWorkStart = Math.round((minWorkStart + currentYear) / 2);
+          setFormData((prev) => ({
+            ...prev,
+            workStartYear: defaultWorkStart,
+          }));
+        }
+
         setCurrentStep(1);
       }
     } else if (currentStep === 1) {
@@ -425,6 +551,15 @@ export default function SimulacjaPage() {
       ? formData.age + (formData.workEndYear - currentYear)
       : 0;
 
+  const birthYear = formData.age
+    ? currentYear - formData.age
+    : currentYear - 35;
+  const minWorkStartYear = birthYear + 18;
+  const minRetirementYear =
+    formData.sex && formData.age
+      ? birthYear + (formData.sex === "F" ? 60 : 65)
+      : currentYear + 25;
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
@@ -456,12 +591,13 @@ export default function SimulacjaPage() {
           <div className="relative min-h-[600px]">
             {/* Step 0: Basic Info */}
             <div
-              className={`transition-all duration-500 ease-in-out ${currentStep === 0
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === 0
                   ? "opacity-100 translate-x-0"
                   : currentStep > 0
-                    ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                    : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-                }`}
+                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+              }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -480,7 +616,7 @@ export default function SimulacjaPage() {
                       value={formData.age}
                       onChange={(value) => handleChange("age", value)}
                       min={18}
-                      max={80}
+                      max={100}
                       step={1}
                       suffix="lat"
                       placeholder="np. 35"
@@ -489,7 +625,7 @@ export default function SimulacjaPage() {
                     />
                     {formData.age &&
                       formData.age > 70 &&
-                      formData.age <= 120 &&
+                      formData.age <= 100 &&
                       !getFieldError(errors, "age") && (
                         <div className="mt-2 p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm text-zus-grey-700">
                           💡 W tym wieku prawdopodobnie jesteś już na
@@ -599,12 +735,13 @@ export default function SimulacjaPage() {
 
             {/* Step 1: Work History */}
             <div
-              className={`transition-all duration-500 ease-in-out ${currentStep === 1
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === 1
                   ? "opacity-100 translate-x-0"
                   : currentStep > 1
-                    ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                    : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-                }`}
+                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+              }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -633,7 +770,7 @@ export default function SimulacjaPage() {
                       label="W którym roku rozpocząłeś/rozpoczęłaś pracę?"
                       value={formData.workStartYear}
                       onChange={(value) => handleChange("workStartYear", value)}
-                      min={1970}
+                      min={minWorkStartYear}
                       max={currentYear}
                       step={1}
                       placeholder="np. 2010"
@@ -641,7 +778,7 @@ export default function SimulacjaPage() {
                       error={getFieldError(errors, "workStartYear")}
                       hint={
                         !getFieldError(errors, "workStartYear")
-                          ? "📅 Zawsze liczone od stycznia danego roku"
+                          ? `📅 Rok urodzenia: ${birthYear} | Najwcześniejszy rok pracy: ${minWorkStartYear} (wiek 18 lat)`
                           : undefined
                       }
                     />
@@ -668,10 +805,13 @@ export default function SimulacjaPage() {
                       placeholder="np. 2050"
                       required
                       error={getFieldError(errors, "workEndYear")}
+                      errorSeverity={getFieldSeverity(errors, "workEndYear")}
                       hint={
                         !getFieldError(errors, "workEndYear") &&
-                          formData.workEndYear
-                          ? `💡 Możesz wybrać inny rok, jeśli planujesz pracować dłużej lub krócej.`
+                        formData.workEndYear
+                          ? `💡 Wiek emerytalny: ${retirementAge} lat | Staż pracy: ${yearsWorked} lat | Minimalny wiek ${
+                              formData.sex === "F" ? "kobiet" : "mężczyzn"
+                            }: ${formData.sex === "F" ? 60 : 65} lat`
                           : undefined
                       }
                     />
@@ -683,15 +823,22 @@ export default function SimulacjaPage() {
                       <input
                         type="checkbox"
                         checked={formData.earlyRetirement || false}
-                        onChange={(e) => handleChange("earlyRetirement", e.target.checked)}
+                        onChange={(e) =>
+                          handleChange("earlyRetirement", e.target.checked)
+                        }
                         className="mt-1 w-5 h-5 text-zus-green border-zus-grey-300 rounded focus:ring-zus-green focus:ring-2"
                       />
                       <div className="flex-1">
                         <div className="font-semibold text-zus-grey-900">
-                          🚨 Wcześniejsza emerytura (służby mundurowe, specjalne zawody)
+                          🚨 Wcześniejsza emerytura (służby mundurowe, specjalne
+                          zawody)
                         </div>
                         <div className="text-sm text-zus-grey-700 mt-1">
-                          Zaznacz, jeśli masz prawo do wcześniejszej emerytury przed osiągnięciem standardowego wieku emerytalnego (60 lat dla kobiet, 65 lat dla mężczyzn). Dotyczy to m.in.: policjantów, strażaków, żołnierzy, górników oraz innych zawodów w szczególnych warunkach.
+                          Zaznacz, jeśli masz prawo do wcześniejszej emerytury
+                          przed osiągnięciem standardowego wieku emerytalnego
+                          (60 lat dla kobiet, 65 lat dla mężczyzn). Dotyczy to
+                          m.in.: policjantów, strażaków, żołnierzy, górników
+                          oraz innych zawodów w szczególnych warunkach.
                         </div>
                       </div>
                     </label>
@@ -699,18 +846,22 @@ export default function SimulacjaPage() {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
-                  {!isStep1Complete() && errors.length > 0 && (
-                    <div className="mb-4 p-4 bg-red-50 border-l-4 border-zus-error rounded">
-                      <p className="text-sm font-semibold text-zus-error mb-2">
-                        ⚠️ Uzupełnij wszystkie wymagane pola:
-                      </p>
-                      <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-                        {errors.map((error, idx) => (
-                          <li key={idx}>{error.message}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {!isStep1Complete() &&
+                    errors.filter((e) => e.field !== "workEndYear").length >
+                      0 && (
+                      <div className="mb-4 p-4 bg-red-50 border-l-4 border-zus-error rounded">
+                        <p className="text-sm font-semibold text-zus-error mb-2">
+                          ⚠️ Uzupełnij wszystkie wymagane pola:
+                        </p>
+                        <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
+                          {errors
+                            .filter((e) => e.field !== "workEndYear")
+                            .map((error, idx) => (
+                              <li key={idx}>{error.message}</li>
+                            ))}
+                        </ul>
+                      </div>
+                    )}
                   <div className="flex gap-4">
                     <Button
                       type="button"
@@ -738,12 +889,13 @@ export default function SimulacjaPage() {
 
             {/* Step 2: Additional Info */}
             <div
-              className={`transition-all duration-500 ease-in-out ${currentStep === 2
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === 2
                   ? "opacity-100 translate-x-0"
                   : currentStep > 2
-                    ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
-                    : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-                }`}
+                  ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+              }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -891,10 +1043,11 @@ export default function SimulacjaPage() {
 
             {/* Step 3: Review */}
             <div
-              className={`transition-all duration-500 ease-in-out ${currentStep === 3
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === 3
                   ? "opacity-100 translate-x-0"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-                }`}
+              }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -993,8 +1146,8 @@ export default function SimulacjaPage() {
                         <span className="font-semibold text-zus-grey-900">
                           {formData.accountBalance
                             ? `${formData.accountBalance.toLocaleString(
-                              "pl-PL"
-                            )} zł`
+                                "pl-PL"
+                              )} zł`
                             : "Nie podano (automatyczne oszacowanie)"}
                         </span>
                       </div>
@@ -1005,8 +1158,8 @@ export default function SimulacjaPage() {
                         <span className="font-semibold text-zus-grey-900">
                           {formData.subAccountBalance
                             ? `${formData.subAccountBalance.toLocaleString(
-                              "pl-PL"
-                            )} zł`
+                                "pl-PL"
+                              )} zł`
                             : "Nie podano (automatyczne oszacowanie)"}
                         </span>
                       </div>
@@ -1015,10 +1168,11 @@ export default function SimulacjaPage() {
                           Zwolnienia lekarskie (L4):
                         </span>
                         <span
-                          className={`font-semibold ${formData.includeL4
+                          className={`font-semibold ${
+                            formData.includeL4
                               ? "text-zus-green"
                               : "text-zus-grey-500"
-                            }`}
+                          }`}
                         >
                           {formData.includeL4
                             ? "✓ Uwzględnione"
