@@ -36,18 +36,27 @@ ChartJS.register(
 
 export default function WynikPage() {
   const router = useRouter();
-  const { state } = useSimulation();
+  const { state, loadFromHistory, getHistory } = useSimulation();
   const [deferralViewMode, setDeferralViewMode] = useState<
     "bar" | "line" | "table"
   >("bar");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!state.results) {
-      router.push("/symulacja");
+      const history = getHistory();
+      if (history.length > 0) {
+        loadFromHistory(history[0].id);
+        setIsLoading(false);
+      } else {
+        router.push("/symulacja");
+      }
+    } else {
+      setIsLoading(false);
     }
-  }, [state.results, router]);
+  }, [state.results, router, loadFromHistory, getHistory]);
 
-  if (!state.results || !state.inputs) {
+  if (isLoading || !state.results || !state.inputs) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         Ładowanie...

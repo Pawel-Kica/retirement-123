@@ -54,7 +54,7 @@ export function HistorySidebar() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 right-4 z-40 p-3 bg-zus-green text-white rounded-full shadow-lg hover:bg-zus-green-dark transition-all duration-200 flex items-center gap-2"
+        className="fixed top-4 right-4 z-40 p-3 bg-zus-green text-white rounded-full shadow-lg hover:bg-zus-green-dark transition-all duration-200 flex items-center gap-2 cursor-pointer"
         aria-label="Historia symulacji"
       >
         <History className="w-5 h-5" />
