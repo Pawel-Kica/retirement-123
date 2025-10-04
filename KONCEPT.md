@@ -1,7 +1,7 @@
 ---
 title: Kompas Emerytalny — Koncepcje
 author: Zespół
-version: 0.1
+version: 0.2
 last_updated: 2025-10-04
 ---
 
