@@ -104,7 +104,7 @@ export default function WynikPage() {
         loadFromHistory(history[0].id);
         setIsLoading(false);
       } else {
-        router.push("/symulacja");
+        router.push("/kalkulator");
       }
     } else {
       setIsLoading(false);
