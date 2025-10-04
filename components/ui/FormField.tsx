@@ -10,6 +10,7 @@ interface FormFieldProps {
   hint?: string | React.ReactNode;
   tooltip?: string;
   className?: string;
+  reserveErrorSpace?: boolean;
 }
 
 export function FormField({
@@ -21,6 +22,7 @@ export function FormField({
   hint,
   tooltip,
   className = "",
+  reserveErrorSpace = false,
 }: FormFieldProps) {
   return (
     <div className={`mb-4 ${className}`}>
@@ -50,7 +52,7 @@ export function FormField({
         )}
       </label>
       {children}
-      <div className="min-h-[72px] mt-1">
+      <div className={`mt-1 ${reserveErrorSpace ? "min-h-[72px]" : ""}`}>
         {error ? (
           <div
             className={`text-sm flex items-start gap-2 p-3 rounded border-l-4 ${
