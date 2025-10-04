@@ -7,6 +7,7 @@ import { NewSimulationButton } from "@/components/ui/NewSimulationButton";
 import { Card } from "@/components/ui/Card";
 import { PensionDisplay } from "@/components/ui/PensionDisplay";
 import { Tooltip as InfoTooltip } from "@/components/ui/Tooltip";
+import { HistoryButton } from "@/components/ui/HistoryButton";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { formatPLN, formatPercent, formatYears } from "@/lib/utils/formatting";
 import { updateSimulationPostalCode } from "@/lib/utils/simulationHistory";
@@ -66,7 +67,6 @@ export default function WynikPage() {
   const [postalError, setPostalError] = useState("");
   const postalInputRef = useRef<HTMLInputElement>(null);
   const [showReportPreview, setShowReportPreview] = useState(false);
-  const deferralChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!state.results) {
@@ -188,21 +188,15 @@ export default function WynikPage() {
     }
 
     try {
-      // Import the PDF generator dynamically to avoid SSR issues
       const { generatePDFReport } = await import("@/lib/utils/pdfGenerator");
 
-      await generatePDFReport(
-        {
-          inputs: state.inputs,
-          results: state.results,
-          expectedPension: state.expectedPension,
-          timestamp: new Date(),
-          postalCode: state.inputs.postalCode,
-        },
-        {
-          deferralChart: deferralChartRef.current || undefined,
-        }
-      );
+      await generatePDFReport({
+        inputs: state.inputs,
+        results: state.results,
+        expectedPension: state.expectedPension,
+        timestamp: new Date(),
+        postalCode: state.inputs.postalCode,
+      });
 
       setShowReportPreview(false);
     } catch (error) {
@@ -584,7 +578,12 @@ export default function WynikPage() {
       )}
 
       <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] relative">
+          {/* History Button - Top Right */}
+          <div className="absolute top-0 right-4 sm:right-6 lg:right-8 z-30">
+            <HistoryButton />
+          </div>
+
           <h1 className="text-4xl font-bold text-zus-grey-900 mb-8 text-center">
             Twoja Prognoza Emerytury
           </h1>
@@ -780,10 +779,7 @@ export default function WynikPage() {
 
           {/* Deferral Scenarios */}
           <Card className="mb-8">
-            <div
-              ref={deferralChartRef}
-              className="flex justify-between items-center mb-6"
-            >
+            <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-zus-grey-900">
                 Co jeśli będziesz pracować dłużej?
               </h3>

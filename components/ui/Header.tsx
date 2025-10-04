@@ -3,16 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { History } from "lucide-react";
-import dynamic from "next/dynamic";
-
-const HistorySection = dynamic(() => import("./HistorySection"), {
-  ssr: false,
-});
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   return (
     <>
@@ -214,16 +207,6 @@ export function Header() {
                   Unia Europejska
                 </span>
               </div>
-
-              {/* History Button */}
-              <button
-                onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-                className="px-4 py-2.5 bg-zus-green text-white hover:bg-zus-green-dark rounded font-medium transition-colors whitespace-nowrap flex items-center gap-2 cursor-pointer ml-2"
-                aria-label="Historia symulacji"
-              >
-                <History className="w-5 h-5" />
-                <span>Historia</span>
-              </button>
             </div>
           </div>
 
@@ -399,42 +382,9 @@ export function Header() {
                   </span>
                 </div>
               </div>
-
-              {/* Divider */}
-              <div className="border-t border-gray-200 my-3"></div>
-
-              {/* History Button - Mobile */}
-              <button
-                onClick={() => {
-                  setIsHistoryOpen(!isHistoryOpen);
-                  setIsMenuOpen(false);
-                }}
-                className="w-full px-4 py-3 bg-zus-green hover:bg-zus-green-dark text-white rounded font-medium transition-colors flex items-center justify-between cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  <History className="w-5 h-5" />
-                  Historia Symulacji
-                </span>
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
             </div>
           </div>
         </div>
-
-        <HistorySection
-          isHistoryOpen={isHistoryOpen}
-          setIsHistoryOpen={setIsHistoryOpen}
-        />
       </header>
     </>
   );
