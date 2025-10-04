@@ -179,20 +179,6 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       });
 
       setResults(results);
-
-      // Log for admin export
-      await fetch("/api/simulations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          timestamp: new Date().toISOString(),
-          expectedPension: state.expectedPension,
-          ...state.inputs,
-          nominalPension: results.nominalPension,
-          realPension: results.realPension,
-          postalCode: state.inputs.postalCode || null,
-        }),
-      }).catch((err) => console.error("Failed to log simulation:", err));
     } catch (error) {
       console.error("Calculation error:", error);
       throw error;

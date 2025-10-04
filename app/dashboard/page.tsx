@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { HistoryButton } from "@/components/ui/HistoryButton";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { formatPLN } from "@/lib/utils/formatting";
 import {
@@ -284,7 +285,12 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-zus-grey-100 py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative">
+        {/* History Button - Top Right */}
+        <div className="absolute top-0 right-4 sm:right-6 lg:right-8 z-30">
+          <HistoryButton />
+        </div>
+
         {/* Header */}
         <div className="mb-6">
           <button

@@ -51,6 +51,7 @@ export default function SimulacjaPage() {
   const router = useRouter();
   const { state, setInputs, recalculate, isCalculating } = useSimulation();
   const [data, setData] = useState<any>(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
   const currentYear = new Date().getFullYear();
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -69,16 +70,27 @@ export default function SimulacjaPage() {
   const [showL4Info, setShowL4Info] = useState(false);
 
   useEffect(() => {
-    const loadedData = loadAllData();
-    setData(loadedData);
+    const loadData = async () => {
+      try {
+        setIsDataLoading(true);
+        const loadedData = await loadAllData();
+        setData(loadedData);
 
-    // Calculate default retirement year
-    if (formData.age && formData.sex) {
-      const retirementAge = loadedData.retirementAge[formData.sex];
-      const defaultRetirementYear =
-        currentYear + (retirementAge - formData.age);
-      setFormData((prev) => ({ ...prev, workEndYear: defaultRetirementYear }));
-    }
+        // Calculate default retirement year
+        if (formData.age && formData.sex) {
+          const retirementAge = loadedData.retirementAge[formData.sex];
+          const defaultRetirementYear =
+            currentYear + (retirementAge - formData.age);
+          setFormData((prev) => ({ ...prev, workEndYear: defaultRetirementYear }));
+        }
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const handleChange = (field: keyof SimulationInputs, value: any) => {
@@ -262,7 +274,7 @@ export default function SimulacjaPage() {
     if ((field === "age" || field === "sex") && data) {
       const age = field === "age" ? value : formData.age;
       const sex = field === "sex" ? value : formData.sex;
-      if (age && sex) {
+      if (age && sex && data?.retirementAge) {
         const retirementAge = data.retirementAge[sex];
         const defaultRetirementYear = currentYear + (retirementAge - age);
         setFormData((prev) => ({
@@ -542,14 +554,17 @@ export default function SimulacjaPage() {
     }
   };
 
-  if (!data)
+  if (isDataLoading || !data)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Ładowanie...
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zus-green mx-auto mb-4"></div>
+          <p className="text-zus-grey-600">Ładowanie danych...</p>
+        </div>
       </div>
     );
 
-  const l4Config = formData.sex === "M" ? data.sickImpactM : data.sickImpactF;
+  const l4Config = formData.sex === "M" ? data?.sickImpactM : data?.sickImpactF;
 
   const yearsWorked =
     formData.workStartYear && formData.workEndYear
@@ -954,11 +969,11 @@ export default function SimulacjaPage() {
                         type="number"
                         min={0}
                         step={0.01}
-                        value={formData.accountBalance || ""}
+                        value={formData.accountBalance !== undefined ? formData.accountBalance : ""}
                         onChange={(e) =>
                           handleChange(
                             "accountBalance",
-                            e.target.value ? Number(e.target.value) : undefined
+                            e.target.value !== "" ? Number(e.target.value) : undefined
                           )
                         }
                         placeholder="Pozostaw puste, jeśli nie znasz"
@@ -979,11 +994,11 @@ export default function SimulacjaPage() {
                         type="number"
                         min={0}
                         step={0.01}
-                        value={formData.subAccountBalance || ""}
+                        value={formData.subAccountBalance !== undefined ? formData.subAccountBalance : ""}
                         onChange={(e) =>
                           handleChange(
                             "subAccountBalance",
-                            e.target.value ? Number(e.target.value) : undefined
+                            e.target.value !== "" ? Number(e.target.value) : undefined
                           )
                         }
                         placeholder="Pozostaw puste, jeśli nie znasz"
@@ -1026,11 +1041,11 @@ export default function SimulacjaPage() {
                       </h4>
                       <ul className="list-disc pl-5 space-y-1 mb-3 text-sm">
                         <li>
-                          Kobiety: średnio {data.sickImpactF.avgDaysPerYear} dni
+                          Kobiety: średnio {data?.sickImpactF?.avgDaysPerYear || 0} dni
                           rocznie
                         </li>
                         <li>
-                          Mężczyźni: średnio {data.sickImpactM.avgDaysPerYear}{" "}
+                          Mężczyźni: średnio {data?.sickImpactM?.avgDaysPerYear || 0}{" "}
                           dni rocznie
                         </li>
                       </ul>
@@ -1044,6 +1059,7 @@ export default function SimulacjaPage() {
                       </p>
                     </div>
                   </div>
+
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
