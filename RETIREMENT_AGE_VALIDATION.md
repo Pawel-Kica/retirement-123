@@ -322,13 +322,73 @@ Input:
 - Sex: M (Male)
 - Current Year: 2025
 - Retirement Year: 2045
+- Early Retirement: false
 
 Calculation:
 - Retirement Age: 40 + (2045 - 2025) = 60
 - Minimum Age: 65
 - 60 < 65 ❌ INVALID
 
-Error: "Minimalny wiek emerytalny dla mężczyzn to 65 lat. Przy tym roku zakończenia będziesz mieć 60 lat."
+Error: "Minimalny wiek emerytalny dla mężczyzn to 65 lat. Przy tym roku zakończenia będziesz mieć 60 lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe)."
+```
+
+### Example 5: Valid Early Retirement (Police Officer)
+
+```typescript
+Input:
+- Age: 40
+- Sex: M (Male)
+- Current Year: 2025
+- Retirement Year: 2040 (Age 55 at retirement)
+- Early Retirement: true ✅ (Police officer)
+
+Calculation:
+- Retirement Age: 40 + (2040 - 2025) = 55
+- Minimum Age: 65 (for standard retirement)
+- But earlyRetirement is checked!
+- Validation skipped ✅ VALID
+
+Result: No error, user can proceed with age 55 retirement
+```
+
+### Example 6: Valid Early Retirement (Firefighter)
+
+```typescript
+Input:
+- Age: 35
+- Sex: M (Male)
+- Current Year: 2025
+- Retirement Year: 2043 (Age 53 at retirement)
+- Early Retirement: true ✅ (Firefighter)
+
+Calculation:
+- Retirement Age: 35 + (2043 - 2025) = 53
+- Would normally fail (53 < 65)
+- But earlyRetirement is checked!
+- Validation skipped ✅ VALID
+
+Result: No error, firefighter can retire at 53
+```
+
+### Example 7: Toggling Early Retirement Checkbox
+
+```typescript
+Scenario A - Without checkbox:
+- Age: 45
+- Sex: F (Female)
+- Retirement Year: 2035 (Age 55)
+- Early Retirement: false
+- Result: ❌ Error shown
+
+Scenario B - User checks box:
+- Same inputs
+- Early Retirement: true ✅
+- Result: ✅ Error disappears, can proceed
+
+Scenario C - User unchecks box:
+- Same inputs
+- Early Retirement: false (unchecked again)
+- Result: ❌ Error reappears
 ```
 
 ---
@@ -512,16 +572,30 @@ Minimum retirement ages are loaded from `data/retirementAgeBySex.json`:
 
 ✅ **Validation implemented** for minimum retirement age
 ✅ **Gender-specific** requirements (60F / 65M)
+✅ **Early retirement exception** with checkbox for special professions
 ✅ **Real-time feedback** to users
-✅ **Clear error messages** in Polish
+✅ **Clear error messages** in Polish with hints
 ✅ **Multiple validation points** (real-time, step, submission)
+✅ **Checkbox toggles validation** dynamically
+✅ **Special professions supported** (police, firefighters, military, miners, etc.)
 ✅ **Legal compliance** with Polish ZUS regulations
 
-**Impact:** Users cannot proceed with invalid retirement ages, ensuring all simulations comply with Polish retirement law.
+**Impact:** 
+- Standard users cannot proceed with invalid retirement ages
+- Special profession workers can bypass minimum age with checkbox
+- All simulations comply with Polish retirement law
+- Clear path for early retirement cases
+
+**Benefits:**
+- ✅ Prevents invalid standard retirement ages
+- ✅ Supports legitimate early retirement cases
+- ✅ Educational (explains special professions)
+- ✅ User-friendly (simple checkbox interface)
+- ✅ Legally compliant
 
 ---
 
-**Version:** 1.0
+**Version:** 2.0 (Enhanced with Early Retirement)
 **Date:** October 4, 2025
 **Status:** ✅ Complete and Active
 
