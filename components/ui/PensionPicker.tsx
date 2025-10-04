@@ -77,7 +77,7 @@ export function PensionPicker({
     }
   };
 
-  const AVERAGE_PENSION = 3518;
+  const AVERAGE_PENSION = 4045;
   const isAboveAverage = value >= AVERAGE_PENSION;
   const difference = Math.abs(((value / AVERAGE_PENSION - 1) * 100));
 
@@ -122,7 +122,7 @@ export function PensionPicker({
               onFocus={handleInputFocus}
               onKeyDown={handleKeyDown}
               className="bg-transparent text-3xl font-bold text-white text-right outline-none transition-all duration-200"
-              style={{ 
+              style={{
                 caretColor: activeColor,
                 width: `${inputWidth}px`,
                 minWidth: '60px',

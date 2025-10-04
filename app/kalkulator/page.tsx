@@ -431,8 +431,8 @@ export default function Home() {
                       transform: isFirst
                         ? "none"
                         : isLast
-                        ? "translateX(-100%)"
-                        : "translateX(-50%)",
+                          ? "translateX(-100%)"
+                          : "translateX(-50%)",
                     }}
                   >
                     <div
@@ -489,7 +489,7 @@ export default function Home() {
                 Obecna średnia emerytura w Polsce:
               </p>
               <p className="text-2xl font-bold text-zus-grey-900">
-                3 518,04 zł
+                4 045,20 zł
               </p>
             </div>
             <Tooltip content="Średnia emerytura brutto w Polsce (dane GUS, 2024). Połowa emerytów otrzymuje mniej, połowa więcej. Twoje oczekiwania mogą być wyższe lub niższe.">
