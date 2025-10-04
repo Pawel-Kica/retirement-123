@@ -21,12 +21,14 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
 ### ✅ Ukończone (100%)
 
 #### 1. **Infrastruktura i Setup**
+
 - ✅ Next.js 15 z App Router
 - ✅ TypeScript w trybie strict
 - ✅ Tailwind CSS z paletą kolorów ZUS (7 kolorów RGB)
 - ✅ Konfiguracja projektu
 
 #### 2. **Dane (8 plików JSON)**
+
 - ✅ `wageGrowthByYear.json` - wzrost płac 2000-2080
 - ✅ `cpiByYear.json` - inflacja 2000-2080
 - ✅ `averagePensionByYear.json` - średnie emerytury 2024-2080
@@ -37,6 +39,7 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
 - ✅ `retirementAgeBySex.json` - wiek emerytalny
 
 #### 3. **Silnik Obliczeń (8 kroków)**
+
 - ✅ Ścieżka płac (cofanie/projekcja)
 - ✅ Wpływ L4 (równoległe ścieżki z/bez)
 - ✅ Akumulacja kapitału (konto + subkonto + waloryzacja)
@@ -47,6 +50,7 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
 - ✅ Iteracyjne obliczenie lat do oczekiwań
 
 #### 4. **Komponenty UI**
+
 - ✅ Button (4 warianty)
 - ✅ Card (3 warianty)
 - ✅ Input z walidacją
@@ -55,13 +59,16 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
 - ✅ Tooltip interaktywny
 
 #### 5. **Stan i Context**
+
 - ✅ SimulationContext z pełnym stanem
 - ✅ Zapis do sessionStorage
 - ✅ Zapis scenariuszy do localStorage
 - ✅ Funkcje recalculate, save/load scenarios
 
 #### 6. **Strony**
+
 - ✅ **Landing (/)** - wszystkie wymagane elementy:
+
   - Input + slider oczekiwanej emerytury
   - Porównanie do średniej z tooltipem
   - Wykres rozkładu (5 grup) z hover descriptions
@@ -69,6 +76,7 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
   - CTA "Przejdź do symulacji"
 
 - ✅ **Formularz (/symulacja)** - pełna implementacja:
+
   - Wszystkie 5 pól obowiązkowych
   - 2 pola fakultatywne (konto/subkonto)
   - Przełącznik L4 z rozbudowanym info
@@ -77,6 +85,7 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
   - **ZAWSZE styczeń** (wymóg spec)
 
 - ✅ **Wyniki (/wynik)** - wszystkie sekcje:
+
   - Nominalna i urealniona (urealniona EMPHASIZED)
   - Stopa zastąpienia
   - Porównanie do średniej
@@ -93,11 +102,13 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
   - (Edycja w przygotowaniu)
 
 #### 7. **API**
+
 - ✅ `/api/simulations` - POST/GET
 - ✅ Logowanie każdej symulacji
 - ✅ Zapis do `data/simulations.json`
 
 #### 8. **Język Polski**
+
 - ✅ Wszystkie teksty w języku polskim
 - ✅ Formatowanie liczb: 5 000,00 zł (przestrzeń + przecinek)
 - ✅ Formatowanie dat: polski locale
@@ -105,6 +116,7 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
 - ✅ Komunikaty walidacji po polsku
 
 #### 9. **Funkcje Kluczowe**
+
 - ✅ Odwrócenie indeksacji wynagrodzeń (backward/forward)
 - ✅ Równoległe obliczenia z/bez L4
 - ✅ Waloryzacja kapitału
@@ -115,7 +127,7 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
 
 ## 🔧 Struktura Projektu
 
-```
+````
 retirement/
 ├── app/
 │   ├── page.tsx                 # Landing (Pulpit)
@@ -178,7 +190,7 @@ retirement/
 - ⏳ Dashboard - pełna edycja (historia płac, prognozy, L4)
 - ⏳ Scenariusze A/B z wykresami porównawczymi
 - ⏳ Admin Export - XLS/CSV z wszystkimi kolumnami
-- ⏳ Wykresy (Recharts) - kapitał w czasie, porównania
+- ⏳ Wykresy (Chart.js) - kapitał w czasie, porównania
 - ⏳ Kod pocztowy (pole opcjonalne w Dashboard)
 
 ## 📝 Notatki Techniczne
@@ -205,15 +217,17 @@ retirement/
 ```bash
 # Sprawdź tsconfig.json, czy jest:
 "paths": { "@/*": ["./*"] }
-```
+````
 
 ### Błąd przy JSON import
+
 ```bash
 # W tsconfig.json powinno być:
 "resolveJsonModule": true
 ```
 
 ### Brak kolorów ZUS
+
 ```bash
 # Sprawdź app/globals.css - sekcja @theme inline
 ```
@@ -222,4 +236,3 @@ retirement/
 
 MVP dla ZUS - Symulator Emerytalny
 Wersja: 1.0 (Styczeń 2025)
-

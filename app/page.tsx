@@ -46,7 +46,7 @@ export default function Home() {
       shortName: "Poniżej min.",
       range: "<1 780 zł",
       percent: 15,
-      color: "#F05E5E",
+      color: "#D32F2F",
       description:
         "Niska aktywność zawodowa, przerwy w karierze. Uwaga: Brak przepracowanych 25 lat (K) lub 20 lat (M) = brak gwarancji minimalnej emerytury.",
       min: 0,
@@ -67,7 +67,7 @@ export default function Home() {
       shortName: "Około min.",
       range: "1 780-2 500 zł",
       percent: 25,
-      color: "#FFB34F",
+      color: "#F5A623",
       description:
         "Niskie lub nieregularne zarobki, część kariery w szarej strefie lub okresy bezrobocia.",
       min: 1780,
@@ -88,7 +88,7 @@ export default function Home() {
       shortName: "Około śr.",
       range: "2 500-4 500 zł",
       percent: 35,
-      color: "#3F84D2",
+      color: "#0088CC",
       description:
         "Typowa kariera zawodowa, stałe zatrudnienie, średnie krajowe zarobki.",
       min: 2500,
@@ -109,7 +109,7 @@ export default function Home() {
       shortName: "Powyżej śr.",
       range: "4 500-7 000 zł",
       percent: 20,
-      color: "#00993F",
+      color: "#00843D",
       description:
         "Wyższe zarobki, długi staż, brak długich przerw, regularne odprowadzanie składek.",
       min: 4500,
@@ -130,7 +130,7 @@ export default function Home() {
       shortName: "Wysokie",
       range: ">7 000 zł",
       percent: 5,
-      color: "#00416E",
+      color: "#0B4C7C",
       description:
         "Bardzo wysokie zarobki przez całą karierę, maksymalizacja składek, często odroczenie przejścia na emeryturę.",
       min: 7000,
@@ -289,7 +289,7 @@ export default function Home() {
           },
         },
         backgroundColor: "white",
-        titleColor: "#00416E",
+        titleColor: "#0B4C7C",
         bodyColor: "#374151",
         borderColor: "#e5e7eb",
         borderWidth: 2,
@@ -338,10 +338,10 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-[rgb(0,65,110)] mb-2">
+          <h1 className="text-3xl font-bold text-zus-grey-900 mb-2">
             Symulator Emerytalny ZUS
           </h1>
           <p className="text-base text-gray-700">
@@ -353,7 +353,7 @@ export default function Home() {
         {/* Expected Pension Input */}
         <Card className="mb-4">
           <div className="text-center mb-4">
-            <h2 className="text-xl font-bold text-[rgb(0,65,110)] mb-1">
+            <h2 className="text-xl font-bold text-zus-grey-900 mb-1">
               Jaka emerytura Cię zadowoli?
             </h2>
             <p className="text-sm text-gray-600">
@@ -376,9 +376,9 @@ export default function Home() {
                   handleDirectInput(SLIDER_MAX);
                 }
               }}
-              className="w-28 p-2 text-center text-xl font-bold border-2 border-[rgb(190,195,206)] rounded-lg"
+              className="w-28 p-2 text-center text-xl font-bold border-2 border-zus-grey-300 rounded-lg"
             />
-            <div className="text-2xl font-bold text-[rgb(0,65,110)]">
+            <div className="text-2xl font-bold text-zus-grey-900">
               {formatPLN(pension)}
             </div>
           </div>
@@ -390,16 +390,16 @@ export default function Home() {
               className="h-3 rounded-lg overflow-hidden mb-2"
               style={{
                 background: `linear-gradient(to right,
-                #F05E5E 0%,
-                #F05E5E 15%,
-                #FFB34F 15%,
-                #FFB34F 40%,
-                #3F84D2 40%,
-                #3F84D2 75%,
-                #00993F 75%,
-                #00993F 95%,
-                #00416E 95%,
-                #00416E 100%)`,
+                #D32F2F 0%,
+                #D32F2F 15%,
+                #F5A623 15%,
+                #F5A623 40%,
+                #0088CC 40%,
+                #0088CC 75%,
+                #00843D 75%,
+                #00843D 95%,
+                #0B4C7C 95%,
+                #0B4C7C 100%)`,
               }}
             />
             <input
@@ -464,8 +464,7 @@ export default function Home() {
               height: 24px;
               border-radius: 50%;
               background: white;
-              border: 3px solid
-                ${groups[activeCategory]?.color || "rgb(0,65,110)"};
+              border: 3px solid ${groups[activeCategory]?.color || "#0B4C7C"};
               cursor: pointer;
               box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             }
@@ -475,8 +474,7 @@ export default function Home() {
               height: 24px;
               border-radius: 50%;
               background: white;
-              border: 3px solid
-                ${groups[activeCategory]?.color || "rgb(0,65,110)"};
+              border: 3px solid ${groups[activeCategory]?.color || "#0B4C7C"};
               cursor: pointer;
               box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             }
@@ -490,13 +488,13 @@ export default function Home() {
               <p className="text-xs text-gray-700 mb-1">
                 Obecna średnia emerytura w Polsce:
               </p>
-              <p className="text-2xl font-bold text-[rgb(0,65,110)]">
+              <p className="text-2xl font-bold text-zus-grey-900">
                 3 518,04 zł
               </p>
             </div>
             <Tooltip content="Średnia emerytura brutto w Polsce (dane GUS, 2024). Połowa emerytów otrzymuje mniej, połowa więcej. Twoje oczekiwania mogą być wyższe lub niższe.">
               <svg
-                className="w-6 h-6 text-[rgb(63,132,210)]"
+                className="w-6 h-6 text-zus-blue cursor-pointer"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -522,7 +520,7 @@ export default function Home() {
 
         {/* Distribution Chart - Split View */}
         <Card className="mb-4">
-          <h3 className="text-lg font-bold text-[rgb(0,65,110)] mb-4 text-center">
+          <h3 className="text-lg font-bold text-zus-grey-900 mb-4 text-center">
             Rozkład emerytur w Polsce
           </h3>
 
@@ -572,7 +570,7 @@ export default function Home() {
                       >
                         {groups[activeCategory].name}
                       </h4>
-                      <p className="text-2xl font-bold text-[rgb(0,65,110)] mt-1">
+                      <p className="text-2xl font-bold text-zus-grey-900 mt-1">
                         {formatPLN(pension)}
                       </p>
                     </div>
@@ -608,7 +606,7 @@ export default function Home() {
                   <div className="space-y-4">
                     {/* Average years of work */}
                     <div>
-                      <h5 className="text-sm font-bold text-[rgb(0,65,110)] mb-1">
+                      <h5 className="text-sm font-bold text-zus-grey-900 mb-1">
                         Średni staż pracy:
                       </h5>
                       <p className="text-sm text-gray-700">
@@ -618,7 +616,7 @@ export default function Home() {
 
                     {/* Example profile */}
                     <div>
-                      <h5 className="text-sm font-bold text-[rgb(0,65,110)] mb-1">
+                      <h5 className="text-sm font-bold text-zus-grey-900 mb-1">
                         Typowy profil:
                       </h5>
                       <p className="text-sm text-gray-700">
@@ -628,7 +626,7 @@ export default function Home() {
 
                     {/* Bullet points with characteristics */}
                     <div>
-                      <h5 className="text-sm font-bold text-[rgb(0,65,110)] mb-2">
+                      <h5 className="text-sm font-bold text-zus-grey-900 mb-2">
                         Charakterystyka:
                       </h5>
                       <ul className="space-y-2">
@@ -659,17 +657,17 @@ export default function Home() {
 
         {/* Fun Fact */}
         {fact && (
-          <Card className="mb-4 bg-gradient-to-r from-[rgb(63,132,210)]/10 to-[rgb(0,153,63)]/10">
+          <Card className="mb-4 bg-gradient-to-r from-zus-blue/10 to-zus-green/10">
             <div className="flex items-start gap-3">
               <svg
-                className="w-6 h-6 text-[rgb(255,179,79)] flex-shrink-0 mt-0.5"
+                className="w-6 h-6 text-zus-orange flex-shrink-0 mt-0.5"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
                 <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
               </svg>
               <div>
-                <h4 className="font-bold text-[rgb(0,65,110)] mb-1 text-base">
+                <h4 className="font-bold text-zus-grey-900 mb-1 text-base">
                   Czy wiesz, że...
                 </h4>
                 <p className="text-sm text-gray-700">{fact}</p>
@@ -682,6 +680,7 @@ export default function Home() {
         <div className="text-center">
           <Button
             onClick={handleNext}
+            variant="success"
             size="lg"
             className="w-full md:w-auto px-8 py-3 text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
           >

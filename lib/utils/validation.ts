@@ -49,10 +49,8 @@ export function validateSimulationInputs(inputs: Partial<SimulationInputs>): Val
         errors.push({ field: 'workStartYear', message: 'Rok rozpoczęcia pracy jest wymagany' });
     } else if (inputs.workStartYear > currentYear) {
         errors.push({ field: 'workStartYear', message: 'Rok rozpoczęcia nie może być w przyszłości' });
-    } else if (inputs.age && inputs.workStartYear < currentYear - inputs.age + 18) {
-        console.log(currentYear);
-        console.log(inputs.workStartYear, currentYear - inputs.age + 18);
-        errors.push({ field: 'workStartYear', message: 'Rok rozpoczęcia pracy nie pasuje do podanego wieku' });
+    } else if (inputs.age && inputs.workStartYear < currentYear - inputs.age + 15) {
+        errors.push({ field: 'workStartYear', message: 'Rok rozpoczęcia pracy nie pasuje do podanego wieku (musisz mieć co najmniej 15 lat)' });
     }
 
     // Work end year validation
