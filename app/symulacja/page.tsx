@@ -13,12 +13,18 @@ import { SexVisual } from "@/components/ui/SexVisual";
 import { SalaryVisual } from "@/components/ui/SalaryVisual";
 import { UnifiedTimeline } from "@/components/ui/UnifiedTimeline";
 import { StepIndicator } from "@/components/ui/StepIndicator";
+import { PostalCodeModal } from "@/components/ui/PostalCodeModal";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { SimulationInputs } from "@/lib/types";
 import {
   validateSimulationInputs,
   getFieldError,
 } from "@/lib/utils/validation";
+import {
+  shouldShowPostalCodeModal,
+  getPostalCode,
+  setPostalCode as savePostalCode,
+} from "@/lib/utils/postalCodeStorage";
 import {
   LuLightbulb,
   LuCalendar,
@@ -70,7 +76,7 @@ export default function SimulacjaPage() {
         employeeRate: 0.02,
         employerRate: 0.015,
       },
-      ikzp: {
+      ikze: {
         enabled: false,
         contributionRate: 0.1,
       },
@@ -79,6 +85,7 @@ export default function SimulacjaPage() {
 
   const [errors, setErrors] = useState<any[]>([]);
   const [showL4Info, setShowL4Info] = useState(false);
+  const [showPostalCodeModal, setShowPostalCodeModal] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -86,6 +93,15 @@ export default function SimulacjaPage() {
         setIsDataLoading(true);
         const loadedData = await loadAllData();
         setData(loadedData);
+
+        // Load postal code from storage
+        const savedPostalCode = getPostalCode();
+        if (savedPostalCode) {
+          setFormData((prev) => ({
+            ...prev,
+            postalCode: savedPostalCode,
+          }));
+        }
 
         // Calculate default retirement year
         if (formData.age && formData.sex) {
@@ -558,14 +574,48 @@ export default function SimulacjaPage() {
 
     setErrors([]);
 
+    // Show postal code modal only if we haven't asked before
+    if (shouldShowPostalCodeModal()) {
+      setShowPostalCodeModal(true);
+    } else {
+      await proceedWithCalculation();
+    }
+  };
+
+  const proceedWithCalculation = async (
+    dataWithPostalCode?: Partial<SimulationInputs>
+  ) => {
     try {
-      setInputs(formData as SimulationInputs);
+      const finalData = dataWithPostalCode
+        ? { ...formData, ...dataWithPostalCode }
+        : formData;
+      setInputs(finalData as SimulationInputs);
       await recalculate();
       router.push("/wynik");
     } catch (error) {
       console.error("Calculation error:", error);
       alert("Wystąpił błąd podczas obliczania prognozy. Spróbuj ponownie.");
     }
+  };
+
+  const handlePostalCodeSave = async (postalCode: string) => {
+    setShowPostalCodeModal(false);
+
+    // Update form data with postal code
+    const updatedData: Partial<SimulationInputs> = {};
+    if (postalCode && postalCode.trim()) {
+      updatedData.postalCode = postalCode.trim();
+      setFormData((prev) => ({ ...prev, postalCode: postalCode.trim() }));
+    }
+
+    // Proceed with calculation, passing the postal code
+    await proceedWithCalculation(updatedData);
+  };
+
+  const handlePostalCodeSkip = async () => {
+    setShowPostalCodeModal(false);
+    // Proceed without postal code
+    await proceedWithCalculation();
   };
 
   if (isDataLoading || !data)
@@ -901,6 +951,150 @@ export default function SimulacjaPage() {
                       </div>
                     </label>
                   </div>
+
+                  {/* Typ umowy */}
+                  <div className="mt-6 p-4 bg-zus-green-light border-l-4 border-zus-green rounded">
+                    <h4 className="text-base font-bold text-zus-grey-900 mb-3">
+                      Typ zatrudnienia
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <label className="cursor-pointer">
+                        <input
+                          type="radio"
+                          name="contractType"
+                          value="UOP"
+                          checked={
+                            formData.contractType === "UOP" ||
+                            !formData.contractType
+                          }
+                          onChange={(e) =>
+                            handleChange("contractType", e.target.value)
+                          }
+                          className="peer sr-only"
+                        />
+                        <div className="p-3 bg-white border-2 border-zus-grey-300 rounded-lg peer-checked:border-zus-green peer-checked:bg-zus-green-light hover:border-zus-green transition-all">
+                          <div className="text-2xl mb-1">💼</div>
+                          <div className="text-sm font-semibold text-zus-grey-900">
+                            UOP
+                          </div>
+                          <div className="text-xs text-zus-grey-600 mt-1">
+                            Pełne składki
+                          </div>
+                        </div>
+                      </label>
+                      <label className="cursor-pointer">
+                        <input
+                          type="radio"
+                          name="contractType"
+                          value="UOZ"
+                          checked={formData.contractType === "UOZ"}
+                          onChange={(e) =>
+                            handleChange("contractType", e.target.value)
+                          }
+                          className="peer sr-only"
+                        />
+                        <div className="p-3 bg-white border-2 border-zus-grey-300 rounded-lg peer-checked:border-zus-green peer-checked:bg-zus-green-light hover:border-zus-green transition-all">
+                          <div className="text-2xl mb-1">📝</div>
+                          <div className="text-sm font-semibold text-zus-grey-900">
+                            Zlecenie
+                          </div>
+                          <div className="text-xs text-zus-grey-600 mt-1">
+                            Bez chorobowego
+                          </div>
+                        </div>
+                      </label>
+                      <label className="cursor-pointer">
+                        <input
+                          type="radio"
+                          name="contractType"
+                          value="B2B"
+                          checked={formData.contractType === "B2B"}
+                          onChange={(e) =>
+                            handleChange("contractType", e.target.value)
+                          }
+                          className="peer sr-only"
+                        />
+                        <div className="p-3 bg-white border-2 border-zus-grey-300 rounded-lg peer-checked:border-zus-green peer-checked:bg-zus-green-light hover:border-zus-green transition-all">
+                          <div className="text-2xl mb-1">🏢</div>
+                          <div className="text-sm font-semibold text-zus-grey-900">
+                            B2B
+                          </div>
+                          <div className="text-xs text-zus-grey-600 mt-1">
+                            Składki opcjonalne
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Dodatkowe programy emerytalne - PPK i IKZE */}
+                  <div className="mt-6 p-4 bg-blue-50 border-l-4 border-zus-blue rounded">
+                    <h4 className="text-base font-bold text-zus-grey-900 mb-3">
+                      Dodatkowe programy emerytalne
+                    </h4>
+                    <div className="space-y-3">
+                      {/* PPK Checkbox */}
+                      <label className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-colors border-2 border-transparent hover:border-zus-blue">
+                        <input
+                          type="checkbox"
+                          checked={
+                            formData.retirementPrograms?.ppk.enabled || false
+                          }
+                          onChange={(e) =>
+                            handleChange("retirementPrograms", {
+                              ...formData.retirementPrograms,
+                              ppk: {
+                                ...(formData.retirementPrograms?.ppk || {
+                                  employeeRate: 0.02,
+                                  employerRate: 0.015,
+                                }),
+                                enabled: e.target.checked,
+                              },
+                            })
+                          }
+                          className="w-5 h-5 accent-zus-blue flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
+                            <span>Uczestniczę w PPK</span>
+                            <span className="px-2 py-0.5 bg-zus-blue/10 text-zus-blue text-xs font-bold rounded">
+                              +~3.5%
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+
+                      {/* IKZE Checkbox */}
+                      <label className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-orange-50 transition-colors border-2 border-transparent hover:border-zus-orange">
+                        <input
+                          type="checkbox"
+                          checked={
+                            formData.retirementPrograms?.ikze.enabled || false
+                          }
+                          onChange={(e) =>
+                            handleChange("retirementPrograms", {
+                              ...formData.retirementPrograms,
+                              ikze: {
+                                ...(formData.retirementPrograms?.ikze || {
+                                  contributionRate: 0.1,
+                                }),
+                                enabled: e.target.checked,
+                              },
+                            })
+                          }
+                          className="w-5 h-5 accent-zus-orange flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
+                            <span>Mam IKZE</span>
+                            <span className="px-2 py-0.5 bg-zus-orange/10 text-zus-orange text-xs font-bold rounded">
+                              +~10%
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
@@ -1112,175 +1306,6 @@ export default function SimulacjaPage() {
                   </div>
                 </div>
 
-                {/* Typ umowy */}
-                <div className="mt-6 p-5 bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-400 rounded-lg shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-2xl">📝</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-bold text-zus-grey-900">
-                        Typ zatrudnienia
-                      </h4>
-                      <p className="text-sm text-zus-grey-700">
-                        Różne umowy = różne składki na emeryturę
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-4 rounded-lg">
-                    <label className="block mb-2 font-semibold text-zus-grey-900">
-                      Jaki typ umowy masz?
-                    </label>
-                    <select
-                      value={formData.contractType || "UOP"}
-                      onChange={(e) =>
-                        handleChange("contractType", e.target.value)
-                      }
-                      className="w-full p-3 border-2 border-zus-grey-300 rounded-lg focus:border-purple-500 focus:outline-none text-base"
-                    >
-                      <option value="UOP">
-                        💼 Umowa o Pracę (UOP) - Pełne składki ZUS
-                      </option>
-                      <option value="UOZ">
-                        📝 Umowa Zlecenie (UOZ) - Bez chorobowego
-                      </option>
-                      <option value="B2B">
-                        🏢 Działalność / B2B - Składki opcjonalne
-                      </option>
-                    </select>
-
-                    <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                      <p className="text-xs text-zus-grey-700">
-                        <strong>ℹ️ Informacja:</strong>{" "}
-                        {formData.contractType === "B2B" ? (
-                          <>
-                            <strong>Działalność gospodarcza:</strong> Możesz
-                            płacić składki ZUS od niższej podstawy (np. od
-                            minimalnej). W symulacji zakładamy pełne składki.
-                          </>
-                        ) : formData.contractType === "UOZ" ? (
-                          <>
-                            <strong>Umowa zlecenie:</strong> Brak składki
-                            chorobowej, ale pełne składki emerytalne i rentowe
-                            (19.52%).
-                          </>
-                        ) : (
-                          <>
-                            <strong>Umowa o pracę:</strong> Pełne składki ZUS
-                            (emerytalne, rentowe, chorobowe). Najpewniejsza
-                            forma zatrudnienia.
-                          </>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dodatkowe programy emerytalne - PPK i IKZP */}
-                <div className="mt-6 p-5 bg-gradient-to-br from-blue-50 to-zus-green-light border-2 border-zus-blue rounded-lg shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-zus-blue flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-2xl">💰</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-bold text-zus-grey-900">
-                        Dodatkowe programy emerytalne
-                      </h4>
-                      <p className="text-sm text-zus-grey-700">
-                        Zwiększ swoją przyszłą emeryturę dzięki PPK i IKZP
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* PPK Checkbox */}
-                    <label className="flex items-start gap-3 p-4 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-colors border-2 border-transparent hover:border-zus-blue">
-                      <input
-                        type="checkbox"
-                        checked={
-                          formData.retirementPrograms?.ppk.enabled || false
-                        }
-                        onChange={(e) =>
-                          handleChange("retirementPrograms", {
-                            ...formData.retirementPrograms,
-                            ppk: {
-                              ...(formData.retirementPrograms?.ppk || {
-                                employeeRate: 0.02,
-                                employerRate: 0.015,
-                              }),
-                              enabled: e.target.checked,
-                            },
-                          })
-                        }
-                        className="mt-1 w-5 h-5 accent-zus-blue flex-shrink-0"
-                      />
-                      <div className="flex-1">
-                        <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
-                          <span>Uczestniczę w PPK</span>
-                          <span className="px-2 py-0.5 bg-zus-blue/10 text-zus-blue text-xs font-bold rounded">
-                            +~3.5% emerytury
-                          </span>
-                        </div>
-                        <p className="text-sm text-zus-grey-700 mt-1">
-                          <strong>Pracownicze Plany Kapitałowe:</strong> Składka
-                          pracownika (2%) + pracodawcy (1.5%) + dopłaty państwa.
-                          Dodatkowy kapitał emerytalny z długoterminowych
-                          inwestycji.
-                        </p>
-                      </div>
-                    </label>
-
-                    {/* IKZP Checkbox */}
-                    <label className="flex items-start gap-3 p-4 bg-white rounded-lg cursor-pointer hover:bg-orange-50 transition-colors border-2 border-transparent hover:border-zus-orange">
-                      <input
-                        type="checkbox"
-                        checked={
-                          formData.retirementPrograms?.ikzp.enabled || false
-                        }
-                        onChange={(e) =>
-                          handleChange("retirementPrograms", {
-                            ...formData.retirementPrograms,
-                            ikzp: {
-                              ...(formData.retirementPrograms?.ikzp || {
-                                contributionRate: 0.1,
-                              }),
-                              enabled: e.target.checked,
-                            },
-                          })
-                        }
-                        className="mt-1 w-5 h-5 accent-zus-orange flex-shrink-0"
-                      />
-                      <div className="flex-1">
-                        <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
-                          <span>Mam PPE / IKZP</span>
-                          <span className="px-2 py-0.5 bg-zus-orange/10 text-zus-orange text-xs font-bold rounded">
-                            +~10% emerytury
-                          </span>
-                        </div>
-                        <p className="text-sm text-zus-grey-700 mt-1">
-                          <strong>Pracowniczy Program Emerytalny:</strong>{" "}
-                          Składka pracodawcy (zazwyczaj 10%). Dodatkowe
-                          oszczędności emerytalne z korzyściami podatkowymi.
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="mt-4 p-3 bg-white/70 rounded-lg border border-zus-grey-300">
-                    <p className="text-xs text-zus-grey-600 flex items-start gap-2">
-                      <span className="text-zus-blue flex-shrink-0">ℹ️</span>
-                      <span>
-                        <strong>Wskazówka:</strong> Jeśli nie jesteś pewien, czy
-                        uczestniczysz w tych programach, zapytaj w dziale HR
-                        swojej firmy lub sprawdź na swoim pasku wynagrodzeń. PPK
-                        jest dostępne dla większości pracowników zatrudnionych
-                        na umowę o pracę.
-                      </span>
-                    </p>
-                  </div>
-                </div>
-
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
                   <div className="flex gap-4">
                     <Button
@@ -1361,7 +1386,7 @@ export default function SimulacjaPage() {
                       <LuCalendar className="w-5 h-5 text-zus-blue flex-shrink-0" />
                       <span>Historia pracy</span>
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                       <div className="flex justify-between sm:flex-col">
                         <div className="text-sm text-zus-grey-600">
                           Rok rozpoczęcia pracy
@@ -1393,6 +1418,62 @@ export default function SimulacjaPage() {
                         <div className="text-lg font-bold text-zus-green">
                           {retirementAge} lat
                         </div>
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-zus-navy/20 space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-zus-grey-600">
+                          Wcześniejsza emerytura:
+                        </span>
+                        <span
+                          className={`font-semibold ${
+                            formData.earlyRetirement
+                              ? "text-zus-green"
+                              : "text-zus-grey-500"
+                          }`}
+                        >
+                          {formData.earlyRetirement ? "✓ Tak" : "✗ Nie"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-zus-grey-600">Typ umowy:</span>
+                        <span className="font-semibold text-zus-grey-900">
+                          {formData.contractType === "UOP"
+                            ? "💼 Umowa o Pracę (UOP)"
+                            : formData.contractType === "UOZ"
+                            ? "📝 Umowa Zlecenie (UOZ)"
+                            : formData.contractType === "B2B"
+                            ? "🏢 Działalność / B2B"
+                            : "💼 Umowa o Pracę (UOP)"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-zus-grey-600">PPK:</span>
+                        <span
+                          className={`font-semibold ${
+                            formData.retirementPrograms?.ppk.enabled
+                              ? "text-zus-blue"
+                              : "text-zus-grey-500"
+                          }`}
+                        >
+                          {formData.retirementPrograms?.ppk.enabled
+                            ? "✓ Uczestniczę"
+                            : "✗ Nie uczestniczę"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-zus-grey-600">IKZE:</span>
+                        <span
+                          className={`font-semibold ${
+                            formData.retirementPrograms?.ikze.enabled
+                              ? "text-zus-orange"
+                              : "text-zus-grey-500"
+                          }`}
+                        >
+                          {formData.retirementPrograms?.ikze.enabled
+                            ? "✓ Posiadam"
+                            : "✗ Nie posiadam"}
+                        </span>
                       </div>
                     </div>
                   </Card>
@@ -1489,6 +1570,13 @@ export default function SimulacjaPage() {
             </div>
           </div>
         </form>
+
+        {/* Postal Code Modal */}
+        <PostalCodeModal
+          isOpen={showPostalCodeModal}
+          onClose={handlePostalCodeSkip}
+          onSave={handlePostalCodeSave}
+        />
       </div>
     </main>
   );

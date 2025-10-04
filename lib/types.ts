@@ -157,7 +157,7 @@ export interface RetirementPrograms {
     employeeRate: number; // np. 0.02 = 2%
     employerRate: number; // np. 0.015 = 1.5%
   };
-  ikzp: {
+  ikze: {
     enabled: boolean;
     contributionRate: number; // np. 0.10 = 10%
   };
@@ -180,7 +180,7 @@ export interface SimulationInputs {
   contractType?: ContractType; // Typ umowy (domyślnie UOP)
   employmentPeriods?: EmploymentPeriod[]; // Niestandardowe okresy zatrudnienia
   lifeEvents?: LifeEvent[]; // Wydarzenia życiowe
-  retirementPrograms?: RetirementPrograms; // PPK, IKZP
+  retirementPrograms?: RetirementPrograms; // PPK, IKZE
 }
 
 // Calculation result types
@@ -254,15 +254,15 @@ export interface SimulationResults {
   capitalPath: CapitalEntry[];
   salaryPath: SalaryPathEntry[];
 
-  // ========== NOWE POLA - PPK/IKZP ==========
+  // ========== NOWE POLA - PPK/IKZE ==========
   ppkCapital?: number; // Kapitał zgromadzony w PPK
-  ikzpCapital?: number; // Kapitał zgromadzony w IKZP
-  totalPensionWithPrograms?: number; // Łączna emerytura (ZUS + PPK + IKZP)
+  ikzeCapital?: number; // Kapitał zgromadzony w IKZE
+  totalPensionWithPrograms?: number; // Łączna emerytura (ZUS + PPK + IKZE)
   programsBreakdown?: {
     // Podział emerytury na źródła
     zus: number;
     ppk: number;
-    ikzp: number;
+    ikze: number;
   };
 }
 

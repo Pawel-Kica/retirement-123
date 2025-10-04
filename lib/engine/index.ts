@@ -212,9 +212,9 @@ export async function calculateSimulation(
     });
   }
 
-  // Step 10: Calculate additional retirement programs (PPK, IKZP) if enabled
+  // Step 10: Calculate additional retirement programs (PPK, IKZE) if enabled
   let ppkCapital = 0;
-  let ikzpCapital = 0;
+  let ikzeCapital = 0;
   let totalPensionWithPrograms = realPension;
   let programsBreakdown = undefined;
 
@@ -225,7 +225,7 @@ export async function calculateSimulation(
     });
 
     ppkCapital = additionalPrograms.ppkCapital;
-    ikzpCapital = additionalPrograms.ikzpCapital;
+    ikzeCapital = additionalPrograms.ikzeCapital;
 
     const combined = combinePensions(realPension, additionalPrograms);
     totalPensionWithPrograms = combined.totalMonthlyPension;
@@ -254,9 +254,9 @@ export async function calculateSimulation(
     yearsNeeded,
     capitalPath,
     salaryPath: adjustedPath,
-    // New PPK/IKZP fields
+    // New PPK/IKZE fields
     ppkCapital,
-    ikzpCapital,
+    ikzeCapital,
     totalPensionWithPrograms,
     programsBreakdown,
   };

@@ -5,7 +5,7 @@
  * - Stałe systemowe ZUS
  * - Formuły składek dla różnych typów umów (UOP, UOZ, B2B)
  * - Obliczenia PPK (Pracownicze Plany Kapitałowe)
- * - Obliczenia IKZP/PPE (Pracownicze Programy Emerytalne)
+ * - Obliczenia IKZE (Indywidualne Konto Zabezpieczenia Emerytalnego)
  * - Wpływ przerw w zatrudnieniu
  */
 
@@ -44,37 +44,38 @@ export const ZUS_CONSTANTS = {
 export const CONTRACT_CONTRIBUTIONS = {
   UOP: {
     // Umowa o Pracę - pełne składki ZUS
-    name: 'Umowa o Pracę',
+    name: "Umowa o Pracę",
     employeePensionRate: 0.0976, // 9.76% pracownik
     employerPensionRate: 0.0976, // 9.76% pracodawca
     totalPensionRate: 0.1952, // 19.52% łącznie na emeryturę
     disabilityRate: 0.08, // 8% na rentę
     sicknessRate: 0.0245, // 2.45% na chorobowe
     hasFullProtection: true, // Pełna ochrona socjalna
-    description: 'Pełne składki ZUS, prawo do zasiłków chorobowych i macierzyńskich',
+    description:
+      "Pełne składki ZUS, prawo do zasiłków chorobowych i macierzyńskich",
   },
 
   UOZ: {
     // Umowa Zlecenie - bez chorobowego (chyba że w statucie)
-    name: 'Umowa Zlecenie',
+    name: "Umowa Zlecenie",
     employeePensionRate: 0.0976,
     employerPensionRate: 0.0976,
     totalPensionRate: 0.1952,
     disabilityRate: 0.08,
     sicknessRate: 0, // Brak obowiązkowego chorobowego!
     hasFullProtection: false,
-    description: 'Składki emerytalne i rentowe, zazwyczaj brak chorobowego',
+    description: "Składki emerytalne i rentowe, zazwyczaj brak chorobowego",
   },
 
   B2B: {
     // Działalność gospodarcza - składki opcjonalne/minimalne
-    name: 'Działalność / B2B',
+    name: "Działalność / B2B",
     optionalPensionRate: 0.1952, // Jeśli płaci dobrowolnie pełne składki
     minimalBaseFactor: 0.6, // Może płacić od 60% przeciętnej
     minimalAbsoluteBase: 4694, // Lub od minimalnej krajowej
     hasFullProtection: false,
     customizable: true, // Może wybierać podstawę
-    description: 'Składki opcjonalne, możliwość wyboru podstawy wymiaru',
+    description: "Składki opcjonalne, możliwość wyboru podstawy wymiaru",
   },
 } as const;
 
@@ -109,28 +110,28 @@ export const PPK_CONFIG = {
   // Prognoza zwrotu (konserwatywna)
   estimatedAnnualReturn: 0.05, // Szacowany realny zwrot 5% rocznie
 
-  description: 'Pracownicze Plany Kapitałowe - długoterminowe oszczędzanie z dopłatami państwa',
+  description:
+    "Pracownicze Plany Kapitałowe - długoterminowe oszczędzanie z dopłatami państwa",
 } as const;
 
 /**
- * Indywidualne Konta Zabezpieczenia Emerytalnego / Pracownicze Programy Emerytalne
- * (IKZE, PPE, IKE)
+ * Indywidualne Konto Zabezpieczenia Emerytalnego (IKZE)
  */
-export const IKZP_CONFIG = {
+export const IKZE_CONFIG = {
   // Składki
-  defaultContributionRate: 0.10, // 10% typowa składka pracodawcy
+  defaultContributionRate: 0.1, // 10% typowa składka pracodawcy
   minContributionRate: 0.05, // Min 5%
   maxContributionRate: 0.15, // Max 15%
 
   // Ulgi podatkowe
   taxDeductible: true, // Zwolnione z podatku do limitu
   taxDeductionLimitIKZE: 9388, // IKZE: 1.2x przeciętnej rocznej (2025)
-  taxDeductionLimitPPE: null, // PPE: zwykle brak limitu dla pracodawcy
 
   // Prognoza zwrotu
   estimatedAnnualReturn: 0.05, // Szacowany realny zwrot 5% rocznie
 
-  description: 'Zakładowe programy emerytalne - dodatkowe oszczędności z korzyściami podatkowymi',
+  description:
+    "Indywidualne Konto Zabezpieczenia Emerytalnego - dodatkowe oszczędności z korzyściami podatkowymi",
 } as const;
 
 // ==========================================
@@ -144,7 +145,7 @@ export const EMPLOYMENT_GAP_CONFIG = {
   MATERNITY_LEAVE: {
     // Urlop macierzyński
     benefitRate: 0.7, // Średnio 70% normalnych składek
-    description: 'Zasiłek macierzyński (100% przez 20 tyg, potem 60-80%)',
+    description: "Zasiłek macierzyński (100% przez 20 tyg, potem 60-80%)",
     contributionsPaid: true, // Składki są odprowadzane
     contributionBase: 0.7, // Od ~70% normalnej podstawy
   },
@@ -152,7 +153,7 @@ export const EMPLOYMENT_GAP_CONFIG = {
   UNPAID_LEAVE: {
     // Urlop bezpłatny
     benefitRate: 0, // Brak zasiłku
-    description: 'Urlop bezpłatny - brak składek emerytalnych',
+    description: "Urlop bezpłatny - brak składek emerytalnych",
     contributionsPaid: false,
     contributionBase: 0,
   },
@@ -160,7 +161,7 @@ export const EMPLOYMENT_GAP_CONFIG = {
   LONG_TERM_SICK: {
     // Długotrwałe L4 (>33 dni)
     benefitRate: 0.7, // Zasiłek chorobowy: 80% przez 182 dni
-    description: 'Zasiłek chorobowy (80% wynagrodzenia)',
+    description: "Zasiłek chorobowy (80% wynagrodzenia)",
     contributionsPaid: true,
     contributionBase: 0.7,
   },
@@ -168,7 +169,7 @@ export const EMPLOYMENT_GAP_CONFIG = {
   SHORT_TERM_SICK: {
     // Krótkie L4 (<=33 dni)
     benefitRate: 0.8, // Wynagrodzenie chorobowe: 80%
-    description: 'Wynagrodzenie chorobowe (80% wynagrodzenia)',
+    description: "Wynagrodzenie chorobowe (80% wynagrodzenia)",
     contributionsPaid: true,
     contributionBase: 0.8,
   },
@@ -188,12 +189,12 @@ export const EMPLOYMENT_GAP_CONFIG = {
  */
 export function calculatePensionContribution(
   annualGross: number,
-  contractType: 'UOP' | 'UOZ' | 'B2B' = 'UOP',
+  contractType: "UOP" | "UOZ" | "B2B" = "UOP",
   b2bCustomBase?: number
 ): number {
   // Dla B2B - może być niestandardowa podstawa
-  if (contractType === 'B2B') {
-    const base = b2bCustomBase || (ZUS_CONSTANTS.MINIMUM_CONTRIBUTION_BASE * 12);
+  if (contractType === "B2B") {
+    const base = b2bCustomBase || ZUS_CONSTANTS.MINIMUM_CONTRIBUTION_BASE * 12;
     return base * CONTRACT_CONTRIBUTIONS.B2B.optionalPensionRate;
   }
 
@@ -201,7 +202,10 @@ export function calculatePensionContribution(
   const config = CONTRACT_CONTRIBUTIONS[contractType];
 
   // Sprawdź limit podstawy wymiaru
-  const cappedGross = Math.min(annualGross, ZUS_CONSTANTS.CONTRIBUTION_BASE_LIMIT_2025);
+  const cappedGross = Math.min(
+    annualGross,
+    ZUS_CONSTANTS.CONTRIBUTION_BASE_LIMIT_2025
+  );
 
   return cappedGross * config.totalPensionRate;
 }
@@ -229,7 +233,7 @@ export function calculatePPKCapital(
   employmentPeriods.forEach((period, index) => {
     // Waloryzacja kapitału z poprzednich lat
     if (index > 0) {
-      capital *= (1 + estimatedReturn);
+      capital *= 1 + estimatedReturn;
     }
 
     // Składki roczne
@@ -241,7 +245,8 @@ export function calculatePPKCapital(
     const annualBonus = qualifiesForBonus ? PPK_CONFIG.annualBonusAmount : 0;
 
     // Opłaty (uproszczenie: opłata od wpłat + zarządzanie)
-    const totalDeposit = employeeContribution + employerContribution + annualBonus;
+    const totalDeposit =
+      employeeContribution + employerContribution + annualBonus;
     const depositFee = totalDeposit * PPK_CONFIG.depositFeeMax;
     const managementFee = capital * PPK_CONFIG.managementFeeMax;
 
@@ -252,17 +257,17 @@ export function calculatePPKCapital(
 }
 
 /**
- * Oblicza kapitał IKZP/PPE zgromadzony do momentu emerytury
+ * Oblicza kapitał IKZE zgromadzony do momentu emerytury
  *
  * @param employmentPeriods - Okresy zatrudnienia z rocznymi pensjami
  * @param contributionRate - Składka pracodawcy (domyślnie 10%)
  * @param estimatedReturn - Szacowany roczny zwrot (domyślnie 5%)
- * @returns Kapitał IKZP w PLN
+ * @returns Kapitał IKZE w PLN
  */
-export function calculateIKZPCapital(
+export function calculateIKZECapital(
   employmentPeriods: Array<{ year: number; annualGross: number }>,
-  contributionRate: number = IKZP_CONFIG.defaultContributionRate,
-  estimatedReturn: number = IKZP_CONFIG.estimatedAnnualReturn
+  contributionRate: number = IKZE_CONFIG.defaultContributionRate,
+  estimatedReturn: number = IKZE_CONFIG.estimatedAnnualReturn
 ): number {
   if (employmentPeriods.length === 0) return 0;
 
@@ -271,7 +276,7 @@ export function calculateIKZPCapital(
   employmentPeriods.forEach((period, index) => {
     // Waloryzacja kapitału z poprzednich lat
     if (index > 0) {
-      capital *= (1 + estimatedReturn);
+      capital *= 1 + estimatedReturn;
     }
 
     // Składka roczna od pracodawcy
@@ -309,20 +314,26 @@ export function calculateEmploymentGapImpact(
 
   // Składki od normalnych miesięcy
   const normalAnnualGross = baseMonthlyGross * monthsNormal;
-  const normalContributions = normalAnnualGross * ZUS_CONSTANTS.TOTAL_CONTRIBUTION_RATE;
+  const normalContributions =
+    normalAnnualGross * ZUS_CONSTANTS.TOTAL_CONTRIBUTION_RATE;
 
   // Składki od miesięcy z przerwą
   const affectedAnnualGross = baseMonthlyGross * monthsAffected;
-  const affectedContributions = affectedAnnualGross * ZUS_CONSTANTS.TOTAL_CONTRIBUTION_RATE * config.contributionBase;
+  const affectedContributions =
+    affectedAnnualGross *
+    ZUS_CONSTANTS.TOTAL_CONTRIBUTION_RATE *
+    config.contributionBase;
 
   // Łączne składki
   const totalContributions = normalContributions + affectedContributions;
 
   // Pełne składki (gdyby nie było przerwy)
-  const fullYearContributions = baseMonthlyGross * 12 * ZUS_CONSTANTS.TOTAL_CONTRIBUTION_RATE;
+  const fullYearContributions =
+    baseMonthlyGross * 12 * ZUS_CONSTANTS.TOTAL_CONTRIBUTION_RATE;
 
   // Efektywna pensja roczna (dla celów obliczeń kapitału)
-  const effectiveAnnualSalary = totalContributions / ZUS_CONSTANTS.TOTAL_CONTRIBUTION_RATE;
+  const effectiveAnnualSalary =
+    totalContributions / ZUS_CONSTANTS.TOTAL_CONTRIBUTION_RATE;
 
   return {
     effectiveAnnualSalary,
@@ -333,10 +344,10 @@ export function calculateEmploymentGapImpact(
 }
 
 /**
- * Przelicza kapitał dodatkowy (PPK/IKZP) na miesięczną rentę
+ * Przelicza kapitał dodatkowy (PPK/IKZE) na miesięczną rentę
  * Uproszczenie: zakładamy 20-letni okres wypłat
  *
- * @param capital - Kapitał zgromadzony w PPK lub IKZP
+ * @param capital - Kapitał zgromadzony w PPK lub IKZE
  * @param payoutYears - Liczba lat wypłat (domyślnie 20)
  * @returns Miesięczna dodatkowa emerytura w PLN
  */
@@ -353,27 +364,27 @@ export function capitalToMonthlyPension(
  *
  * @param zusPension - Emerytura z ZUS
  * @param ppkCapital - Kapitał PPK (opcjonalnie)
- * @param ikzpCapital - Kapitał IKZP (opcjonalnie)
+ * @param ikzeCapital - Kapitał IKZE (opcjonalnie)
  * @returns Łączna miesięczna emerytura
  */
 export function calculateTotalPension(
   zusPension: number,
   ppkCapital: number = 0,
-  ikzpCapital: number = 0
+  ikzeCapital: number = 0
 ): {
   zusPension: number;
   ppkPension: number;
-  ikzpPension: number;
+  ikzePension: number;
   totalPension: number;
 } {
   const ppkPension = capitalToMonthlyPension(ppkCapital);
-  const ikzpPension = capitalToMonthlyPension(ikzpCapital);
+  const ikzePension = capitalToMonthlyPension(ikzeCapital);
 
   return {
     zusPension,
     ppkPension,
-    ikzpPension,
-    totalPension: zusPension + ppkPension + ikzpPension,
+    ikzePension,
+    totalPension: zusPension + ppkPension + ikzePension,
   };
 }
 
@@ -394,19 +405,21 @@ export function isAboveContributionLimit(
 /**
  * Formatuje opis typu umowy po polsku
  */
-export function getContractTypeLabel(type: 'UOP' | 'UOZ' | 'B2B'): string {
+export function getContractTypeLabel(type: "UOP" | "UOZ" | "B2B"): string {
   return CONTRACT_CONTRIBUTIONS[type].name;
 }
 
 /**
  * Formatuje opis typu wydarzenia po polsku
  */
-export function getEmploymentGapLabel(type: keyof typeof EMPLOYMENT_GAP_CONFIG): string {
+export function getEmploymentGapLabel(
+  type: keyof typeof EMPLOYMENT_GAP_CONFIG
+): string {
   const labels = {
-    MATERNITY_LEAVE: 'Urlop macierzyński',
-    UNPAID_LEAVE: 'Urlop bezpłatny',
-    LONG_TERM_SICK: 'Długotrwałe zwolnienie chorobowe (L4 > 33 dni)',
-    SHORT_TERM_SICK: 'Krótkie zwolnienie chorobowe (L4)',
+    MATERNITY_LEAVE: "Urlop macierzyński",
+    UNPAID_LEAVE: "Urlop bezpłatny",
+    LONG_TERM_SICK: "Długotrwałe zwolnienie chorobowe (L4 > 33 dni)",
+    SHORT_TERM_SICK: "Krótkie zwolnienie chorobowe (L4)",
   };
   return labels[type];
 }
@@ -414,11 +427,11 @@ export function getEmploymentGapLabel(type: keyof typeof EMPLOYMENT_GAP_CONFIG):
 /**
  * Pobiera ikonę emoji dla typu umowy
  */
-export function getContractTypeIcon(type: 'UOP' | 'UOZ' | 'B2B'): string {
+export function getContractTypeIcon(type: "UOP" | "UOZ" | "B2B"): string {
   const icons = {
-    UOP: '💼', // Teczka - pełny etat
-    UOZ: '📝', // Dokument - zlecenie
-    B2B: '🏢', // Biurowiec - działalność
+    UOP: "💼", // Teczka - pełny etat
+    UOZ: "📝", // Dokument - zlecenie
+    B2B: "🏢", // Biurowiec - działalność
   };
   return icons[type];
 }
@@ -426,12 +439,14 @@ export function getContractTypeIcon(type: 'UOP' | 'UOZ' | 'B2B'): string {
 /**
  * Pobiera ikonę emoji dla typu wydarzenia
  */
-export function getEmploymentGapIcon(type: keyof typeof EMPLOYMENT_GAP_CONFIG): string {
+export function getEmploymentGapIcon(
+  type: keyof typeof EMPLOYMENT_GAP_CONFIG
+): string {
   const icons = {
-    MATERNITY_LEAVE: '👶',
-    UNPAID_LEAVE: '🏖️',
-    LONG_TERM_SICK: '🏥',
-    SHORT_TERM_SICK: '🤒',
+    MATERNITY_LEAVE: "👶",
+    UNPAID_LEAVE: "🏖️",
+    LONG_TERM_SICK: "🏥",
+    SHORT_TERM_SICK: "🤒",
   };
   return icons[type];
 }

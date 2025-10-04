@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { NewSimulationButton } from "@/components/ui/NewSimulationButton";
 import { Card } from "@/components/ui/Card";
 import { HistoryButton } from "@/components/ui/HistoryButton";
-import { RetirementKPIs } from "@/components/ui/RetirementKPIs";
+import { UserInputKPIs } from "@/components/ui/UserInputKPIs";
+import { PDFPreviewModal } from "@/components/ui/PDFPreviewModal";
 import { EnhancedCareerTimeline } from "@/components/ui/EnhancedCareerTimeline";
 import {
   TimelinePanelContainer,
@@ -17,6 +17,7 @@ import { GapPeriodPanel } from "@/components/ui/GapPeriodPanel";
 import { SickLeavePanel } from "@/components/ui/SickLeavePanel";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { formatPLN, formatPercent, formatYears } from "@/lib/utils/formatting";
+import { generatePDFReport } from "@/lib/utils/pdfGenerator";
 import type {
   EmploymentPeriod,
   EmploymentGapPeriod,
@@ -37,9 +38,6 @@ import {
 import { Bar, Line } from "react-chartjs-2";
 import {
   FileText,
-  CheckCircle,
-  AlertTriangle,
-  Lightbulb,
   BarChart3,
   TrendingUp,
   Table,
@@ -73,6 +71,7 @@ export default function WynikPage() {
     updateGapPeriods,
     updateLifeEvents,
     loadTimelineFromStorage,
+    updateInputs,
   } = useSimulation();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -80,6 +79,7 @@ export default function WynikPage() {
     "bar" | "line" | "table"
   >("bar");
   const [selectedDeferralYears, setSelectedDeferralYears] = useState(0);
+  const [showPDFPreview, setShowPDFPreview] = useState(false);
 
   // Timeline panel state
   const [activePanelType, setActivePanelType] = useState<PanelType>(null);
@@ -137,6 +137,11 @@ export default function WynikPage() {
   }
 
   const { results, inputs, expectedPension } = state;
+
+  // Calculate difference between expected and forecasted pension
+  const pensionDifference = results.realPension - expectedPension;
+  const pensionDifferencePercent = (pensionDifference / expectedPension) * 100;
+  const isBelowExpectation = pensionDifference < 0;
 
   // Panel handlers
   const handleOpenEmploymentPanel = (period?: EmploymentPeriod) => {
@@ -216,59 +221,142 @@ export default function WynikPage() {
   const totalEvents =
     contractPeriods.length + gapPeriods.length + lifeEvents.length;
 
+  const handleOpenPDFPreview = () => {
+    setShowPDFPreview(true);
+  };
+
+  const handleClosePDFPreview = () => {
+    setShowPDFPreview(false);
+  };
+
+  const handleConfirmPDF = async () => {
+    await generatePDFReport({
+      inputs,
+      results,
+      expectedPension,
+      timestamp: new Date(),
+    });
+    setShowPDFPreview(false);
+  };
+
   return (
     <>
       <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-        {/* History Button - Floating */}
-        <div className="fixed top-4 right-4 z-30">
-          <HistoryButton />
-        </div>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] py-8 relative">
+          {/* History Button - Top Right of Container */}
+          <div className="absolute top-4 right-4 sm:right-6 lg:right-8 z-30">
+            <HistoryButton />
+          </div>
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] py-8">
-          <h1 className="text-4xl font-bold text-zus-grey-900 mb-8 text-center">
+          <h1 className="text-4xl font-bold text-zus-grey-900 mb-6 text-center">
             Twoja Prognoza Emerytury
           </h1>
 
-          {/* Simulation Details */}
-          <RetirementKPIs
-            results={results}
-            inputs={inputs}
-            isCalculating={isCalculating}
-          />
-
-          {/* Congratulations/Warning Message */}
-          {results.differenceVsExpected >= 0 ? (
-            <Card variant="success" className="mb-8">
-              <h3 className="text-xl font-bold text-zus-green flex items-center gap-2">
-                <CheckCircle className="w-6 h-6" />
-                Gratulacje! Przekraczasz swoje oczekiwania
-              </h3>
-              <p className="mt-2">
-                Twoja prognozowana emerytura ({formatPLN(results.realPension)})
-                jest wyższa od oczekiwanej ({formatPLN(expectedPension)}) o{" "}
-                {formatPLN(results.differenceVsExpected)}.
-              </p>
-            </Card>
-          ) : (
-            <Card variant="warning" className="mb-8">
-              <h3 className="text-xl font-bold text-zus-error flex items-center gap-2">
-                <AlertTriangle className="w-6 h-6" />
-                Twoja prognoza jest niższa od oczekiwań
-              </h3>
-              <div className="mt-2">
-                <p className="text-xl font-bold text-zus-error">
-                  Brakuje: {formatPLN(Math.abs(results.differenceVsExpected))}{" "}
-                  miesięcznie
-                </p>
-                {results.yearsNeeded !== null && (
-                  <p className="mt-2 flex items-center gap-2">
-                    <Lightbulb className="w-5 h-5 text-zus-orange" />
-                    Musisz pracować o {formatYears(results.yearsNeeded)} dłużej
+          {/* Comparison Warning/Congratulations Banner */}
+          {isBelowExpectation ? (
+            <div className="mb-6 p-4 bg-zus-error/10 border-l-4 border-zus-error rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-zus-error flex items-center justify-center mt-0.5">
+                  <span className="text-white text-sm font-bold">!</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-zus-error mb-1">
+                    Uwaga: Emerytura poniżej oczekiwań
+                  </h3>
+                  <p className="text-sm text-zus-grey-700">
+                    Twoja prognozowana emerytura jest{" "}
+                    <strong className="text-zus-error">
+                      {formatPLN(Math.abs(pensionDifference))}
+                    </strong>{" "}
+                    ({Math.abs(pensionDifferencePercent).toFixed(1)}%) niższa
+                    niż oczekiwana. Rozważ wydłużenie kariery lub zwiększenie
+                    składek.
                   </p>
-                )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-6 p-4 bg-zus-green-light border-l-4 border-zus-green rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-zus-green flex items-center justify-center mt-0.5">
+                  <span className="text-white text-sm font-bold">✓</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-zus-green mb-1">
+                    Gratulacje! Emerytura powyżej oczekiwań
+                  </h3>
+                  <p className="text-sm text-zus-grey-700">
+                    Twoja prognozowana emerytura jest{" "}
+                    <strong className="text-zus-green">
+                      {formatPLN(pensionDifference)}
+                    </strong>{" "}
+                    ({pensionDifferencePercent.toFixed(1)}%) wyższa niż
+                    oczekiwana. Dobra praca!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Results KPIs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <Card className="bg-white border border-zus-grey-300">
+              <div className="text-xs font-semibold text-zus-grey-600 uppercase tracking-wide mb-2">
+                Emerytura oczekiwana
+              </div>
+              <div className="text-3xl font-bold text-zus-grey-900">
+                {formatPLN(expectedPension)}
               </div>
             </Card>
-          )}
+
+            <Card
+              className={`bg-white border-2 ${
+                isBelowExpectation ? "border-zus-error" : "border-zus-green"
+              }`}
+            >
+              <div className="text-xs font-semibold text-zus-grey-600 uppercase tracking-wide mb-2">
+                Emerytura prognozowana
+              </div>
+              <div
+                className={`text-3xl font-bold ${
+                  isBelowExpectation ? "text-zus-error" : "text-zus-green"
+                }`}
+              >
+                {formatPLN(results.realPension)}
+              </div>
+              <div className="text-xs text-zus-grey-600 mt-1">
+                (wartość realna)
+              </div>
+            </Card>
+
+            <Card className="bg-white border border-zus-grey-300">
+              <div className="text-xs font-semibold text-zus-grey-600 uppercase tracking-wide mb-2">
+                Emerytura nominalna
+              </div>
+              <div className="text-3xl font-bold text-zus-grey-900">
+                {formatPLN(results.nominalPension)}
+              </div>
+              <div className="text-xs text-zus-grey-600 mt-1">
+                (w {inputs.workEndYear} r.)
+              </div>
+            </Card>
+
+            <Card className="bg-white border border-zus-grey-300">
+              <div className="text-xs font-semibold text-zus-grey-600 uppercase tracking-wide mb-2">
+                Stopa zastąpienia
+              </div>
+              <div className="text-3xl font-bold text-zus-grey-900">
+                {formatPercent(results.replacementRate / 100)}
+              </div>
+            </Card>
+          </div>
+
+          {/* Simulation Details */}
+          <UserInputKPIs
+            inputs={inputs}
+            isCalculating={isCalculating}
+            onUpdateInputs={updateInputs}
+          />
 
           {/* Timeline Section */}
           <Card className="mb-8">
@@ -585,21 +673,35 @@ export default function WynikPage() {
 
           {/* Actions */}
           <div className="flex flex-col md:flex-row gap-4">
-            <NewSimulationButton className="flex-1 cursor-pointer" />
             <Button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/")}
               variant="secondary"
               size="lg"
               className="flex-1"
             >
-              Dashboard
+              Nowa symulacja
             </Button>
-            <Button variant="success" size="lg" className="flex-1">
+            <Button
+              onClick={handleOpenPDFPreview}
+              variant="success"
+              size="lg"
+              className="flex-1"
+            >
               Pobierz raport PDF
             </Button>
           </div>
         </div>
       </main>
+
+      {/* PDF Preview Modal */}
+      <PDFPreviewModal
+        isOpen={showPDFPreview}
+        onClose={handleClosePDFPreview}
+        onConfirm={handleConfirmPDF}
+        inputs={inputs}
+        results={results}
+        expectedPension={expectedPension}
+      />
 
       {/* Side Panel */}
       <TimelinePanelContainer

@@ -7,6 +7,7 @@ import {
   LifeEvent,
   DashboardModifications,
 } from "../types";
+import { clearPostalCodeData } from "./postalCodeStorage";
 
 const HISTORY_KEY = "zus-simulation-history";
 const TIMELINE_PREFIX = "zus-timeline-";
@@ -138,6 +139,9 @@ export function clearHistory(): void {
 
     localStorage.removeItem(HISTORY_KEY);
     localStorage.removeItem(CURRENT_SIMULATION_KEY);
+
+    // Also clear postal code data
+    clearPostalCodeData();
   } catch (error) {
     console.error("Failed to clear simulation history:", error);
   }
@@ -179,6 +183,31 @@ export function updateSimulationPostalCode(
     localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
   } catch (error) {
     console.error("Failed to update postal code in history:", error);
+  }
+}
+
+export function updateSimulationInputs(
+  id: string,
+  inputs: Partial<SimulationInputs>
+): void {
+  const history = getSimulationHistory();
+  const updatedHistory = history.map((entry) => {
+    if (entry.id === id) {
+      return {
+        ...entry,
+        inputs: {
+          ...entry.inputs,
+          ...inputs,
+        },
+      };
+    }
+    return entry;
+  });
+
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
+  } catch (error) {
+    console.error("Failed to update simulation inputs in history:", error);
   }
 }
 

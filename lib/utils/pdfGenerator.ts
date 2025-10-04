@@ -9,7 +9,6 @@ interface PDFReportData {
   results: SimulationResults;
   expectedPension: number;
   timestamp: Date;
-  postalCode?: string;
 }
 
 const formatDate = (date: Date) => {
@@ -27,121 +26,205 @@ const formatTime = (date: Date) => {
   });
 };
 
+const getContractTypeLabel = (contractType?: string) => {
+  switch (contractType) {
+    case "UOP":
+      return "Umowa o Prace (UOP)";
+    case "UOZ":
+      return "Umowa Zlecenie (UOZ)";
+    case "B2B":
+      return "Dzialalnosc / B2B";
+    default:
+      return "Umowa o Prace (UOP)";
+  }
+};
+
 export const generatePDFReport = async (data: PDFReportData): Promise<void> => {
-  const { inputs, results, expectedPension, timestamp, postalCode } = data;
+  const { inputs, results, expectedPension, timestamp } = data;
 
   const doc = new jsPDF();
   let yPos = 20;
+  const currentYear = new Date().getFullYear();
+  const yearsToRetirement = inputs.workEndYear - currentYear;
+  const retirementAge = inputs.age + yearsToRetirement;
+  const yearsWorked = inputs.workEndYear - inputs.workStartYear;
 
-  doc.setFontSize(18);
-  doc.text("Raport emerytury", 10, yPos);
-  yPos += 15;
-
-  doc.setFontSize(12);
-  doc.text("=".repeat(50), 10, yPos);
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.text("RAPORT PROGNOZY EMERYTALNEJ", 105, yPos, { align: "center" });
   yPos += 10;
 
   doc.setFontSize(10);
-  doc.text("INFORMACJE OGOLNE", 10, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text("Symulator Emerytalny ZUS", 105, yPos, { align: "center" });
+  yPos += 15;
+
+  doc.setLineWidth(0.5);
+  doc.line(10, yPos, 200, yPos);
+  yPos += 10;
+
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("INFORMACJE O RAPORCIE", 10, yPos);
   yPos += 8;
 
-  doc.setFontSize(9);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
   doc.text(`Data uzycia: ${formatDate(timestamp)}`, 10, yPos);
   yPos += 6;
   doc.text(`Godzina uzycia: ${formatTime(timestamp)}`, 10, yPos);
-  yPos += 6;
-  doc.text(`Kod pocztowy: ${postalCode || "Nie podano"}`, 10, yPos);
   yPos += 12;
 
-  doc.setFontSize(10);
-  doc.text("DANE WEJSCIOWE", 10, yPos);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("DANE PODSTAWOWE", 10, yPos);
   yPos += 8;
 
-  doc.setFontSize(9);
-  doc.text(
-    `Wysokosc wynagrodzenia (brutto): ${formatPLN(inputs.monthlyGross)}`,
-    10,
-    yPos
-  );
-  yPos += 6;
-  doc.text(`Emerytura oczekiwana: ${formatPLN(expectedPension)}`, 10, yPos);
-  yPos += 6;
-  doc.text(`Wiek obecny: ${inputs.age} lat`, 10, yPos);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Wiek: ${inputs.age} lat`, 10, yPos);
   yPos += 6;
   doc.text(`Plec: ${inputs.sex === "M" ? "Mezczyzna" : "Kobieta"}`, 10, yPos);
   yPos += 6;
+  doc.text(`Wynagrodzenie brutto: ${formatPLN(inputs.monthlyGross)}`, 10, yPos);
+  yPos += 12;
+
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("HISTORIA PRACY", 10, yPos);
+  yPos += 8;
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
   doc.text(`Rok rozpoczecia pracy: ${inputs.workStartYear}`, 10, yPos);
   yPos += 6;
-  doc.text(`Rok przejscia na emeryture: ${inputs.workEndYear}`, 10, yPos);
+  doc.text(`Planowana emerytura: ${inputs.workEndYear}`, 10, yPos);
+  yPos += 6;
+  doc.text(`Laczny staz pracy: ${yearsWorked} lat`, 10, yPos);
+  yPos += 6;
+  doc.text(`Wiek emerytalny: ${retirementAge} lat`, 10, yPos);
   yPos += 6;
   doc.text(
-    `Uwzglednienie okresow choroby (L4): ${inputs.includeL4 ? "Tak" : "Nie"}`,
+    `Wczesniejsza emerytura: ${inputs.earlyRetirement ? "Tak" : "Nie"}`,
     10,
     yPos
   );
   yPos += 6;
-  doc.text(
-    `Wiek emerytalny: ${
-      inputs.age + (inputs.workEndYear - new Date().getFullYear())
-    } lat`,
-    10,
-    yPos
-  );
+  doc.text(`Typ umowy: ${getContractTypeLabel(inputs.contractType)}`, 10, yPos);
   yPos += 6;
   doc.text(
-    `Konto glowne: ${
-      inputs.accountBalance ? formatPLN(inputs.accountBalance) : "0,00 zl"
+    `PPK: ${
+      inputs.retirementPrograms?.ppk.enabled ? "Uczestnicze" : "Nie uczestnicze"
     }`,
     10,
     yPos
   );
   yPos += 6;
   doc.text(
-    `Subkonto: ${
-      inputs.subAccountBalance ? formatPLN(inputs.subAccountBalance) : "0,00 zl"
+    `IKZE: ${
+      inputs.retirementPrograms?.ikze.enabled ? "Posiadam" : "Nie posiadam"
     }`,
     10,
     yPos
   );
   yPos += 12;
 
-  doc.setFontSize(10);
-  doc.text("WYNIKI KALKULACJI", 10, yPos);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("DODATKOWE INFORMACJE", 10, yPos);
   yPos += 8;
 
-  doc.setFontSize(9);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
   doc.text(
-    `Emerytura rzeczywista (w cenach z ${inputs.workEndYear} roku):`,
+    `Konto podstawowe: ${
+      inputs.accountBalance
+        ? formatPLN(inputs.accountBalance)
+        : "Automatyczne oszacowanie"
+    }`,
     10,
     yPos
   );
   yPos += 6;
-  doc.setFontSize(11);
-  doc.text(formatPLN(results.nominalPension), 10, yPos);
-  yPos += 10;
-
-  doc.setFontSize(9);
-  doc.text(`Emerytura urealniona (w dzisiejszych zlotych):`, 10, yPos);
-  yPos += 6;
-  doc.setFontSize(11);
-  doc.text(formatPLN(results.realPension), 10, yPos);
-  yPos += 6;
-  doc.setFontSize(8);
-  doc.text("Porownywalna do dzisiejszych kosztow zycia", 10, yPos);
-  yPos += 10;
-
-  doc.setFontSize(9);
   doc.text(
-    `Stopa zastapienia: ${formatPercent(results.replacementRate / 100)}`,
+    `Subkonto (OFE): ${
+      inputs.subAccountBalance
+        ? formatPLN(inputs.subAccountBalance)
+        : "Automatyczne oszacowanie"
+    }`,
     10,
     yPos
   );
   yPos += 6;
-  doc.setFontSize(8);
   doc.text(
-    "Wynagrodzenie zindeksowane w odniesieniu do prognozowanego swiadczenia",
+    `Zwolnienia lekarskie: ${inputs.includeL4 ? "Uwzglednione" : "Pominiete"}`,
     10,
     yPos
+  );
+  yPos += 12;
+
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("WYNIKI PROGNOZY", 10, yPos);
+  yPos += 8;
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Emerytura oczekiwana:`, 10, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text(formatPLN(expectedPension), 120, yPos);
+  yPos += 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.text(`Emerytura prognozowana (wartosc realna):`, 10, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text(formatPLN(results.realPension), 120, yPos);
+  yPos += 6;
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "italic");
+  doc.text(
+    "(w dzisiejszych zlotych, porownywalna do obecnych kosztow zycia)",
+    10,
+    yPos
+  );
+  yPos += 10;
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Emerytura nominalna (w ${inputs.workEndYear} r.):`, 10, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text(formatPLN(results.nominalPension), 120, yPos);
+  yPos += 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.text(`Stopa zastapienia:`, 10, yPos);
+  doc.setFont("helvetica", "bold");
+  doc.text(formatPercent(results.replacementRate / 100), 120, yPos);
+  yPos += 6;
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "italic");
+  doc.text(
+    "Procent ostatniego wynagrodzenia, ktory bedzie stanowila emerytura",
+    10,
+    yPos
+  );
+  yPos += 12;
+
+  doc.setLineWidth(0.5);
+  doc.line(10, yPos, 200, yPos);
+  yPos += 8;
+
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text("Raport wygenerowany przez Symulator Emerytalny ZUS", 105, yPos, {
+    align: "center",
+  });
+  yPos += 5;
+  doc.text(
+    "Prognoza oparta na aktualnych przepisach i rzeczywistych danych ZUS",
+    105,
+    yPos,
+    { align: "center" }
   );
 
   doc.save(`raport-emerytalny-${new Date().toISOString().split("T")[0]}.pdf`);

@@ -1,11 +1,11 @@
 /**
- * Moduł obliczający kapitał z dodatkowych programów emerytalnych (PPK, IKZP)
+ * Moduł obliczający kapitał z dodatkowych programów emerytalnych (PPK, IKZE)
  * Wykorzystuje formuły z lib/calculations.ts
  */
 
 import {
   calculatePPKCapital,
-  calculateIKZPCapital,
+  calculateIKZECapital,
   calculateTotalPension,
 } from "../calculations";
 import { RetirementPrograms, SalaryPathEntry } from "../types";
@@ -17,18 +17,18 @@ export interface CalculateAdditionalProgramsParams {
 
 export interface AdditionalProgramsResult {
   ppkCapital: number;
-  ikzpCapital: number;
+  ikzeCapital: number;
   ppkMonthlyPension: number;
-  ikzpMonthlyPension: number;
+  ikzeMonthlyPension: number;
   totalAdditionalCapital: number;
   totalAdditionalMonthlyPension: number;
 }
 
 /**
- * Oblicza kapitał zgromadzony w PPK i IKZP
+ * Oblicza kapitał zgromadzony w PPK i IKZE
  *
  * @param params - Ścieżka zarobkowa i konfiguracja programów
- * @returns Kapitały i miesięczne emerytury z PPK/IKZP
+ * @returns Kapitały i miesięczne emerytury z PPK/IKZE
  */
 export function calculateAdditionalProgramsCapital(
   params: CalculateAdditionalProgramsParams
@@ -42,7 +42,7 @@ export function calculateAdditionalProgramsCapital(
   }));
 
   let ppkCapital = 0;
-  let ikzpCapital = 0;
+  let ikzeCapital = 0;
 
   // Oblicz kapitał PPK
   if (programs.ppk.enabled) {
@@ -53,25 +53,25 @@ export function calculateAdditionalProgramsCapital(
     );
   }
 
-  // Oblicz kapitał IKZP
-  if (programs.ikzp.enabled) {
-    ikzpCapital = calculateIKZPCapital(
+  // Oblicz kapitał IKZE
+  if (programs.ikze.enabled) {
+    ikzeCapital = calculateIKZECapital(
       employmentData,
-      programs.ikzp.contributionRate
+      programs.ikze.contributionRate
     );
   }
 
   // Przelicz kapitały na miesięczne emerytury
   // Używamy funkcji calculateTotalPension z 0 jako emerytura ZUS
-  const breakdown = calculateTotalPension(0, ppkCapital, ikzpCapital);
+  const breakdown = calculateTotalPension(0, ppkCapital, ikzeCapital);
 
   return {
     ppkCapital,
-    ikzpCapital,
+    ikzeCapital,
     ppkMonthlyPension: breakdown.ppkPension,
-    ikzpMonthlyPension: breakdown.ikzpPension,
-    totalAdditionalCapital: ppkCapital + ikzpCapital,
-    totalAdditionalMonthlyPension: breakdown.ppkPension + breakdown.ikzpPension,
+    ikzeMonthlyPension: breakdown.ikzePension,
+    totalAdditionalCapital: ppkCapital + ikzeCapital,
+    totalAdditionalMonthlyPension: breakdown.ppkPension + breakdown.ikzePension,
   };
 }
 
@@ -79,7 +79,7 @@ export function calculateAdditionalProgramsCapital(
  * Łączy emeryturę z ZUS z dodatkowymi programami
  *
  * @param zusPension - Emerytura z ZUS (miesięczna)
- * @param additionalPrograms - Wynik obliczeń PPK/IKZP
+ * @param additionalPrograms - Wynik obliczeń PPK/IKZE
  * @returns Łączna emerytura i podział na źródła
  */
 export function combinePensions(
@@ -90,7 +90,7 @@ export function combinePensions(
   breakdown: {
     zus: number;
     ppk: number;
-    ikzp: number;
+    ikze: number;
   };
 } {
   return {
@@ -99,13 +99,13 @@ export function combinePensions(
     breakdown: {
       zus: zusPension,
       ppk: additionalPrograms.ppkMonthlyPension,
-      ikzp: additionalPrograms.ikzpMonthlyPension,
+      ikze: additionalPrograms.ikzeMonthlyPension,
     },
   };
 }
 
 /**
- * Oblicza scenariusze deferral z uwzględnieniem PPK/IKZP
+ * Oblicza scenariusze deferral z uwzględnieniem PPK/IKZE
  * Używane do pokazania jak wzrasta emerytura przy dłuższej pracy
  */
 export function calculateDeferralWithPrograms(
@@ -119,19 +119,19 @@ export function calculateDeferralWithPrograms(
     total: number;
     zus: number;
     ppk: number;
-    ikzp: number;
+    ikze: number;
   };
   extended: {
     total: number;
     zus: number;
     ppk: number;
-    ikzp: number;
+    ikze: number;
   };
   increase: {
     total: number;
     zus: number;
     ppk: number;
-    ikzp: number;
+    ikze: number;
   };
 } {
   // Oblicz programy dla bazowego scenariusza
@@ -147,28 +147,30 @@ export function calculateDeferralWithPrograms(
   });
 
   const baseCombined = combinePensions(baseZUSPension, basePrograms);
-  const extendedCombined = combinePensions(extendedZUSPension, extendedPrograms);
+  const extendedCombined = combinePensions(
+    extendedZUSPension,
+    extendedPrograms
+  );
 
   return {
     base: {
       total: baseCombined.totalMonthlyPension,
       zus: baseCombined.breakdown.zus,
       ppk: baseCombined.breakdown.ppk,
-      ikzp: baseCombined.breakdown.ikzp,
+      ikze: baseCombined.breakdown.ikze,
     },
     extended: {
       total: extendedCombined.totalMonthlyPension,
       zus: extendedCombined.breakdown.zus,
       ppk: extendedCombined.breakdown.ppk,
-      ikzp: extendedCombined.breakdown.ikzp,
+      ikze: extendedCombined.breakdown.ikze,
     },
     increase: {
       total:
-        extendedCombined.totalMonthlyPension -
-        baseCombined.totalMonthlyPension,
+        extendedCombined.totalMonthlyPension - baseCombined.totalMonthlyPension,
       zus: extendedCombined.breakdown.zus - baseCombined.breakdown.zus,
       ppk: extendedCombined.breakdown.ppk - baseCombined.breakdown.ppk,
-      ikzp: extendedCombined.breakdown.ikzp - baseCombined.breakdown.ikzp,
+      ikze: extendedCombined.breakdown.ikze - baseCombined.breakdown.ikze,
     },
   };
 }

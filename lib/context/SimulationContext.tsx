@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import {
@@ -30,6 +31,7 @@ import {
   initializeDefaultTimelineForSimulation,
   saveTimelineForSimulation,
   loadTimelineForSimulation,
+  updateSimulationInputs,
 } from "../utils/simulationHistory";
 
 interface SimulationContextType {
@@ -37,6 +39,7 @@ interface SimulationContextType {
   currentSimulationId: string | null;
   setExpectedPension: (amount: number) => void;
   setInputs: (inputs: SimulationInputs) => void;
+  updateInputs: (inputs: Partial<SimulationInputs>) => Promise<void>;
   setResults: (results: SimulationResults) => void;
   updateDashboardModifications: (mods: Partial<DashboardModifications>) => void;
   saveScenario: (slot: "A" | "B", description: string) => void;
@@ -153,6 +156,45 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       }));
     }
   };
+
+  const updateInputs = useCallback(
+    async (newInputs: Partial<SimulationInputs>) => {
+      if (!state.inputs || !currentSimulationId) return;
+
+      const updatedInputs = { ...state.inputs, ...newInputs };
+      setState((prev) => ({ ...prev, inputs: updatedInputs }));
+
+      updateSimulationInputs(currentSimulationId, newInputs);
+
+      try {
+        setIsCalculating(true);
+        const results = await calculateSimulation({
+          inputs: updatedInputs,
+          expectedPension: state.expectedPension,
+          modifications: state.dashboardModifications,
+        });
+        setState((prev) => {
+          saveSimulationToHistory(
+            prev.expectedPension,
+            updatedInputs,
+            results,
+            prev.dashboardModifications
+          );
+          return { ...prev, results };
+        });
+      } catch (error) {
+        console.error("Calculation error:", error);
+      } finally {
+        setIsCalculating(false);
+      }
+    },
+    [
+      state.inputs,
+      state.expectedPension,
+      state.dashboardModifications,
+      currentSimulationId,
+    ]
+  );
 
   const setResults = (results: SimulationResults) => {
     setState((prev) => {
@@ -274,7 +316,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const loadFromHistory = (id: string) => {
+  const loadFromHistory = useCallback((id: string) => {
     const entry = loadSimulationById(id);
     if (entry) {
       setCurrentSimId(id);
@@ -295,11 +337,11 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         }));
       }
     }
-  };
+  }, []);
 
-  const getHistory = () => {
+  const getHistory = useCallback(() => {
     return getSimulationHistory();
-  };
+  }, []);
 
   const clearAllHistory = () => {
     clearHistory();
@@ -362,7 +404,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     await recalculate();
   };
 
-  const loadTimelineFromStorage = () => {
+  const loadTimelineFromStorage = useCallback(() => {
     if (!currentSimulationId) return;
 
     const timelineData = loadTimelineForSimulation(currentSimulationId);
@@ -382,13 +424,14 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         dashboardModifications: timelineData,
       }));
     }
-  };
+  }, [currentSimulationId, state.inputs]);
 
   const value: SimulationContextType = {
     state,
     currentSimulationId,
     setExpectedPension,
     setInputs,
+    updateInputs,
     setResults,
     updateDashboardModifications,
     saveScenario,
