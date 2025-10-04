@@ -18,8 +18,8 @@ export function Accordion({ title, children, isOpen, onToggle, badge, icon }: Ac
                 type="button"
                 onClick={onToggle}
                 className={`w-full px-6 py-4 transition-colors flex items-center justify-between ${isOpen
-                        ? 'bg-zus-green-light border-b-4 border-b-zus-green'
-                        : 'bg-white hover:bg-zus-grey-100'
+                    ? 'bg-zus-green-light border-b-4 border-b-zus-green'
+                    : 'bg-white hover:bg-zus-grey-100'
                     }`}
             >
                 <div className="flex items-center gap-3">
@@ -29,10 +29,10 @@ export function Accordion({ title, children, isOpen, onToggle, badge, icon }: Ac
                     </h3>
                     {badge && (
                         <span className={`text-xs px-2 py-1 rounded font-semibold ${badge.includes('✓') || badge.includes('WYPEŁNIONE')
-                                ? 'bg-zus-green text-white'
-                                : badge.includes('WYMAGANE')
-                                    ? 'bg-zus-orange text-white'
-                                    : 'bg-zus-grey-300 text-zus-grey-700'
+                            ? 'bg-zus-green text-white'
+                            : badge.includes('WYMAGANE')
+                                ? 'bg-zus-orange text-white'
+                                : 'bg-zus-grey-300 text-zus-grey-700'
                             }`}>
                             {badge}
                         </span>

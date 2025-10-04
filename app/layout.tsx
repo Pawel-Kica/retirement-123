@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SimulationProvider } from "@/lib/context/SimulationContext";
+import { Header } from "@/components/ui/Header";
 
 export const metadata: Metadata = {
   title: "Symulator Emerytalny ZUS",
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="pl">
       <body className="antialiased">
+        <Header />
         <SimulationProvider>
           {children}
         </SimulationProvider>
