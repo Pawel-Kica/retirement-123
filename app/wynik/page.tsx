@@ -13,6 +13,7 @@ import { TimelineSidePanel } from "@/components/ui/TimelineSidePanel";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { formatPLN, formatPercent, formatYears } from "@/lib/utils/formatting";
 import { updateSimulationPostalCode } from "@/lib/utils/simulationHistory";
+import type { EmploymentPeriod, EmploymentGapPeriod, LifeEvent } from "@/lib/types";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -89,6 +90,9 @@ export default function WynikPage() {
   const postalInputRef = useRef<HTMLInputElement>(null);
   const [showReportPreview, setShowReportPreview] = useState(false);
   const [showSimulationData, setShowSimulationData] = useState(false);
+  const [contractPeriods, setContractPeriods] = useState<EmploymentPeriod[]>([]);
+  const [gapPeriods, setGapPeriods] = useState<EmploymentGapPeriod[]>([]);
+  const [lifeEvents, setLifeEvents] = useState<LifeEvent[]>([]);
 
   useEffect(() => {
     if (!state.results) {
