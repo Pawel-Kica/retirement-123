@@ -1,9 +1,18 @@
 import React from "react";
+import { 
+  LuGraduationCap, 
+  LuBriefcase, 
+  LuMapPin, 
+  LuPartyPopper, 
+  LuCalendarDays, 
+  LuTarget, 
+  LuChartBar 
+} from "react-icons/lu";
 
 interface TimelineEvent {
   year: number;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   color: "grey" | "green" | "navy" | "orange";
   isPast?: boolean;
   isCurrent?: boolean;
@@ -66,7 +75,7 @@ export function UnifiedTimeline({
         events.push({
           year: yearTurned18,
           label: "Ukończenie 18 lat",
-          icon: "🎓",
+          icon: <LuGraduationCap className="w-4 h-4 text-white" />,
           color: "grey",
           isPast: true,
           subLabel: `Rok ${yearTurned18}`,
@@ -82,7 +91,7 @@ export function UnifiedTimeline({
         events.push({
           year: startYear,
           label: "Początek pracy",
-          icon: "💼",
+          icon: <LuBriefcase className="w-4 h-4 text-white" />,
           color: "green",
           isPast: startYear < currentYear,
           subLabel: `Rok ${startYear}`,
@@ -105,7 +114,7 @@ export function UnifiedTimeline({
         events.push({
           year: currentYear,
           label: "Dzisiaj",
-          icon: "📍",
+          icon: <LuMapPin className="w-4 h-4 text-white" />,
           color: "navy",
           isCurrent: true,
           subLabel:
@@ -124,7 +133,7 @@ export function UnifiedTimeline({
         const totalYearsWorked = startYear ? endYear - startYear : 0;
         const totalYearsLabel =
           totalYearsWorked > 0
-            ? `Rok ${endYear} • 📊 Łącznie: ${totalYearsWorked} ${
+            ? `Rok ${endYear} • Łącznie: ${totalYearsWorked} ${
                 totalYearsWorked === 1
                   ? "rok"
                   : totalYearsWorked < 5
@@ -136,7 +145,7 @@ export function UnifiedTimeline({
         events.push({
           year: endYear,
           label: "Planowana emerytura",
-          icon: "🏖️",
+          icon: <LuPartyPopper className="w-4 h-4 text-white" />,
           color: "orange",
           isFuture: true,
           subLabel: totalYearsLabel,
@@ -154,7 +163,7 @@ export function UnifiedTimeline({
   const buildHeaderMetric = () => {
     if (variant === "work-start") {
       return {
-        icon: "📅",
+        icon: <LuCalendarDays className="w-7 h-7 text-zus-green" />,
         number: yearsWorked,
         label: yearsWorked === 1 ? "rok" : yearsWorked < 5 ? "lata" : "lat",
         suffix: "przepracowanych",
@@ -165,7 +174,7 @@ export function UnifiedTimeline({
 
     if (variant === "work-end") {
       return {
-        icon: "🎯",
+        icon: <LuTarget className="w-7 h-7 text-zus-orange" />,
         number: yearsToRetirement,
         label:
           yearsToRetirement === 1
@@ -181,7 +190,7 @@ export function UnifiedTimeline({
 
     // Full variant
     return {
-      icon: "📊",
+      icon: <LuBarChart3 className="w-7 h-7 text-zus-green" />,
       number: totalYears,
       label: totalYears === 1 ? "rok" : totalYears < 5 ? "lata" : "lat",
       suffix: "kariery zawodowej",
@@ -200,14 +209,14 @@ export function UnifiedTimeline({
     suffix,
     color,
   }: {
-    icon: string;
+    icon: React.ReactNode;
     number: number;
     label: string;
     suffix: string;
     color: string;
   }) => (
     <div className="flex items-baseline gap-2">
-      <div className="text-2xl">{icon}</div>
+      <div className="flex items-center">{icon}</div>
       <p className={`text-3xl font-bold ${color}`}>{number}</p>
       <p className="text-sm text-zus-grey-700 font-medium whitespace-nowrap">
         {label} {suffix}
@@ -240,7 +249,7 @@ export function UnifiedTimeline({
                   <div
                     className={`flex-shrink-0 w-8 h-8 rounded-full ${colors.bg} flex items-center justify-center shadow-sm`}
                   >
-                    <span className="text-xs">{event.icon}</span>
+                    {event.icon}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-zus-grey-900">
@@ -282,22 +291,6 @@ export function UnifiedTimeline({
                           : "border-zus-orange/30"
                       }`}
                     ></div>
-                    <svg
-                      className={`w-3 h-3 -ml-1 ${
-                        event.isPast || event.isCurrent
-                          ? "text-zus-green/40"
-                          : "text-zus-orange/30"
-                      }`}
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-                        clipRule="evenodd"
-                        transform="rotate(180 10 10)"
-                      />
-                    </svg>
                   </div>
                 )}
               </React.Fragment>

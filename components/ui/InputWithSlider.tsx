@@ -11,7 +11,7 @@ interface InputWithSliderProps {
   suffix?: string;
   error?: string;
   errorSeverity?: "error" | "warning";
-  hint?: string;
+  hint?: string | React.ReactNode;
   required?: boolean;
   placeholder?: string;
   tooltip?: string;

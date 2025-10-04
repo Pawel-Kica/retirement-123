@@ -19,6 +19,16 @@ import {
   validateSimulationInputs,
   getFieldError,
 } from "@/lib/utils/validation";
+import { 
+  LuLightbulb, 
+  LuCalendar, 
+  LuTriangleAlert, 
+  LuBanknote, 
+  LuHeartPulse, 
+  LuClipboardList, 
+  LuBriefcase, 
+  LuCircleCheckBig 
+} from "react-icons/lu";
 
 // Helper to get error severity
 const getFieldSeverity = (
@@ -31,10 +41,10 @@ const getFieldSeverity = (
 import { loadAllData } from "@/lib/data/loader";
 
 const STEPS = [
-  { number: 1, title: "Dane podstawowe", subtitle: "Personal Info" },
-  { number: 2, title: "Historia pracy", subtitle: "Work History" },
-  { number: 3, title: "Dodatkowe", subtitle: "Additional" },
-  { number: 4, title: "Podsumowanie", subtitle: "Review" },
+  { number: 1, title: "Dane podstawowe", subtitle: "Informacje osobiste" },
+  { number: 2, title: "Historia pracy", subtitle: "Zatrudnienie" },
+  { number: 3, title: "Dodatkowe", subtitle: "Opcjonalne" },
+  { number: 4, title: "Podsumowanie", subtitle: "Przegląd" },
 ];
 
 export default function SimulacjaPage() {
@@ -561,8 +571,8 @@ export default function SimulacjaPage() {
       : currentYear + 25;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 pt-8 pb-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl pb-8">
         <div className="mb-8">
           <button
             onClick={() => router.push("/")}
@@ -627,10 +637,11 @@ export default function SimulacjaPage() {
                       formData.age > 70 &&
                       formData.age <= 100 &&
                       !getFieldError(errors, "age") && (
-                        <div className="mt-2 p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm text-zus-grey-700">
-                          💡 W tym wieku prawdopodobnie jesteś już na
+                        <div className="mt-2 p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm text-zus-grey-700 flex items-start gap-2">
+                          <LuLightbulb className="w-5 h-5 text-zus-orange flex-shrink-0 mt-0.5" />
+                          <span>W tym wieku prawdopodobnie jesteś już na
                           emeryturze. Symulator służy do planowania przyszłej
-                          emerytury.
+                          emerytury.</span>
                         </div>
                       )}
                   </FieldWithVisual>
@@ -698,8 +709,9 @@ export default function SimulacjaPage() {
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
                   {!isStep0Complete() && errors.length > 0 && (
                     <div className="mb-4 p-4 bg-red-50 border-l-4 border-zus-error rounded">
-                      <p className="text-sm font-semibold text-zus-error mb-2">
-                        ⚠️ Uzupełnij wszystkie wymagane pola:
+                      <p className="text-sm font-semibold text-zus-error mb-2 flex items-center gap-2">
+                        <LuTriangleAlert className="w-5 h-5 flex-shrink-0" />
+                        <span>Uzupełnij wszystkie wymagane pola:</span>
                       </p>
                       <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
                         {errors.map((error, idx) => (
@@ -778,7 +790,12 @@ export default function SimulacjaPage() {
                       error={getFieldError(errors, "workStartYear")}
                       hint={
                         !getFieldError(errors, "workStartYear")
-                          ? `📅 Rok urodzenia: ${birthYear} | Najwcześniejszy rok pracy: ${minWorkStartYear} (wiek 18 lat)`
+                          ? (
+                            <span className="flex items-center gap-1.5">
+                              <LuCalendar className="w-4 h-4 text-zus-blue flex-shrink-0" />
+                              <span>Rok urodzenia: {birthYear} | Najwcześniejszy rok pracy: {minWorkStartYear} (wiek 18 lat)</span>
+                            </span>
+                          )
                           : undefined
                       }
                     />
@@ -809,16 +826,21 @@ export default function SimulacjaPage() {
                       hint={
                         !getFieldError(errors, "workEndYear") &&
                         formData.workEndYear
-                          ? `💡 Wiek emerytalny: ${retirementAge} lat | Staż pracy: ${yearsWorked} lat | Minimalny wiek ${
-                              formData.sex === "F" ? "kobiet" : "mężczyzn"
-                            }: ${formData.sex === "F" ? 60 : 65} lat`
+                          ? (
+                            <span className="flex items-center gap-1.5">
+                              <LuLightbulb className="w-4 h-4 text-zus-orange flex-shrink-0" />
+                              <span>Wiek emerytalny: {retirementAge} lat | Staż pracy: {yearsWorked} lat | Minimalny wiek {
+                                formData.sex === "F" ? "kobiet" : "mężczyzn"
+                              }: {formData.sex === "F" ? 60 : 65} lat</span>
+                            </span>
+                          )
                           : undefined
                       }
                     />
                   </FieldWithVisual>
 
                   {/* Early Retirement Checkbox */}
-                  <div className="mt-6 p-4 bg-zus-green-light border-l-4 border-zus-green rounded">
+                  <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
                         type="checkbox"
@@ -829,9 +851,10 @@ export default function SimulacjaPage() {
                         className="mt-1 w-5 h-5 text-zus-green border-zus-grey-300 rounded focus:ring-zus-green focus:ring-2"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold text-zus-grey-900">
-                          🚨 Wcześniejsza emerytura (służby mundurowe, specjalne
-                          zawody)
+                        <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
+                          <LuTriangleAlert className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                          <span>Wcześniejsza emerytura (służby mundurowe, specjalne
+                          zawody)</span>
                         </div>
                         <div className="text-sm text-zus-grey-700 mt-1">
                           Zaznacz, jeśli masz prawo do wcześniejszej emerytury
@@ -850,8 +873,9 @@ export default function SimulacjaPage() {
                     errors.filter((e) => e.field !== "workEndYear").length >
                       0 && (
                       <div className="mb-4 p-4 bg-red-50 border-l-4 border-zus-error rounded">
-                        <p className="text-sm font-semibold text-zus-error mb-2">
-                          ⚠️ Uzupełnij wszystkie wymagane pola:
+                        <p className="text-sm font-semibold text-zus-error mb-2 flex items-center gap-2">
+                          <LuTriangleAlert className="w-5 h-5 flex-shrink-0" />
+                          <span>Uzupełnij wszystkie wymagane pola:</span>
                         </p>
                         <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
                           {errors
@@ -910,11 +934,14 @@ export default function SimulacjaPage() {
 
                 <div className="space-y-6">
                   <div className="p-4 bg-blue-50 border-l-4 border-zus-navy rounded">
-                    <p className="text-sm text-zus-grey-700">
-                      <strong>💰 Zgromadzony kapitał</strong>
-                      <br />
-                      Jeśli znasz stan swojego konta w ZUS, możesz go tutaj
-                      wpisać dla dokładniejszej prognozy.
+                    <p className="text-sm text-zus-grey-700 flex items-start gap-2">
+                      <LuBanknote className="w-5 h-5 text-zus-green flex-shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Zgromadzony kapitał</strong>
+                        <br />
+                        Jeśli znasz stan swojego konta w ZUS, możesz go tutaj
+                        wpisać dla dokładniejszej prognozy.
+                      </span>
                     </p>
                   </div>
 
@@ -970,11 +997,14 @@ export default function SimulacjaPage() {
 
                   <div className="pt-4">
                     <div className="p-4 bg-blue-50 border-l-4 border-zus-navy rounded">
-                      <p className="text-sm text-zus-grey-700 mb-3">
-                        <strong>🏥 Zwolnienia lekarskie (L4)</strong>
-                        <br />
-                        Uwzględnij statystyczne prawdopodobieństwo zwolnień
-                        lekarskich
+                      <p className="text-sm text-zus-grey-700 mb-3 flex items-start gap-2">
+                        <LuHeartPulse className="w-5 h-5 text-zus-error flex-shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Zwolnienia lekarskie (L4)</strong>
+                          <br />
+                          Uwzględnij statystyczne prawdopodobieństwo zwolnień
+                          lekarskich
+                        </span>
                       </p>
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
@@ -1063,8 +1093,8 @@ export default function SimulacjaPage() {
                   {/* Basic Info Summary */}
                   <Card className="bg-zus-green-light border-zus-green p-4">
                     <h3 className="text-base font-bold text-zus-grey-900 mb-3 flex items-center gap-2">
-                      <span className="text-xl">📋</span>
-                      Dane podstawowe
+                      <LuClipboardList className="w-5 h-5 text-zus-green flex-shrink-0" />
+                      <span>Dane podstawowe</span>
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="flex justify-between sm:flex-col">
@@ -1093,8 +1123,8 @@ export default function SimulacjaPage() {
                   {/* Work History Summary */}
                   <Card className="bg-blue-50 border-zus-navy p-4">
                     <h3 className="text-base font-bold text-zus-grey-900 mb-3 flex items-center gap-2">
-                      <span className="text-xl">📅</span>
-                      Historia pracy
+                      <LuCalendar className="w-5 h-5 text-zus-blue flex-shrink-0" />
+                      <span>Historia pracy</span>
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       <div className="flex justify-between sm:flex-col">
@@ -1135,8 +1165,8 @@ export default function SimulacjaPage() {
                   {/* Additional Info Summary */}
                   <Card className="bg-gray-50 border-zus-grey-300 p-4">
                     <h3 className="text-base font-bold text-zus-grey-900 mb-3 flex items-center gap-2">
-                      <span className="text-xl">💼</span>
-                      Dodatkowe informacje
+                      <LuBriefcase className="w-5 h-5 text-zus-navy flex-shrink-0" />
+                      <span>Dodatkowe informacje</span>
                     </h3>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between items-center py-1">
@@ -1184,8 +1214,9 @@ export default function SimulacjaPage() {
 
                   {/* Ready to Calculate */}
                   <div className="p-4 bg-zus-green-light border-2 border-zus-green rounded-lg text-center">
-                    <p className="text-base font-semibold text-zus-green mb-1">
-                      ✅ Wszystkie dane są gotowe!
+                    <p className="text-base font-semibold text-zus-green mb-1 flex items-center justify-center gap-2">
+                      <LuCircleCheckBig className="w-6 h-6 flex-shrink-0" />
+                      <span>Wszystkie dane są gotowe!</span>
                     </p>
                     <p className="text-sm text-zus-grey-700">
                       Kliknij poniżej, aby wygenerować szczegółową prognozę
@@ -1215,7 +1246,7 @@ export default function SimulacjaPage() {
                     >
                       {isCalculating
                         ? "Obliczanie prognozy..."
-                        : "🔮 Zaprognozuj moją emeryturę"}
+                        : "Zaprognozuj moją emeryturę"}
                     </Button>
                   </div>
                 </div>
