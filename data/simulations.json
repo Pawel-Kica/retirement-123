@@ -76,5 +76,18 @@
     "nominalPension": 23219.92937944223,
     "realPension": 9445.331689573979,
     "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T13:31:26.127Z",
+    "expectedPension": 890,
+    "age": 35,
+    "sex": "M",
+    "monthlyGross": 5000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 5741.40147630242,
+    "realPension": 3021.179078272426,
+    "postalCode": null
   }
 ]
