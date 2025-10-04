@@ -21,7 +21,6 @@ export default function RootLayout({
         <SimulationProvider>
           <Header />
           {children}
-          <HistorySidebar />
         </SimulationProvider>
       </ClientBody>
     </html>
