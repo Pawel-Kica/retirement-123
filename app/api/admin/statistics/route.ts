@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
             }
         };
 
-        // Daily simulations
+        // Daily/Monthly simulations based on period
         let dailySimulations;
         if (period === "24hours") {
             // Show hourly data for 24 hours
@@ -39,9 +39,20 @@ export async function GET(request: NextRequest) {
         GROUP BY EXTRACT(HOUR FROM godzina_uzycia)
         ORDER BY hour
       `;
+        } else if (period === "3months" || period === "6months" || period === "all") {
+            // Show monthly data for longer periods
+            dailySimulations = await sql`
+        SELECT 
+          TO_CHAR(data_uzycia, 'YYYY-MM') as month,
+          COUNT(*) as count
+        FROM raport_zainteresowania
+        ${getTimeFilter()}
+        GROUP BY TO_CHAR(data_uzycia, 'YYYY-MM')
+        ORDER BY month DESC
+      `;
         } else {
-            // Show daily data for other periods
-            const limit = period === "7days" ? 7 : period === "30days" ? 30 : period === "3months" ? 90 : period === "6months" ? 180 : 365;
+            // Show daily data for 7 days and 30 days
+            const limit = period === "7days" ? 7 : 30;
             dailySimulations = await sql`
         SELECT 
           data_uzycia::date as date,
@@ -53,16 +64,6 @@ export async function GET(request: NextRequest) {
         LIMIT ${limit}
       `;
         }
-
-        // Hourly usage pattern
-        const hourlyUsage = await sql`
-      SELECT 
-        EXTRACT(HOUR FROM godzina_uzycia) as hour,
-        COUNT(*) as count
-      FROM raport_zainteresowania
-      GROUP BY EXTRACT(HOUR FROM godzina_uzycia)
-      ORDER BY hour
-    `;
 
         // Gender breakdown
         const genderBreakdown = await sql`
@@ -186,7 +187,6 @@ export async function GET(request: NextRequest) {
             success: true,
             data: {
                 dailySimulations,
-                hourlyUsage,
                 genderBreakdown,
                 ageDistribution,
                 salaryDistribution,

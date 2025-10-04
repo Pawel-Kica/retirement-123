@@ -19,15 +19,15 @@ import {
   validateSimulationInputs,
   getFieldError,
 } from "@/lib/utils/validation";
-import { 
-  LuLightbulb, 
-  LuCalendar, 
-  LuTriangleAlert, 
-  LuBanknote, 
-  LuHeartPulse, 
-  LuClipboardList, 
-  LuBriefcase, 
-  LuCircleCheckBig 
+import {
+  LuLightbulb,
+  LuCalendar,
+  LuTriangleAlert,
+  LuBanknote,
+  LuHeartPulse,
+  LuClipboardList,
+  LuBriefcase,
+  LuCircleCheckBig
 } from "react-icons/lu";
 
 // Helper to get error severity
@@ -166,9 +166,8 @@ export default function SimulacjaPage() {
             ...prev,
             {
               field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${
-                formData.sex === "F" ? "kobiet" : "mężczyzn"
-              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              message: `Minimalny wiek emerytalny dla ${formData.sex === "F" ? "kobiet" : "mężczyzn"
+                } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
               severity: "warning" as const,
             },
           ]);
@@ -233,9 +232,8 @@ export default function SimulacjaPage() {
             ...prev,
             {
               field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${
-                formData.sex === "F" ? "kobiet" : "mężczyzn"
-              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              message: `Minimalny wiek emerytalny dla ${formData.sex === "F" ? "kobiet" : "mężczyzn"
+                } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
               severity: "warning" as const,
             },
           ]);
@@ -260,9 +258,8 @@ export default function SimulacjaPage() {
             ...prev,
             {
               field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${
-                formData.sex === "F" ? "kobiet" : "mężczyzn"
-              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              message: `Minimalny wiek emerytalny dla ${formData.sex === "F" ? "kobiet" : "mężczyzn"
+                } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
               severity: "warning" as const,
             },
           ]);
@@ -298,9 +295,8 @@ export default function SimulacjaPage() {
                 ...prev,
                 {
                   field: "workEndYear",
-                  message: `Minimalny wiek emerytalny dla ${
-                    sex === "F" ? "kobiet" : "mężczyzn"
-                  } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAgeAtEnd} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+                  message: `Minimalny wiek emerytalny dla ${sex === "F" ? "kobiet" : "mężczyzn"
+                    } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAgeAtEnd} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
                   severity: "warning" as const,
                 },
               ]);
@@ -417,9 +413,8 @@ export default function SimulacjaPage() {
       if (retirementAge < minRetirementAge) {
         sectionErrors.push({
           field: "workEndYear",
-          message: `Minimalny wiek emerytalny dla ${
-            formData.sex === "F" ? "kobiet" : "mężczyzn"
-          } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+          message: `Minimalny wiek emerytalny dla ${formData.sex === "F" ? "kobiet" : "mężczyzn"
+            } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
           severity: "warning" as const,
         });
       }
@@ -616,13 +611,12 @@ export default function SimulacjaPage() {
           <div className="relative min-h-[600px]">
             {/* Step 0: Basic Info */}
             <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 0
-                  ? "opacity-100 translate-x-0"
-                  : currentStep > 0
+              className={`transition-all duration-500 ease-in-out ${currentStep === 0
+                ? "opacity-100 translate-x-0"
+                : currentStep > 0
                   ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
+                }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -656,8 +650,8 @@ export default function SimulacjaPage() {
                         <div className="mt-2 p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm text-zus-grey-700 flex items-start gap-2">
                           <LuLightbulb className="w-5 h-5 text-zus-orange flex-shrink-0 mt-0.5" />
                           <span>W tym wieku prawdopodobnie jesteś już na
-                          emeryturze. Symulator służy do planowania przyszłej
-                          emerytury.</span>
+                            emeryturze. Symulator służy do planowania przyszłej
+                            emerytury.</span>
                         </div>
                       )}
                   </FieldWithVisual>
@@ -763,13 +757,12 @@ export default function SimulacjaPage() {
 
             {/* Step 1: Work History */}
             <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 1
-                  ? "opacity-100 translate-x-0"
-                  : currentStep > 1
+              className={`transition-all duration-500 ease-in-out ${currentStep === 1
+                ? "opacity-100 translate-x-0"
+                : currentStep > 1
                   ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
+                }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -842,7 +835,7 @@ export default function SimulacjaPage() {
                       reserveErrorSpace="64px"
                       hint={
                         !getFieldError(errors, "workEndYear") &&
-                        formData.workEndYear
+                          formData.workEndYear
                           ? (
                             <span className="flex items-center gap-1.5">
                               <LuLightbulb className="w-4 h-4 text-zus-orange flex-shrink-0" />
@@ -871,7 +864,7 @@ export default function SimulacjaPage() {
                         <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
                           <LuTriangleAlert className="w-5 h-5 text-yellow-600 flex-shrink-0" />
                           <span>Wcześniejsza emerytura (służby mundurowe, specjalne
-                          zawody)</span>
+                            zawody)</span>
                         </div>
                         <div className="text-sm text-zus-grey-700 mt-1">
                           Zaznacz, jeśli masz prawo do wcześniejszej emerytury
@@ -888,7 +881,7 @@ export default function SimulacjaPage() {
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
                   {!isStep1Complete() &&
                     errors.filter((e) => e.field !== "workEndYear").length >
-                      0 && (
+                    0 && (
                       <div className="mb-4 p-4 bg-red-50 border-l-4 border-zus-error rounded">
                         <p className="text-sm font-semibold text-zus-error mb-2 flex items-center gap-2">
                           <LuTriangleAlert className="w-5 h-5 flex-shrink-0" />
@@ -930,13 +923,12 @@ export default function SimulacjaPage() {
 
             {/* Step 2: Additional Info */}
             <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 2
-                  ? "opacity-100 translate-x-0"
-                  : currentStep > 2
+              className={`transition-all duration-500 ease-in-out ${currentStep === 2
+                ? "opacity-100 translate-x-0"
+                : currentStep > 2
                   ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
+                }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -1018,7 +1010,7 @@ export default function SimulacjaPage() {
                         <LuHeartPulse className="w-6 h-6 text-zus-error flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
                           <h4 className="text-lg font-bold text-zus-grey-900 mb-1">
-                            Zwolnienia lekarskie (L4)
+                            Zwolnienia lekarskie
                           </h4>
                           <p className="text-sm text-zus-grey-700">
                             Uwzględnij statystyczne prawdopodobieństwo zwolnień lekarskich
@@ -1042,7 +1034,7 @@ export default function SimulacjaPage() {
 
                       <div className="bg-white/70 rounded-lg p-4 space-y-3">
                         <h5 className="font-bold text-zus-grey-900">
-                          Średnia długość L4 w Polsce:
+                          Średnia długość zwolnienia lekarskiego w Polsce:
                         </h5>
                         <ul className="space-y-2 text-sm">
                           <li className="flex items-start gap-2">
@@ -1097,11 +1089,10 @@ export default function SimulacjaPage() {
 
             {/* Step 3: Review */}
             <div
-              className={`transition-all duration-500 ease-in-out ${
-                currentStep === 3
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-              }`}
+              className={`transition-all duration-500 ease-in-out ${currentStep === 3
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+                }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -1200,8 +1191,8 @@ export default function SimulacjaPage() {
                         <span className="font-semibold text-zus-grey-900">
                           {formData.accountBalance
                             ? `${formData.accountBalance.toLocaleString(
-                                "pl-PL"
-                              )} zł`
+                              "pl-PL"
+                            )} zł`
                             : "Nie podano (automatyczne oszacowanie)"}
                         </span>
                       </div>
@@ -1212,21 +1203,20 @@ export default function SimulacjaPage() {
                         <span className="font-semibold text-zus-grey-900">
                           {formData.subAccountBalance
                             ? `${formData.subAccountBalance.toLocaleString(
-                                "pl-PL"
-                              )} zł`
+                              "pl-PL"
+                            )} zł`
                             : "Nie podano (automatyczne oszacowanie)"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center py-1">
                         <span className="text-zus-grey-600">
-                          Zwolnienia lekarskie (L4):
+                          Zwolnienia lekarskie:
                         </span>
                         <span
-                          className={`font-semibold ${
-                            formData.includeL4
-                              ? "text-zus-green"
-                              : "text-zus-grey-500"
-                          }`}
+                          className={`font-semibold ${formData.includeL4
+                            ? "text-zus-green"
+                            : "text-zus-grey-500"
+                            }`}
                         >
                           {formData.includeL4
                             ? "✓ Uwzględnione"
