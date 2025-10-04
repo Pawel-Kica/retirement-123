@@ -37,7 +37,7 @@ export async function calculateSimulation(
   const currentYear = new Date().getFullYear();
 
   // Load all data
-  const data = loadAllData();
+  const data = await loadAllData();
 
   // Step 1: Build salary path
   const baseSalaryPath = buildSalaryPath({
@@ -98,8 +98,6 @@ export async function calculateSimulation(
   const finalCapitalWithL4 = getFinalCapital(capitalPathWithL4);
 
   // Step 4: Calculate pensions
-  const retirementAge =
-    currentYear + (data.retirementAge[inputs.sex] - inputs.age);
   const actualRetirementAge = inputs.age + (inputs.workEndYear - currentYear);
 
   // Without L4

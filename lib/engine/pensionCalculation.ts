@@ -3,31 +3,53 @@
  * Calculates nominal and real pension values
  */
 
-import { Sex, AnnuityDivisors, CPIData } from '../types';
+import { Sex, AnnuityDivisors, CPIData } from "../types";
 
 /**
  * Calculate monthly pension from total capital
  * Pension = Total Capital / Annuity Divisor
  */
 export function calculatePension(
-    totalCapital: number,
-    retirementAge: number,
-    sex: Sex,
-    annuityDivisors: AnnuityDivisors
+  totalCapital: number,
+  retirementAge: number,
+  sex: Sex,
+  annuityDivisors: AnnuityDivisors
 ): number {
-    // Get divisor for this age and sex
-    const divisor = annuityDivisors[sex]?.[retirementAge.toString()];
+  // Get divisor for this age and sex
+  let divisor = annuityDivisors[sex]?.[retirementAge.toString()];
 
-    if (!divisor) {
-        throw new Error(
-            `Brak dzielnika rentowego dla wieku ${retirementAge} i płci ${sex}`
-        );
+  // If no divisor found for this age, use the highest available age
+  if (!divisor) {
+    const ageData = annuityDivisors[sex];
+    if (!ageData) {
+      throw new Error(`Brak danych dzielników rentowych dla płci ${sex}`);
     }
 
-    // Monthly pension = Total Capital / Divisor
-    const monthlyPension = totalCapital / divisor;
+    // Find the highest available age
+    const availableAges = Object.keys(ageData)
+      .map((age) => parseInt(age))
+      .filter((age) => !isNaN(age))
+      .sort((a, b) => b - a);
 
-    return monthlyPension;
+    if (availableAges.length === 0) {
+      throw new Error(`Brak danych dzielników rentowych dla płci ${sex}`);
+    }
+
+    const highestAge = availableAges[0];
+    divisor = ageData[highestAge.toString()];
+
+    // For ages beyond the highest available age, use a conservative estimate
+    // Assume 1 year of remaining life for each year beyond the highest age
+    if (retirementAge > highestAge) {
+      const yearsBeyond = retirementAge - highestAge;
+      divisor = Math.max(12, divisor - yearsBeyond * 12); // Minimum 1 year
+    }
+  }
+
+  // Monthly pension = Total Capital / Divisor
+  const monthlyPension = totalCapital / divisor;
+
+  return monthlyPension;
 }
 
 /**
@@ -35,32 +57,32 @@ export function calculatePension(
  * Adjusts nominal pension by cumulative inflation
  */
 export function calculateRealValue(
-    nominalPension: number,
-    retirementYear: number,
-    currentYear: number,
-    cpiData: CPIData
+  nominalPension: number,
+  retirementYear: number,
+  currentYear: number,
+  cpiData: CPIData
 ): number {
-    // If retiring this year or in the past, no adjustment needed
-    if (retirementYear <= currentYear) {
-        return nominalPension;
+  // If retiring this year or in the past, no adjustment needed
+  if (retirementYear <= currentYear) {
+    return nominalPension;
+  }
+
+  // Calculate cumulative CPI from current year to retirement year
+  let cumulativeCPI = 1.0;
+
+  for (let year = currentYear + 1; year <= retirementYear; year++) {
+    const cpi = cpiData[year.toString()];
+    if (typeof cpi !== "number") {
+      throw new Error(`Brak danych CPI dla roku ${year}`);
     }
+    cumulativeCPI *= cpi;
+  }
 
-    // Calculate cumulative CPI from current year to retirement year
-    let cumulativeCPI = 1.0;
+  // Real value = Nominal / Cumulative CPI
+  // This converts future pension to "today's złoty"
+  const realPension = nominalPension / cumulativeCPI;
 
-    for (let year = currentYear + 1; year <= retirementYear; year++) {
-        const cpi = cpiData[year.toString()];
-        if (typeof cpi !== 'number') {
-            throw new Error(`Brak danych CPI dla roku ${year}`);
-        }
-        cumulativeCPI *= cpi;
-    }
-
-    // Real value = Nominal / Cumulative CPI
-    // This converts future pension to "today's złoty"
-    const realPension = nominalPension / cumulativeCPI;
-
-    return realPension;
+  return realPension;
 }
 
 /**
@@ -68,21 +90,20 @@ export function calculateRealValue(
  * Replacement rate = (pension / final salary) * 100
  */
 export function calculateReplacementRate(
-    nominalPension: number,
-    finalSalary: number
+  nominalPension: number,
+  finalSalary: number
 ): number {
-    const rate = (nominalPension / finalSalary) * 100;
-    return Math.round(rate * 10) / 10; // Round to 1 decimal
+  const rate = (nominalPension / finalSalary) * 100;
+  return Math.round(rate * 10) / 10; // Round to 1 decimal
 }
 
 /**
  * Get replacement rate description in Polish
  */
 export function getReplacementRateDescription(rate: number): string {
-    if (rate >= 70) return 'Doskonała stopa zastąpienia';
-    if (rate >= 50) return 'Dobra stopa zastąpienia';
-    if (rate >= 40) return 'Przeciętna stopa zastąpienia';
-    if (rate >= 30) return 'Niska stopa zastąpienia';
-    return 'Bardzo niska stopa zastąpienia';
+  if (rate >= 70) return "Doskonała stopa zastąpienia";
+  if (rate >= 50) return "Dobra stopa zastąpienia";
+  if (rate >= 40) return "Przeciętna stopa zastąpienia";
+  if (rate >= 30) return "Niska stopa zastąpienia";
+  return "Bardzo niska stopa zastąpienia";
 }
-
