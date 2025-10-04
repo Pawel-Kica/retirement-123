@@ -15,6 +15,7 @@ import {
     IconMapPin,
     IconReportMoney,
     IconHeartbeat,
+    IconBriefcase,
 } from "@tabler/icons-react";
 import {
     Chart as ChartJS,
@@ -46,7 +47,7 @@ ChartJS.register(
 );
 
 interface StatisticsData {
-    dailySimulations: Array<{ date: string; count: string }>;
+    dailySimulations: Array<{ date?: string; hour?: number; count: string }>;
     hourlyUsage: Array<{ hour: number; count: string }>;
     genderBreakdown: Array<{ gender: string; count: string }>;
     ageDistribution: Array<{ age_group: string; count: string }>;
@@ -68,21 +69,33 @@ interface StatisticsData {
         first_simulation: string;
         last_simulation: string;
     };
+    retirementStats: {
+        avg_current_age: string;
+        men_beyond_min_age: string;
+        women_beyond_min_age: string;
+        total_men: string;
+        total_women: string;
+        with_capital: string;
+        without_capital: string;
+        with_postal_code: string;
+        without_postal_code: string;
+    };
 }
 
 export default function AdminPage() {
     const [data, setData] = useState<StatisticsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [timePeriod, setTimePeriod] = useState<"24hours" | "7days" | "30days" | "3months" | "6months" | "all">("30days");
 
     useEffect(() => {
         fetchStatistics();
-    }, []);
+    }, [timePeriod]);
 
     const fetchStatistics = async () => {
         try {
             setLoading(true);
-            const response = await fetch("/api/admin/statistics");
+            const response = await fetch(`/api/admin/statistics?period=${timePeriod}`);
             const result = await response.json();
 
             if (result.success) {
@@ -126,11 +139,22 @@ export default function AdminPage() {
 
     // Chart configurations
     const dailySimulationsChart = {
-        labels: data.dailySimulations.map((d) => d.date).reverse(),
+        labels:
+            timePeriod === "24hours"
+                ? Array.from({ length: 24 }, (_, i) => `${i}:00`)
+                : data.dailySimulations.map((d) => d.date || "").reverse(),
         datasets: [
             {
                 label: "Liczba symulacji",
-                data: data.dailySimulations.map((d) => parseInt(d.count)).reverse(),
+                data:
+                    timePeriod === "24hours"
+                        ? Array.from({ length: 24 }, (_, i) => {
+                            const hour = data.dailySimulations.find(
+                                (h) => h.hour !== undefined && parseInt(String(h.hour)) === i
+                            );
+                            return hour ? parseInt(hour.count) : 0;
+                        })
+                        : data.dailySimulations.map((d) => parseInt(d.count)).reverse(),
                 borderColor: "#00843D",
                 backgroundColor: "rgba(0, 132, 61, 0.1)",
                 fill: true,
@@ -283,13 +307,74 @@ export default function AdminPage() {
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onClick={fetchStatistics}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-zus-green text-white rounded-lg hover:bg-zus-green-dark transition-colors font-medium text-sm"
-                        >
-                            <IconRefresh size={18} />
-                            Odśwież
-                        </button>
+
+                        <div className="flex items-center gap-3">
+                            {/* Time Period Selector */}
+                            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                                <button
+                                    onClick={() => setTimePeriod("24hours")}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${timePeriod === "24hours"
+                                        ? "bg-white text-zus-green shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    24h
+                                </button>
+                                <button
+                                    onClick={() => setTimePeriod("7days")}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${timePeriod === "7days"
+                                        ? "bg-white text-zus-green shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    7 dni
+                                </button>
+                                <button
+                                    onClick={() => setTimePeriod("30days")}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${timePeriod === "30days"
+                                        ? "bg-white text-zus-green shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    30 dni
+                                </button>
+                                <button
+                                    onClick={() => setTimePeriod("3months")}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${timePeriod === "3months"
+                                        ? "bg-white text-zus-green shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    3 mies.
+                                </button>
+                                <button
+                                    onClick={() => setTimePeriod("6months")}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${timePeriod === "6months"
+                                        ? "bg-white text-zus-green shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    6 mies.
+                                </button>
+                                <button
+                                    onClick={() => setTimePeriod("all")}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${timePeriod === "all"
+                                        ? "bg-white text-zus-green shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    Wszystko
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={fetchStatistics}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-zus-green text-white rounded-lg hover:bg-zus-green-dark transition-colors font-medium text-sm"
+                            >
+                                <IconRefresh size={18} />
+                                Odśwież
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -315,9 +400,18 @@ export default function AdminPage() {
                         </div>
                         <div className="h-10 -mx-2 mb-2">
                             <Sparklines
-                                data={data.dailySimulations
-                                    .map((d) => parseInt(d.count))
-                                    .reverse()}
+                                data={
+                                    timePeriod === "24hours"
+                                        ? Array.from({ length: 24 }, (_, i) => {
+                                            const hour = data.dailySimulations.find(
+                                                (h) => h.hour !== undefined && parseInt(String(h.hour)) === i
+                                            );
+                                            return hour ? parseInt(hour.count) : 0;
+                                        })
+                                        : data.dailySimulations
+                                            .map((d) => parseInt(d.count))
+                                            .reverse()
+                                }
                                 height={40}
                             >
                                 <SparklinesLine color="#0088CC" style={{ fill: "none", strokeWidth: 2 }} />
@@ -327,12 +421,19 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 text-sm">
                             <span className="inline-flex items-center gap-1 text-green-600">
                                 <IconTrendingUp size={14} />
-                                <span className="font-medium">Ostatnie 30 dni</span>
+                                <span className="font-medium">
+                                    {timePeriod === "24hours" && "Ostatnie 24h"}
+                                    {timePeriod === "7days" && "Ostatnie 7 dni"}
+                                    {timePeriod === "30days" && "Ostatnie 30 dni"}
+                                    {timePeriod === "3months" && "Ostatnie 3 miesiące"}
+                                    {timePeriod === "6months" && "Ostatnie 6 miesięcy"}
+                                    {timePeriod === "all" && "Wszystkie dane"}
+                                </span>
                             </span>
                         </div>
                     </div>
 
-                    {/* Average Age with Progress */}
+                    {/* Average Age with Distribution */}
                     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-medium text-gray-600">
@@ -343,7 +444,7 @@ export default function AdminPage() {
                             </div>
                         </div>
                         <div className="text-3xl font-bold text-gray-900 mb-3">
-                            {parseFloat(data.overallStats.avg_age).toFixed(1)} lat
+                            {Math.round(parseFloat(data.overallStats.avg_age))} lat
                         </div>
                         <div className="space-y-2 mb-2">
                             {data.ageDistribution.slice(0, 3).map((age, idx) => {
@@ -455,48 +556,138 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                {/* Tabler-style Quick Stats Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {/* Gender & Retirement Statistics - Row 1 */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    {/* Total Men */}
                     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                                <IconUsers className="text-white" size={24} />
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <IconUsers className="text-blue-600" size={24} />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-gray-900">
-                                    {data.genderBreakdown.find((g) => g.gender === "M")
-                                        ? parseInt(
-                                            data.genderBreakdown.find((g) => g.gender === "M")!.count
-                                        )
-                                        : 0}
+                                    {parseInt(data.retirementStats.total_men)}
                                 </div>
                                 <div className="text-sm text-gray-600">Mężczyźni</div>
                             </div>
                         </div>
+                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>Wszystkich symulacji</span>
+                            <span className="font-semibold">
+                                {((parseInt(data.retirementStats.total_men) / (parseInt(data.retirementStats.total_men) + parseInt(data.retirementStats.total_women))) * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div
+                                className="bg-blue-500 h-1.5 rounded-full transition-all"
+                                style={{
+                                    width: `${((parseInt(data.retirementStats.total_men) / (parseInt(data.retirementStats.total_men) + parseInt(data.retirementStats.total_women))) * 100).toFixed(1)}%`,
+                                }}
+                            ></div>
+                        </div>
                     </div>
 
+                    {/* Total Women */}
                     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-pink-500 rounded-lg flex items-center justify-center">
-                                <IconUsers className="text-white" size={24} />
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                                <IconUsers className="text-pink-600" size={24} />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-gray-900">
-                                    {data.genderBreakdown.find((g) => g.gender === "F")
-                                        ? parseInt(
-                                            data.genderBreakdown.find((g) => g.gender === "F")!.count
-                                        )
-                                        : 0}
+                                    {parseInt(data.retirementStats.total_women)}
                                 </div>
                                 <div className="text-sm text-gray-600">Kobiety</div>
                             </div>
                         </div>
+                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>Wszystkich symulacji</span>
+                            <span className="font-semibold">
+                                {((parseInt(data.retirementStats.total_women) / (parseInt(data.retirementStats.total_men) + parseInt(data.retirementStats.total_women))) * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div
+                                className="bg-pink-500 h-1.5 rounded-full transition-all"
+                                style={{
+                                    width: `${((parseInt(data.retirementStats.total_women) / (parseInt(data.retirementStats.total_men) + parseInt(data.retirementStats.total_women))) * 100).toFixed(1)}%`,
+                                }}
+                            ></div>
+                        </div>
                     </div>
 
+                    {/* Men Beyond Retirement Age */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <IconBriefcase className="text-indigo-600" size={24} />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {parseInt(data.retirementStats.men_beyond_min_age)}
+                                </div>
+                                <div className="text-sm text-gray-600">Mężczyźni 65+</div>
+                            </div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>Powyżej wieku emerytalnego</span>
+                            <span className="font-semibold">
+                                {((parseInt(data.retirementStats.men_beyond_min_age) / parseInt(data.retirementStats.total_men)) * 100).toFixed(0)}%
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div
+                                className="bg-indigo-500 h-1.5 rounded-full transition-all"
+                                style={{
+                                    width: `${(parseInt(data.retirementStats.men_beyond_min_age) /
+                                        parseInt(data.retirementStats.total_men)) *
+                                        100
+                                        }%`,
+                                }}
+                            ></div>
+                        </div>
+                    </div>
+
+                    {/* Women Beyond Retirement Age */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
+                                <IconBriefcase className="text-rose-600" size={24} />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {parseInt(data.retirementStats.women_beyond_min_age)}
+                                </div>
+                                <div className="text-sm text-gray-600">Kobiety 60+</div>
+                            </div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>Powyżej wieku emerytalnego</span>
+                            <span className="font-semibold">
+                                {((parseInt(data.retirementStats.women_beyond_min_age) / parseInt(data.retirementStats.total_women)) * 100).toFixed(0)}%
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div
+                                className="bg-rose-500 h-1.5 rounded-full transition-all"
+                                style={{
+                                    width: `${(parseInt(data.retirementStats.women_beyond_min_age) /
+                                        parseInt(data.retirementStats.total_women)) *
+                                        100
+                                        }%`,
+                                }}
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Other Statistics - Row 2 */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                    {/* Without L4 */}
                     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                                <IconHeartbeat className="text-white" size={24} />
+                            <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                <IconHeartbeat className="text-emerald-600" size={24} />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-gray-900">
@@ -509,10 +700,11 @@ export default function AdminPage() {
                         </div>
                     </div>
 
+                    {/* With L4 */}
                     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
-                                <IconHeartbeat className="text-white" size={24} />
+                            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                <IconHeartbeat className="text-red-600" size={24} />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-gray-900">
@@ -521,6 +713,36 @@ export default function AdminPage() {
                                     )}
                                 </div>
                                 <div className="text-sm text-gray-600">Z L4</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* With Capital */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <IconReportMoney className="text-purple-600" size={24} />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {parseInt(data.retirementStats.with_capital)}
+                                </div>
+                                <div className="text-sm text-gray-600">Z kapitałem</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* With Postal Code */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                                <IconMapPin className="text-amber-600" size={24} />
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                    {parseInt(data.retirementStats.with_postal_code)}
+                                </div>
+                                <div className="text-sm text-gray-600">Z kodem</div>
                             </div>
                         </div>
                     </div>
@@ -539,7 +761,14 @@ export default function AdminPage() {
                                     <h3 className="text-lg font-bold text-gray-900">
                                         Symulacje w czasie
                                     </h3>
-                                    <p className="text-sm text-gray-500">Ostatnie 30 dni</p>
+                                    <p className="text-sm text-gray-500">
+                                        {timePeriod === "24hours" && "Ostatnie 24 godziny"}
+                                        {timePeriod === "7days" && "Ostatnie 7 dni"}
+                                        {timePeriod === "30days" && "Ostatnie 30 dni"}
+                                        {timePeriod === "3months" && "Ostatnie 3 miesiące"}
+                                        {timePeriod === "6months" && "Ostatnie 6 miesięcy"}
+                                        {timePeriod === "all" && "Wszystkie dane"}
+                                    </p>
                                 </div>
                             </div>
                         </div>
