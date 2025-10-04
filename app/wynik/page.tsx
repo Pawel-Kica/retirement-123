@@ -366,6 +366,26 @@ export default function WynikPage() {
                   </h3>
                 </div>
 
+                {/* Salary and Expected Pension */}
+                <div className="grid grid-cols-2 gap-3 py-2 border-b border-zus-grey-300">
+                  <div>
+                    <p className="text-xs text-zus-grey-700">
+                      Wysokość wynagrodzenia (brutto)
+                    </p>
+                    <p className="text-lg font-bold text-zus-grey-900">
+                      {formatPLN(inputs.monthlyGross)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zus-grey-700">
+                      Emerytura oczekiwana
+                    </p>
+                    <p className="text-lg font-bold text-zus-orange">
+                      {formatPLN(expectedPension)}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Personal Info */}
                 <div className="grid grid-cols-2 gap-3 py-2 border-b border-zus-grey-300">
                   <div>
@@ -427,26 +447,6 @@ export default function WynikPage() {
                   </div>
                 </div>
 
-                {/* Salary */}
-                <div className="py-2 border-b border-zus-grey-300">
-                  <p className="text-xs text-zus-grey-700">
-                    Wysokość wynagrodzenia (brutto)
-                  </p>
-                  <p className="text-lg font-bold text-zus-grey-900">
-                    {formatPLN(inputs.monthlyGross)}
-                  </p>
-                </div>
-
-                {/* Expected Pension */}
-                <div className="py-2 border-b border-zus-grey-300">
-                  <p className="text-xs text-zus-grey-700">
-                    Emerytura oczekiwana
-                  </p>
-                  <p className="text-lg font-bold text-zus-orange">
-                    {formatPLN(expectedPension)}
-                  </p>
-                </div>
-
                 {/* Account Balances */}
                 <div className="grid grid-cols-2 gap-3 py-2 border-b border-zus-grey-300">
                   <div>
@@ -485,7 +485,7 @@ export default function WynikPage() {
                 </div>
 
                 {/* Results - Real */}
-                <div className="py-2 border-b border-zus-grey-300">
+                <div className="py-2">
                   <p className="text-xs text-zus-grey-700">
                     Emerytura urealniona (w dzisiejszych złotych)
                   </p>
@@ -494,27 +494,6 @@ export default function WynikPage() {
                   </p>
                   <p className="text-xs text-zus-grey-600 mt-0.5">
                     Porównywalna do dzisiejszych kosztów życia
-                  </p>
-                </div>
-
-                {/* Replacement Rate */}
-                <div className="py-2 border-b border-zus-grey-300">
-                  <p className="text-xs text-zus-grey-700">Stopa zastąpienia</p>
-                  <p className="text-sm font-semibold text-zus-grey-900">
-                    {results.replacementRate.toFixed(1)}%
-                  </p>
-                </div>
-
-                {/* Accumulated Capital */}
-                <div className="py-2">
-                  <p className="text-xs text-zus-grey-700">
-                    Zgromadzony kapitał (łącznie)
-                  </p>
-                  <p className="text-sm font-semibold text-zus-grey-900">
-                    {formatPLN(
-                      results.capitalPath[results.capitalPath.length - 1]
-                        ?.totalCapital || 0
-                    )}
                   </p>
                 </div>
               </div>
@@ -621,7 +600,7 @@ export default function WynikPage() {
           {/* Input Summary */}
           <Card className="mb-8 bg-zus-grey-50">
             <h3 className="text-lg font-bold text-zus-grey-900 mb-4 pb-2 border-b-2 border-zus-green">
-              📋 Twoje dane wejściowe
+              📋 Dane symulacji
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               <div className="p-3 bg-white rounded border border-zus-grey-300">
@@ -705,14 +684,12 @@ export default function WynikPage() {
                     : "0,00 zł"}
                 </p>
               </div>
-              {inputs.postalCode && (
-                <div className="p-3 bg-white rounded border border-zus-grey-300">
-                  <p className="text-xs text-zus-grey-600 mb-1">Kod pocztowy</p>
-                  <p className="text-sm font-bold text-zus-grey-900">
-                    {inputs.postalCode}
-                  </p>
-                </div>
-              )}
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">Kod pocztowy</p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.postalCode || "Nie podano"}
+                </p>
+              </div>
             </div>
           </Card>
 
