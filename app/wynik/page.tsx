@@ -24,6 +24,17 @@ import {
   Filler,
 } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
+import { 
+  MapPin, 
+  FileText, 
+  CheckCircle, 
+  AlertTriangle, 
+  Lightbulb, 
+  BarChart3, 
+  TrendingUp, 
+  Table,
+  X
+} from "lucide-react";
 
 // Register Chart.js components
 ChartJS.register(
@@ -161,7 +172,7 @@ export default function WynikPage() {
           postalCode: postal,
         }),
       });
-      console.log("✅ Simulation data saved to database");
+      console.log("Simulation data saved to database");
     } catch (error) {
       console.error("Failed to save simulation to database:", error);
     }
@@ -244,7 +255,7 @@ export default function WynikPage() {
           >
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-zus-green-light rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">📍</span>
+                <MapPin className="w-8 h-8 text-zus-green" />
               </div>
               <h2 className="text-2xl font-bold text-zus-grey-900 mb-2">
                 {postalCode ? "Zaktualizuj kod pocztowy" : "Podaj kod pocztowy"}
@@ -343,7 +354,7 @@ export default function WynikPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-2xl">📄</span>
+                    <FileText className="w-6 h-6 text-zus-green" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-white">
@@ -359,7 +370,7 @@ export default function WynikPage() {
                   className="text-white hover:bg-zus-green-dark rounded-full w-8 h-8 flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="Zamknij"
                 >
-                  ✕
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -591,8 +602,9 @@ export default function WynikPage() {
           {/* Congratulations Message */}
           {results.differenceVsExpected >= 0 && (
             <Card variant="success" className="mb-8">
-              <h3 className="text-xl font-bold text-zus-green">
-                ✅ Gratulacje! Przekraczasz swoje oczekiwania
+              <h3 className="text-xl font-bold text-zus-green flex items-center gap-2">
+                <CheckCircle className="w-6 h-6" />
+                Gratulacje! Przekraczasz swoje oczekiwania
               </h3>
               <p className="mt-2">
                 Twoja prognozowana emerytura ({formatPLN(results.realPension)})
@@ -656,8 +668,9 @@ export default function WynikPage() {
 
           {/* Input Summary */}
           <Card className="mb-8 bg-zus-grey-50">
-            <h3 className="text-lg font-bold text-zus-grey-900 mb-4 pb-2 border-b-2 border-zus-green">
-              📋 Dane symulacji
+            <h3 className="text-lg font-bold text-zus-grey-900 mb-4 pb-2 border-b-2 border-zus-green flex items-center gap-2">
+              <FileText className="w-5 h-5 text-zus-green" />
+              Dane symulacji
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               <div className="p-3 bg-white rounded border border-zus-grey-300">
@@ -786,33 +799,36 @@ export default function WynikPage() {
               <div className="flex gap-2 bg-zus-grey-100 p-1 rounded-lg">
                 <button
                   onClick={() => setDeferralViewMode("bar")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer flex items-center gap-2 ${
                     deferralViewMode === "bar"
                       ? "bg-zus-green text-white shadow-md"
                       : "text-zus-grey-700 hover:bg-white"
                   }`}
                 >
-                  📊 Wykres słupkowy
+                  <BarChart3 className="w-4 h-4" />
+                  Wykres słupkowy
                 </button>
                 <button
                   onClick={() => setDeferralViewMode("line")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer flex items-center gap-2 ${
                     deferralViewMode === "line"
                       ? "bg-zus-green text-white shadow-md"
                       : "text-zus-grey-700 hover:bg-white"
                   }`}
                 >
-                  📈 Wykres liniowy
+                  <TrendingUp className="w-4 h-4" />
+                  Wykres liniowy
                 </button>
                 <button
                   onClick={() => setDeferralViewMode("table")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer flex items-center gap-2 ${
                     deferralViewMode === "table"
                       ? "bg-zus-green text-white shadow-md"
                       : "text-zus-grey-700 hover:bg-white"
                   }`}
                 >
-                  📋 Tabela
+                  <Table className="w-4 h-4" />
+                  Tabela
                 </button>
               </div>
             </div>
@@ -847,22 +863,22 @@ export default function WynikPage() {
                             ...results.deferrals.map((d) => d.realPension),
                           ],
                           backgroundColor: [
-                            "#757575", // Bazowy - grey
-                            "#00843D", // +1 - green
-                            "#0088CC", // +2 - blue
-                            "#F5A623", // +3 - orange
-                            "#00A99D", // +4 - teal
-                            "#0B4C7C", // +5 - navy
-                            "#00843D", // +6 - green
-                            "#0088CC", // +7 - blue
-                            "#F5A623", // +8 - orange
-                            "#00A99D", // +9 - teal
-                            "#0B4C7C", // +10 - navy
-                            "#00843D", // +11 - green
-                            "#0088CC", // +12 - blue
-                            "#F5A623", // +13 - orange
-                            "#00A99D", // +14 - teal
-                            "#0B4C7C", // +15 - navy
+                            "#9E9E9E", // Bazowy - light grey (starting point)
+                            "#7BA885", // +1 - grey-green transition
+                            "#5FB370", // +2 - light green
+                            "#42BD5B", // +3 - medium-light green
+                            "#26C846", // +4 - bright green
+                            "#1FB843", // +5 - vibrant green
+                            "#18A83D", // +6 - medium green
+                            "#129837", // +7 - ZUS green shade
+                            "#0D8831", // +8 - deeper green
+                            "#08782B", // +9 - dark green
+                            "#0A6D2E", // +10 - forest green
+                            "#0C6231", // +11 - deep forest
+                            "#0E5734", // +12 - very dark green
+                            "#0F4C37", // +13 - teal-green
+                            "#10413A", // +14 - dark teal
+                            "#0B363D", // +15 - deep teal-navy
                           ],
                           borderRadius: 8,
                           borderWidth: 0,
@@ -1200,8 +1216,9 @@ export default function WynikPage() {
           {/* Gap Analysis */}
           {results.differenceVsExpected < 0 && (
             <Card variant="warning" className="mb-8">
-              <h3 className="text-xl font-bold text-zus-error mb-4">
-                ⚠️ Twoja prognoza jest niższa od oczekiwań
+              <h3 className="text-xl font-bold text-zus-error mb-4 flex items-center gap-2">
+                <AlertTriangle className="w-6 h-6" />
+                Twoja prognoza jest niższa od oczekiwań
               </h3>
               <div className="p-4 bg-white rounded-lg mb-4">
                 <p className="text-xl font-bold text-zus-error">
@@ -1211,8 +1228,9 @@ export default function WynikPage() {
               </div>
               {results.yearsNeeded !== null && (
                 <div className="p-4 bg-zus-orange/20 rounded-lg">
-                  <p className="font-bold text-lg">
-                    💡 Aby osiągnąć oczekiwaną kwotę:
+                  <p className="font-bold text-lg flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5 text-zus-orange" />
+                    Aby osiągnąć oczekiwaną kwotę:
                   </p>
                   <p className="text-xl font-bold text-zus-grey-900 mt-2">
                     Musisz pracować o {formatYears(results.yearsNeeded)} dłużej
@@ -1229,17 +1247,19 @@ export default function WynikPage() {
               onClick={() => router.push("/dashboard")}
               variant="secondary"
               size="lg"
-              className="flex-1 cursor-pointer"
+              className="flex-1 cursor-pointer flex items-center justify-center gap-2"
             >
-              📊 Przejdź do Dashboardu
+              <BarChart3 className="w-5 h-5" />
+              Przejdź do Dashboardu
             </Button>
             <Button
               onClick={() => setShowReportPreview(true)}
               variant="success"
               size="lg"
-              className="flex-1 cursor-pointer"
+              className="flex-1 cursor-pointer flex items-center justify-center gap-2"
             >
-              📄 Pobierz raport (PDF)
+              <FileText className="w-5 h-5" />
+              Pobierz raport (PDF)
             </Button>
           </div>
         </div>
