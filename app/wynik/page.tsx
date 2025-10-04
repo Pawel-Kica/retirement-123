@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { NewSimulationButton } from "@/components/ui/NewSimulationButton";
 import { Card } from "@/components/ui/Card";
 import { PensionDisplay } from "@/components/ui/PensionDisplay";
 import { useSimulation } from "@/lib/context/SimulationContext";
@@ -300,70 +301,88 @@ export default function WynikPage() {
             {/* Content */}
             <div className="p-6 max-h-[70vh] overflow-y-auto">
               <div className="space-y-4">
+                {/* General Info Header */}
+                <div className="pb-2 border-b-2 border-zus-green">
+                  <h3 className="text-sm font-bold text-zus-green uppercase">
+                    Informacje ogólne
+                  </h3>
+                </div>
+
                 {/* Timestamp */}
-                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-zus-grey-300">
+                <div className="grid grid-cols-2 gap-3 py-2 border-b border-zus-grey-300">
                   <div>
-                    <p className="text-sm text-zus-grey-700 mb-1">
-                      Data użycia
-                    </p>
-                    <p className="text-base font-semibold text-zus-grey-900">
+                    <p className="text-xs text-zus-grey-700">Data użycia</p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
                       {formatDate(new Date())}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-zus-grey-700 mb-1">
-                      Godzina użycia
-                    </p>
-                    <p className="text-base font-semibold text-zus-grey-900">
+                    <p className="text-xs text-zus-grey-700">Godzina użycia</p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
                       {formatTime(new Date())}
                     </p>
                   </div>
                 </div>
 
-                {/* Expected Pension */}
-                <div className="pb-4 border-b border-zus-grey-300">
-                  <p className="text-sm text-zus-grey-700 mb-1">
-                    Emerytura oczekiwana
-                  </p>
-                  <p className="text-xl font-bold text-zus-orange">
-                    {formatPLN(expectedPension)}
+                {/* Postal Code */}
+                <div className="py-2 border-b border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-700">Kod pocztowy</p>
+                  <p className="text-sm font-semibold text-zus-grey-900">
+                    {inputs.postalCode || "Nie podano"}
                   </p>
                 </div>
 
+                {/* Input Data Section Header */}
+                <div className="pt-3 pb-2 border-b-2 border-zus-green">
+                  <h3 className="text-sm font-bold text-zus-green uppercase">
+                    Dane wejściowe
+                  </h3>
+                </div>
+
                 {/* Personal Info */}
-                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-zus-grey-300">
+                <div className="grid grid-cols-2 gap-3 py-2 border-b border-zus-grey-300">
                   <div>
-                    <p className="text-sm text-zus-grey-700 mb-1">Wiek</p>
-                    <p className="text-base font-semibold text-zus-grey-900">
+                    <p className="text-xs text-zus-grey-700">Wiek obecny</p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
                       {inputs.age} lat
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-zus-grey-700 mb-1">Płeć</p>
-                    <p className="text-base font-semibold text-zus-grey-900">
+                    <p className="text-xs text-zus-grey-700">Płeć</p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
                       {inputs.sex === "M" ? "Mężczyzna" : "Kobieta"}
                     </p>
                   </div>
                 </div>
 
-                {/* Salary */}
-                <div className="pb-4 border-b border-zus-grey-300">
-                  <p className="text-sm text-zus-grey-700 mb-1">
-                    Wysokość wynagrodzenia (brutto)
-                  </p>
-                  <p className="text-xl font-bold text-zus-grey-900">
-                    {formatPLN(inputs.monthlyGross)}
-                  </p>
+                {/* Work Period */}
+                <div className="grid grid-cols-2 gap-3 py-2 border-b border-zus-grey-300">
+                  <div>
+                    <p className="text-xs text-zus-grey-700">
+                      Rok rozpoczęcia pracy
+                    </p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
+                      {inputs.workStartYear}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zus-grey-700">
+                      Rok przejścia na emeryturę
+                    </p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
+                      {inputs.workEndYear}
+                    </p>
+                  </div>
                 </div>
 
-                {/* L4 */}
-                <div className="pb-4 border-b border-zus-grey-300">
-                  <p className="text-sm text-zus-grey-700 mb-1">
-                    Uwzględnienie okresów choroby (L4)
-                  </p>
-                  <div className="flex items-center gap-2">
+                {/* Retirement Age and L4 */}
+                <div className="grid grid-cols-2 gap-3 py-2 border-b border-zus-grey-300">
+                  <div>
+                    <p className="text-xs text-zus-grey-700">
+                      Uwzględnienie okresów choroby (L4)
+                    </p>
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1 ${
                         inputs.includeL4
                           ? "bg-zus-error/10 text-zus-error"
                           : "bg-zus-green/10 text-zus-green"
@@ -372,23 +391,49 @@ export default function WynikPage() {
                       {inputs.includeL4 ? "Tak" : "Nie"}
                     </span>
                   </div>
+                  <div>
+                    <p className="text-xs text-zus-grey-700">Wiek emerytalny</p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
+                      {inputs.age +
+                        (inputs.workEndYear - new Date().getFullYear())}{" "}
+                      lat
+                    </p>
+                  </div>
+                </div>
+
+                {/* Salary */}
+                <div className="py-2 border-b border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-700">
+                    Wysokość wynagrodzenia (brutto)
+                  </p>
+                  <p className="text-lg font-bold text-zus-grey-900">
+                    {formatPLN(inputs.monthlyGross)}
+                  </p>
+                </div>
+
+                {/* Expected Pension */}
+                <div className="py-2 border-b border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-700">
+                    Emerytura oczekiwana
+                  </p>
+                  <p className="text-lg font-bold text-zus-orange">
+                    {formatPLN(expectedPension)}
+                  </p>
                 </div>
 
                 {/* Account Balances */}
-                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-zus-grey-300">
+                <div className="grid grid-cols-2 gap-3 py-2 border-b border-zus-grey-300">
                   <div>
-                    <p className="text-sm text-zus-grey-700 mb-1">
-                      Konto główne
-                    </p>
-                    <p className="text-base font-semibold text-zus-grey-900">
+                    <p className="text-xs text-zus-grey-700">Konto główne</p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
                       {inputs.accountBalance
                         ? formatPLN(inputs.accountBalance)
                         : "0,00 zł"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-zus-grey-700 mb-1">Subkonto</p>
-                    <p className="text-base font-semibold text-zus-grey-900">
+                    <p className="text-xs text-zus-grey-700">Subkonto</p>
+                    <p className="text-sm font-semibold text-zus-grey-900">
                       {inputs.subAccountBalance
                         ? formatPLN(inputs.subAccountBalance)
                         : "0,00 zł"}
@@ -396,34 +441,54 @@ export default function WynikPage() {
                   </div>
                 </div>
 
+                {/* Results Section Header */}
+                <div className="pt-3 pb-2 border-b-2 border-zus-green">
+                  <h3 className="text-sm font-bold text-zus-green uppercase">
+                    Wyniki kalkulacji
+                  </h3>
+                </div>
+
                 {/* Results - Nominal */}
-                <div className="pb-4 border-b border-zus-grey-300">
-                  <p className="text-sm text-zus-grey-700 mb-1">
+                <div className="py-2 border-b border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-700">
                     Emerytura rzeczywista (w cenach z {inputs.workEndYear} roku)
                   </p>
-                  <p className="text-2xl font-bold text-zus-grey-900">
+                  <p className="text-lg font-bold text-zus-grey-900">
                     {formatPLN(results.nominalPension)}
                   </p>
                 </div>
 
                 {/* Results - Real */}
-                <div className="pb-4 border-b border-zus-grey-300 bg-zus-green-light p-4 rounded-lg">
-                  <p className="text-sm text-zus-grey-700 mb-1">
+                <div className="py-2 border-b border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-700">
                     Emerytura urealniona (w dzisiejszych złotych)
                   </p>
-                  <p className="text-3xl font-bold text-zus-green">
+                  <p className="text-xl font-bold text-zus-green">
                     {formatPLN(results.realPension)}
                   </p>
-                  <p className="text-xs text-zus-grey-700 mt-2">
+                  <p className="text-xs text-zus-grey-600 mt-0.5">
                     Porównywalna do dzisiejszych kosztów życia
                   </p>
                 </div>
 
-                {/* Postal Code */}
-                <div className="pb-4">
-                  <p className="text-sm text-zus-grey-700 mb-1">Kod pocztowy</p>
-                  <p className="text-base font-semibold text-zus-grey-900">
-                    {inputs.postalCode || "Nie podano"}
+                {/* Replacement Rate */}
+                <div className="py-2 border-b border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-700">Stopa zastąpienia</p>
+                  <p className="text-sm font-semibold text-zus-grey-900">
+                    {results.replacementRate.toFixed(1)}%
+                  </p>
+                </div>
+
+                {/* Accumulated Capital */}
+                <div className="py-2">
+                  <p className="text-xs text-zus-grey-700">
+                    Zgromadzony kapitał (łącznie)
+                  </p>
+                  <p className="text-sm font-semibold text-zus-grey-900">
+                    {formatPLN(
+                      results.capitalPath[results.capitalPath.length - 1]
+                        ?.totalCapital || 0
+                    )}
                   </p>
                 </div>
               </div>
@@ -526,6 +591,104 @@ export default function WynikPage() {
               </div>
             </Card>
           )}
+
+          {/* Input Summary */}
+          <Card className="mb-8 bg-zus-grey-50">
+            <h3 className="text-lg font-bold text-zus-grey-900 mb-4 pb-2 border-b-2 border-zus-green">
+              📋 Twoje dane wejściowe
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div className="p-3 bg-white rounded border border-zus-grey-300">
+              <p className="text-xs text-zus-grey-600 mb-1">
+                Oczekiwana emerytura
+              </p>
+              <p className="text-sm font-bold text-zus-orange">
+                {formatPLN(expectedPension)}
+              </p>
+            </div>
+            <div className="p-3 bg-white rounded border border-zus-grey-300">
+              <p className="text-xs text-zus-grey-600 mb-1">Wiek obecny</p>
+              <p className="text-sm font-bold text-zus-grey-900">
+                {inputs.age} lat
+              </p>
+            </div>
+            <div className="p-3 bg-white rounded border border-zus-grey-300">
+              <p className="text-xs text-zus-grey-600 mb-1">Płeć</p>
+              <p className="text-sm font-bold text-zus-grey-900">
+                {inputs.sex === "M" ? "M" : "K"}
+              </p>
+            </div>
+            <div className="p-3 bg-white rounded border border-zus-grey-300">
+              <p className="text-xs text-zus-grey-600 mb-1">
+                Rozpoczęcie pracy
+              </p>
+              <p className="text-sm font-bold text-zus-grey-900">
+                {inputs.workStartYear}
+              </p>
+            </div>
+            <div className="p-3 bg-white rounded border border-zus-grey-300">
+              <p className="text-xs text-zus-grey-600 mb-1">
+                Przejście na emeryturę
+              </p>
+              <p className="text-sm font-bold text-zus-grey-900">
+                {inputs.workEndYear}
+              </p>
+            </div>
+            <div className="p-3 bg-white rounded border border-zus-grey-300">
+              <p className="text-xs text-zus-grey-600 mb-1">
+                Wiek emerytalny
+              </p>
+              <p className="text-sm font-bold text-zus-green">
+                {inputs.age + (inputs.workEndYear - new Date().getFullYear())}{" "}
+                lat
+              </p>
+            </div>
+            <div className="p-3 bg-white rounded border border-zus-grey-300">
+              <p className="text-xs text-zus-grey-600 mb-1">
+                Lata pracy (total)
+              </p>
+              <p className="text-sm font-bold text-zus-grey-900">
+                {inputs.workEndYear - inputs.workStartYear} lat
+              </p>
+            </div>
+            <div className="p-3 bg-white rounded border border-zus-grey-300">
+              <p className="text-xs text-zus-grey-600 mb-1">Wynagrodzenie</p>
+              <p className="text-sm font-bold text-zus-grey-900">
+                {formatPLN(inputs.monthlyGross)}
+              </p>
+            </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">L4</p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.includeL4 ? "Tak" : "Nie"}
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">Konto główne</p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.accountBalance
+                    ? formatPLN(inputs.accountBalance)
+                    : "0,00 zł"}
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">Subkonto</p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.subAccountBalance
+                    ? formatPLN(inputs.subAccountBalance)
+                    : "0,00 zł"}
+                </p>
+              </div>
+              {inputs.postalCode && (
+                <div className="p-3 bg-white rounded border border-zus-grey-300">
+                  <p className="text-xs text-zus-grey-600 mb-1">Kod pocztowy</p>
+                  <p className="text-sm font-bold text-zus-grey-900">
+                    {inputs.postalCode}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
 
           {/* Deferral Scenarios */}
           <Card className="mb-8">
@@ -974,14 +1137,7 @@ export default function WynikPage() {
 
           {/* Actions */}
           <div className="flex flex-col md:flex-row gap-4">
-            <Button
-              onClick={() => router.push("/symulacja")}
-              variant="primary"
-              size="lg"
-              className="flex-1 cursor-pointer"
-            >
-              🔄 Nowa symulacja
-            </Button>
+            <NewSimulationButton className="flex-1 cursor-pointer" />
             <Button
               onClick={() => router.push("/dashboard")}
               variant="secondary"
