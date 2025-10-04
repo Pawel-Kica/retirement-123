@@ -11,6 +11,7 @@ import {
 import { loadAllData } from "../data/loader";
 import { buildSalaryPath } from "./salaryPath";
 import { calculateL4Comparison } from "./l4Impact";
+import { applyTimelineAdjustments } from "./timelineAdjustments";
 import { accumulateCapital, getFinalCapital } from "./capitalAccumulation";
 import {
   calculatePension,
@@ -19,6 +20,10 @@ import {
 } from "./pensionCalculation";
 import { calculateDeferralScenarios } from "./deferralScenarios";
 import { calculateYearsNeeded } from "./yearsNeeded";
+import {
+  calculateAdditionalProgramsCapital,
+  combinePensions,
+} from "./additionalPrograms";
 
 export interface CalculateParams {
   inputs: SimulationInputs;
@@ -78,20 +83,24 @@ export async function calculateSimulation(
     pathWithL4 = l4Comparison.withL4;
   }
 
-  // Step 3: Calculate capital accumulation for both paths
+  // Apply unified timeline adjustments (contract/gaps/L4 points)
+  const adjustedPath = applyTimelineAdjustments({
+    path: inputs.includeL4 ? pathWithL4 : pathWithoutL4,
+    contractPeriods: modifications?.contractPeriods,
+    gapPeriods: modifications?.gapPeriods,
+    lifeEvents: modifications?.lifeEvents,
+    sex: inputs.sex,
+  });
+
+  // Step 3: Calculate capital accumulation for adjusted path
   const capitalPathWithoutL4 = accumulateCapital({
-    salaryPath: pathWithoutL4,
+    salaryPath: adjustedPath,
     initialMainAccount: inputs.accountBalance,
     initialSubAccount: inputs.subAccountBalance,
     valorizationData: data.wageGrowth,
   });
 
-  const capitalPathWithL4 = accumulateCapital({
-    salaryPath: pathWithL4,
-    initialMainAccount: inputs.accountBalance,
-    initialSubAccount: inputs.subAccountBalance,
-    valorizationData: data.wageGrowth,
-  });
+  const capitalPathWithL4 = capitalPathWithoutL4;
 
   // Get final capitals
   const finalCapitalWithoutL4 = getFinalCapital(capitalPathWithoutL4);
@@ -137,9 +146,7 @@ export async function calculateSimulation(
   const realPension = inputs.includeL4
     ? realPensionWithL4
     : realPensionWithoutL4;
-  const capitalPath = inputs.includeL4
-    ? capitalPathWithL4
-    : capitalPathWithoutL4;
+  const capitalPath = capitalPathWithoutL4;
 
   // Step 5: Calculate replacement rate
   const finalSalaryEntry = baseSalaryPath[baseSalaryPath.length - 1];
@@ -205,6 +212,26 @@ export async function calculateSimulation(
     });
   }
 
+  // Step 10: Calculate additional retirement programs (PPK, IKZP) if enabled
+  let ppkCapital = 0;
+  let ikzpCapital = 0;
+  let totalPensionWithPrograms = realPension;
+  let programsBreakdown = undefined;
+
+  if (inputs.retirementPrograms) {
+    const additionalPrograms = calculateAdditionalProgramsCapital({
+      salaryPath: inputs.includeL4 ? pathWithL4 : pathWithoutL4,
+      programs: inputs.retirementPrograms,
+    });
+
+    ppkCapital = additionalPrograms.ppkCapital;
+    ikzpCapital = additionalPrograms.ikzpCapital;
+
+    const combined = combinePensions(realPension, additionalPrograms);
+    totalPensionWithPrograms = combined.totalMonthlyPension;
+    programsBreakdown = combined.breakdown;
+  }
+
   return {
     nominalPension,
     realPension,
@@ -226,6 +253,11 @@ export async function calculateSimulation(
     deferrals,
     yearsNeeded,
     capitalPath,
-    salaryPath: baseSalaryPath,
+    salaryPath: adjustedPath,
+    // New PPK/IKZP fields
+    ppkCapital,
+    ikzpCapital,
+    totalPensionWithPrograms,
+    programsBreakdown,
   };
 }

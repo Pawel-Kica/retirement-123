@@ -27,7 +27,7 @@ import {
   LuHeartPulse,
   LuClipboardList,
   LuBriefcase,
-  LuCircleCheckBig
+  LuCircleCheckBig,
 } from "react-icons/lu";
 
 // Helper to get error severity
@@ -64,6 +64,17 @@ export default function SimulacjaPage() {
     workEndYear: 2050,
     includeL4: false,
     earlyRetirement: false,
+    retirementPrograms: {
+      ppk: {
+        enabled: false,
+        employeeRate: 0.02,
+        employerRate: 0.015,
+      },
+      ikzp: {
+        enabled: false,
+        contributionRate: 0.1,
+      },
+    },
   });
 
   const [errors, setErrors] = useState<any[]>([]);
@@ -81,10 +92,13 @@ export default function SimulacjaPage() {
           const retirementAge = loadedData.retirementAge[formData.sex];
           const defaultRetirementYear =
             currentYear + (retirementAge - formData.age);
-          setFormData((prev) => ({ ...prev, workEndYear: defaultRetirementYear }));
+          setFormData((prev) => ({
+            ...prev,
+            workEndYear: defaultRetirementYear,
+          }));
         }
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error("Failed to load data:", error);
       } finally {
         setIsDataLoading(false);
       }
@@ -166,8 +180,9 @@ export default function SimulacjaPage() {
             ...prev,
             {
               field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${formData.sex === "F" ? "kobiet" : "mężczyzn"
-                } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              message: `Minimalny wiek emerytalny dla ${
+                formData.sex === "F" ? "kobiet" : "mężczyzn"
+              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
               severity: "warning" as const,
             },
           ]);
@@ -232,8 +247,9 @@ export default function SimulacjaPage() {
             ...prev,
             {
               field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${formData.sex === "F" ? "kobiet" : "mężczyzn"
-                } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              message: `Minimalny wiek emerytalny dla ${
+                formData.sex === "F" ? "kobiet" : "mężczyzn"
+              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
               severity: "warning" as const,
             },
           ]);
@@ -258,8 +274,9 @@ export default function SimulacjaPage() {
             ...prev,
             {
               field: "workEndYear",
-              message: `Minimalny wiek emerytalny dla ${formData.sex === "F" ? "kobiet" : "mężczyzn"
-                } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+              message: `Minimalny wiek emerytalny dla ${
+                formData.sex === "F" ? "kobiet" : "mężczyzn"
+              } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
               severity: "warning" as const,
             },
           ]);
@@ -295,8 +312,9 @@ export default function SimulacjaPage() {
                 ...prev,
                 {
                   field: "workEndYear",
-                  message: `Minimalny wiek emerytalny dla ${sex === "F" ? "kobiet" : "mężczyzn"
-                    } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAgeAtEnd} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+                  message: `Minimalny wiek emerytalny dla ${
+                    sex === "F" ? "kobiet" : "mężczyzn"
+                  } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAgeAtEnd} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
                   severity: "warning" as const,
                 },
               ]);
@@ -413,8 +431,9 @@ export default function SimulacjaPage() {
       if (retirementAge < minRetirementAge) {
         sectionErrors.push({
           field: "workEndYear",
-          message: `Minimalny wiek emerytalny dla ${formData.sex === "F" ? "kobiet" : "mężczyzn"
-            } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
+          message: `Minimalny wiek emerytalny dla ${
+            formData.sex === "F" ? "kobiet" : "mężczyzn"
+          } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
           severity: "warning" as const,
         });
       }
@@ -611,12 +630,13 @@ export default function SimulacjaPage() {
           <div className="relative min-h-[600px]">
             {/* Step 0: Basic Info */}
             <div
-              className={`transition-all duration-500 ease-in-out ${currentStep === 0
-                ? "opacity-100 translate-x-0"
-                : currentStep > 0
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === 0
+                  ? "opacity-100 translate-x-0"
+                  : currentStep > 0
                   ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-                }`}
+              }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -629,33 +649,6 @@ export default function SimulacjaPage() {
                 </div>
 
                 <div className="space-y-6">
-                  <FieldWithVisual visual={<AgeVisual age={formData.age} />}>
-                    <InputWithSlider
-                      label="Twój obecny wiek"
-                      value={formData.age}
-                      onChange={(value) => handleChange("age", value)}
-                      min={18}
-                      max={100}
-                      step={1}
-                      suffix="lat"
-                      placeholder="np. 35"
-                      required
-                      error={getFieldError(errors, "age")}
-                      reserveErrorSpace="46px"
-                    />
-                    {formData.age &&
-                      formData.age > 70 &&
-                      formData.age <= 100 &&
-                      !getFieldError(errors, "age") && (
-                        <div className="mt-2 p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm text-zus-grey-700 flex items-start gap-2">
-                          <LuLightbulb className="w-5 h-5 text-zus-orange flex-shrink-0 mt-0.5" />
-                          <span>W tym wieku prawdopodobnie jesteś już na
-                            emeryturze. Symulator służy do planowania przyszłej
-                            emerytury.</span>
-                        </div>
-                      )}
-                  </FieldWithVisual>
-
                   <FieldWithVisual visual={<SexVisual sex={formData.sex} />}>
                     <FormField
                       label="Płeć"
@@ -691,6 +684,33 @@ export default function SimulacjaPage() {
                         </label>
                       </div>
                     </FormField>
+                  </FieldWithVisual>
+                  <FieldWithVisual visual={<AgeVisual age={formData.age} />}>
+                    <InputWithSlider
+                      label="Twój obecny wiek"
+                      value={formData.age}
+                      onChange={(value) => handleChange("age", value)}
+                      min={18}
+                      max={100}
+                      step={1}
+                      suffix="lat"
+                      placeholder="np. 35"
+                      required
+                      error={getFieldError(errors, "age")}
+                      reserveErrorSpace="46px"
+                    />
+                    {formData.age &&
+                      formData.age > 70 &&
+                      formData.age <= 100 &&
+                      !getFieldError(errors, "age") && (
+                        <div className="mt-2 p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm text-zus-grey-700 flex items-start gap-2">
+                          <LuLightbulb className="w-5 h-5 text-zus-orange flex-shrink-0 mt-0.5" />
+                          <span>
+                            W tym wieku prawdopodobnie jesteś już na emeryturze.
+                            Symulator służy do planowania przyszłej emerytury.
+                          </span>
+                        </div>
+                      )}
                   </FieldWithVisual>
 
                   <FieldWithVisual
@@ -757,12 +777,13 @@ export default function SimulacjaPage() {
 
             {/* Step 1: Work History */}
             <div
-              className={`transition-all duration-500 ease-in-out ${currentStep === 1
-                ? "opacity-100 translate-x-0"
-                : currentStep > 1
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === 1
+                  ? "opacity-100 translate-x-0"
+                  : currentStep > 1
                   ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-                }`}
+              }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -798,14 +819,15 @@ export default function SimulacjaPage() {
                       required
                       error={getFieldError(errors, "workStartYear")}
                       hint={
-                        !getFieldError(errors, "workStartYear")
-                          ? (
-                            <span className="flex items-center gap-1.5">
-                              <LuCalendar className="w-4 h-4 text-zus-blue flex-shrink-0" />
-                              <span>Rok urodzenia: {birthYear} | Najwcześniejszy rok pracy: {minWorkStartYear} (wiek 18 lat)</span>
+                        !getFieldError(errors, "workStartYear") ? (
+                          <span className="flex items-center gap-1.5">
+                            <LuCalendar className="w-4 h-4 text-zus-blue flex-shrink-0" />
+                            <span>
+                              Rok urodzenia: {birthYear} | Najwcześniejszy rok
+                              pracy: {minWorkStartYear} (wiek 18 lat)
                             </span>
-                          )
-                          : undefined
+                          </span>
+                        ) : undefined
                       }
                     />
                   </FieldWithVisual>
@@ -835,16 +857,17 @@ export default function SimulacjaPage() {
                       reserveErrorSpace="64px"
                       hint={
                         !getFieldError(errors, "workEndYear") &&
-                          formData.workEndYear
-                          ? (
-                            <span className="flex items-center gap-1.5">
-                              <LuLightbulb className="w-4 h-4 text-zus-orange flex-shrink-0" />
-                              <span>Wiek emerytalny: {retirementAge} lat | Staż pracy: {yearsWorked} lat | Minimalny wiek {
-                                formData.sex === "F" ? "kobiet" : "mężczyzn"
-                              }: {formData.sex === "F" ? 60 : 65} lat</span>
+                        formData.workEndYear ? (
+                          <span className="flex items-center gap-1.5">
+                            <LuLightbulb className="w-4 h-4 text-zus-orange flex-shrink-0" />
+                            <span>
+                              Wiek emerytalny: {retirementAge} lat | Staż pracy:{" "}
+                              {yearsWorked} lat | Minimalny wiek{" "}
+                              {formData.sex === "F" ? "kobiet" : "mężczyzn"}:{" "}
+                              {formData.sex === "F" ? 60 : 65} lat
                             </span>
-                          )
-                          : undefined
+                          </span>
+                        ) : undefined
                       }
                     />
                   </FieldWithVisual>
@@ -863,8 +886,10 @@ export default function SimulacjaPage() {
                       <div className="flex-1">
                         <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
                           <LuTriangleAlert className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                          <span>Wcześniejsza emerytura (służby mundurowe, specjalne
-                            zawody)</span>
+                          <span>
+                            Wcześniejsza emerytura (służby mundurowe, specjalne
+                            zawody)
+                          </span>
                         </div>
                         <div className="text-sm text-zus-grey-700 mt-1">
                           Zaznacz, jeśli masz prawo do wcześniejszej emerytury
@@ -881,7 +906,7 @@ export default function SimulacjaPage() {
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
                   {!isStep1Complete() &&
                     errors.filter((e) => e.field !== "workEndYear").length >
-                    0 && (
+                      0 && (
                       <div className="mb-4 p-4 bg-red-50 border-l-4 border-zus-error rounded">
                         <p className="text-sm font-semibold text-zus-error mb-2 flex items-center gap-2">
                           <LuTriangleAlert className="w-5 h-5 flex-shrink-0" />
@@ -923,12 +948,13 @@ export default function SimulacjaPage() {
 
             {/* Step 2: Additional Info */}
             <div
-              className={`transition-all duration-500 ease-in-out ${currentStep === 2
-                ? "opacity-100 translate-x-0"
-                : currentStep > 2
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === 2
+                  ? "opacity-100 translate-x-0"
+                  : currentStep > 2
                   ? "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
                   : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-                }`}
+              }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -963,11 +989,17 @@ export default function SimulacjaPage() {
                         type="number"
                         min={0}
                         step={0.01}
-                        value={formData.accountBalance !== undefined ? formData.accountBalance : ""}
+                        value={
+                          formData.accountBalance !== undefined
+                            ? formData.accountBalance
+                            : ""
+                        }
                         onChange={(e) =>
                           handleChange(
                             "accountBalance",
-                            e.target.value !== "" ? Number(e.target.value) : undefined
+                            e.target.value !== ""
+                              ? Number(e.target.value)
+                              : undefined
                           )
                         }
                         placeholder="Pozostaw puste, jeśli nie znasz"
@@ -988,11 +1020,17 @@ export default function SimulacjaPage() {
                         type="number"
                         min={0}
                         step={0.01}
-                        value={formData.subAccountBalance !== undefined ? formData.subAccountBalance : ""}
+                        value={
+                          formData.subAccountBalance !== undefined
+                            ? formData.subAccountBalance
+                            : ""
+                        }
                         onChange={(e) =>
                           handleChange(
                             "subAccountBalance",
-                            e.target.value !== "" ? Number(e.target.value) : undefined
+                            e.target.value !== ""
+                              ? Number(e.target.value)
+                              : undefined
                           )
                         }
                         placeholder="Pozostaw puste, jeśli nie znasz"
@@ -1013,7 +1051,8 @@ export default function SimulacjaPage() {
                             Zwolnienia lekarskie
                           </h4>
                           <p className="text-sm text-zus-grey-700">
-                            Uwzględnij statystyczne prawdopodobieństwo zwolnień lekarskich
+                            Uwzględnij statystyczne prawdopodobieństwo zwolnień
+                            lekarskich
                           </p>
                         </div>
                       </div>
@@ -1040,26 +1079,206 @@ export default function SimulacjaPage() {
                           <li className="flex items-start gap-2">
                             <span className="text-zus-green font-bold">•</span>
                             <span className="text-zus-grey-700">
-                              <strong>Kobiety:</strong> średnio {data?.sickImpactF?.avgDaysPerYear || 0} dni rocznie
+                              <strong>Kobiety:</strong> średnio{" "}
+                              {data?.sickImpactF?.avgDaysPerYear || 0} dni
+                              rocznie
                             </span>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="text-zus-green font-bold">•</span>
                             <span className="text-zus-grey-700">
-                              <strong>Mężczyźni:</strong> średnio {data?.sickImpactM?.avgDaysPerYear || 0} dni rocznie
+                              <strong>Mężczyźni:</strong> średnio{" "}
+                              {data?.sickImpactM?.avgDaysPerYear || 0} dni
+                              rocznie
                             </span>
                           </li>
                         </ul>
                         <p className="text-sm text-zus-grey-700 pt-2 border-t border-zus-grey-300">
-                          Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane od zasiłku (zazwyczaj niższego niż pełne wynagrodzenie), co zmniejsza kapitał emerytalny. Średnio obniża to świadczenie o{" "}
+                          Podczas zwolnienia lekarskiego składki emerytalne są
+                          odprowadzane od zasiłku (zazwyczaj niższego niż pełne
+                          wynagrodzenie), co zmniejsza kapitał emerytalny.
+                          Średnio obniża to świadczenie o{" "}
                           <strong className="text-zus-error">
-                            {((1 - l4Config.reductionCoefficient) * 100).toFixed(1)}%
-                          </strong>.
+                            {(
+                              (1 - l4Config.reductionCoefficient) *
+                              100
+                            ).toFixed(1)}
+                            %
+                          </strong>
+                          .
                         </p>
                       </div>
                     </div>
                   </div>
+                </div>
 
+                {/* Typ umowy */}
+                <div className="mt-6 p-5 bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-400 rounded-lg shadow-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-2xl">📝</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-bold text-zus-grey-900">
+                        Typ zatrudnienia
+                      </h4>
+                      <p className="text-sm text-zus-grey-700">
+                        Różne umowy = różne składki na emeryturę
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-lg">
+                    <label className="block mb-2 font-semibold text-zus-grey-900">
+                      Jaki typ umowy masz?
+                    </label>
+                    <select
+                      value={formData.contractType || "UOP"}
+                      onChange={(e) =>
+                        handleChange("contractType", e.target.value)
+                      }
+                      className="w-full p-3 border-2 border-zus-grey-300 rounded-lg focus:border-purple-500 focus:outline-none text-base"
+                    >
+                      <option value="UOP">
+                        💼 Umowa o Pracę (UOP) - Pełne składki ZUS
+                      </option>
+                      <option value="UOZ">
+                        📝 Umowa Zlecenie (UOZ) - Bez chorobowego
+                      </option>
+                      <option value="B2B">
+                        🏢 Działalność / B2B - Składki opcjonalne
+                      </option>
+                    </select>
+
+                    <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                      <p className="text-xs text-zus-grey-700">
+                        <strong>ℹ️ Informacja:</strong>{" "}
+                        {formData.contractType === "B2B" ? (
+                          <>
+                            <strong>Działalność gospodarcza:</strong> Możesz
+                            płacić składki ZUS od niższej podstawy (np. od
+                            minimalnej). W symulacji zakładamy pełne składki.
+                          </>
+                        ) : formData.contractType === "UOZ" ? (
+                          <>
+                            <strong>Umowa zlecenie:</strong> Brak składki
+                            chorobowej, ale pełne składki emerytalne i rentowe
+                            (19.52%).
+                          </>
+                        ) : (
+                          <>
+                            <strong>Umowa o pracę:</strong> Pełne składki ZUS
+                            (emerytalne, rentowe, chorobowe). Najpewniejsza
+                            forma zatrudnienia.
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dodatkowe programy emerytalne - PPK i IKZP */}
+                <div className="mt-6 p-5 bg-gradient-to-br from-blue-50 to-zus-green-light border-2 border-zus-blue rounded-lg shadow-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-zus-blue flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-2xl">💰</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-bold text-zus-grey-900">
+                        Dodatkowe programy emerytalne
+                      </h4>
+                      <p className="text-sm text-zus-grey-700">
+                        Zwiększ swoją przyszłą emeryturę dzięki PPK i IKZP
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* PPK Checkbox */}
+                    <label className="flex items-start gap-3 p-4 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-colors border-2 border-transparent hover:border-zus-blue">
+                      <input
+                        type="checkbox"
+                        checked={
+                          formData.retirementPrograms?.ppk.enabled || false
+                        }
+                        onChange={(e) =>
+                          handleChange("retirementPrograms", {
+                            ...formData.retirementPrograms,
+                            ppk: {
+                              ...(formData.retirementPrograms?.ppk || {
+                                employeeRate: 0.02,
+                                employerRate: 0.015,
+                              }),
+                              enabled: e.target.checked,
+                            },
+                          })
+                        }
+                        className="mt-1 w-5 h-5 accent-zus-blue flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
+                          <span>Uczestniczę w PPK</span>
+                          <span className="px-2 py-0.5 bg-zus-blue/10 text-zus-blue text-xs font-bold rounded">
+                            +~3.5% emerytury
+                          </span>
+                        </div>
+                        <p className="text-sm text-zus-grey-700 mt-1">
+                          <strong>Pracownicze Plany Kapitałowe:</strong> Składka
+                          pracownika (2%) + pracodawcy (1.5%) + dopłaty państwa.
+                          Dodatkowy kapitał emerytalny z długoterminowych
+                          inwestycji.
+                        </p>
+                      </div>
+                    </label>
+
+                    {/* IKZP Checkbox */}
+                    <label className="flex items-start gap-3 p-4 bg-white rounded-lg cursor-pointer hover:bg-orange-50 transition-colors border-2 border-transparent hover:border-zus-orange">
+                      <input
+                        type="checkbox"
+                        checked={
+                          formData.retirementPrograms?.ikzp.enabled || false
+                        }
+                        onChange={(e) =>
+                          handleChange("retirementPrograms", {
+                            ...formData.retirementPrograms,
+                            ikzp: {
+                              ...(formData.retirementPrograms?.ikzp || {
+                                contributionRate: 0.1,
+                              }),
+                              enabled: e.target.checked,
+                            },
+                          })
+                        }
+                        className="mt-1 w-5 h-5 accent-zus-orange flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
+                          <span>Mam PPE / IKZP</span>
+                          <span className="px-2 py-0.5 bg-zus-orange/10 text-zus-orange text-xs font-bold rounded">
+                            +~10% emerytury
+                          </span>
+                        </div>
+                        <p className="text-sm text-zus-grey-700 mt-1">
+                          <strong>Pracowniczy Program Emerytalny:</strong>{" "}
+                          Składka pracodawcy (zazwyczaj 10%). Dodatkowe
+                          oszczędności emerytalne z korzyściami podatkowymi.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-white/70 rounded-lg border border-zus-grey-300">
+                    <p className="text-xs text-zus-grey-600 flex items-start gap-2">
+                      <span className="text-zus-blue flex-shrink-0">ℹ️</span>
+                      <span>
+                        <strong>Wskazówka:</strong> Jeśli nie jesteś pewien, czy
+                        uczestniczysz w tych programach, zapytaj w dziale HR
+                        swojej firmy lub sprawdź na swoim pasku wynagrodzeń. PPK
+                        jest dostępne dla większości pracowników zatrudnionych
+                        na umowę o pracę.
+                      </span>
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-zus-grey-300">
@@ -1089,10 +1308,11 @@ export default function SimulacjaPage() {
 
             {/* Step 3: Review */}
             <div
-              className={`transition-all duration-500 ease-in-out ${currentStep === 3
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
-                }`}
+              className={`transition-all duration-500 ease-in-out ${
+                currentStep === 3
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+              }`}
             >
               <Card className="p-8">
                 <div className="mb-6">
@@ -1191,8 +1411,8 @@ export default function SimulacjaPage() {
                         <span className="font-semibold text-zus-grey-900">
                           {formData.accountBalance
                             ? `${formData.accountBalance.toLocaleString(
-                              "pl-PL"
-                            )} zł`
+                                "pl-PL"
+                              )} zł`
                             : "Nie podano (automatyczne oszacowanie)"}
                         </span>
                       </div>
@@ -1203,8 +1423,8 @@ export default function SimulacjaPage() {
                         <span className="font-semibold text-zus-grey-900">
                           {formData.subAccountBalance
                             ? `${formData.subAccountBalance.toLocaleString(
-                              "pl-PL"
-                            )} zł`
+                                "pl-PL"
+                              )} zł`
                             : "Nie podano (automatyczne oszacowanie)"}
                         </span>
                       </div>
@@ -1213,10 +1433,11 @@ export default function SimulacjaPage() {
                           Zwolnienia lekarskie:
                         </span>
                         <span
-                          className={`font-semibold ${formData.includeL4
-                            ? "text-zus-green"
-                            : "text-zus-grey-500"
-                            }`}
+                          className={`font-semibold ${
+                            formData.includeL4
+                              ? "text-zus-green"
+                              : "text-zus-grey-500"
+                          }`}
                         >
                           {formData.includeL4
                             ? "✓ Uwzględnione"

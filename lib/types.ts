@@ -1,5 +1,9 @@
 // Core data types
 export type Sex = "M" | "F";
+export type ContractType = "UOP" | "UOZ" | "B2B";
+
+// Month helper type for month-precision periods
+export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 export interface WageGrowthData {
   _metadata: {
@@ -91,6 +95,76 @@ export interface LifeDurationData {
     | object;
 }
 
+// ==========================================
+// NOWE TYPY - Rozszerzona funkcjonalność
+// ==========================================
+
+/**
+ * Okres zatrudnienia z określoną pensją i typem umowy
+ */
+export interface EmploymentPeriod {
+  id: string;
+  startYear: number;
+  endYear: number;
+  monthlyGross: number;
+  contractType: ContractType;
+  description?: string;
+  // Optional month precision (defaults to January..December when omitted)
+  startMonth?: Month;
+  endMonth?: Month;
+}
+
+/**
+ * Typ wydarzenia życiowego wpływającego na składki
+ */
+export type LifeEventType =
+  | "MATERNITY_LEAVE"
+  | "UNPAID_LEAVE"
+  | "UNEMPLOYMENT"
+  | "SICK_LEAVE"
+  | "SALARY_CHANGE";
+
+/**
+ * Wydarzenie życiowe (urlop, zmiana pensji, etc.)
+ */
+export interface LifeEvent {
+  id: string;
+  type: LifeEventType;
+  year: number;
+  durationMonths?: number; // dla urlopów/zwolnień (1-12)
+  newMonthlyGross?: number; // dla zmian wynagrodzenia
+  description?: string;
+  // Month/day fields for point-like events (e.g., L4)
+  month?: Month;
+  days?: number;
+}
+
+// Periods of gaps affecting contributions (month-precision)
+export interface EmploymentGapPeriod {
+  id: string;
+  kind: "MATERNITY_LEAVE" | "UNPAID_LEAVE" | "UNEMPLOYMENT";
+  startYear: number;
+  startMonth: Month;
+  endYear: number;
+  endMonth: Month;
+  description?: string;
+}
+
+/**
+ * Konfiguracja dodatkowych programów emerytalnych
+ */
+export interface RetirementPrograms {
+  ppk: {
+    enabled: boolean;
+    employeeRate: number; // np. 0.02 = 2%
+    employerRate: number; // np. 0.015 = 1.5%
+  };
+  ikzp: {
+    enabled: boolean;
+    contributionRate: number; // np. 0.10 = 10%
+  };
+}
+
 // User input types
 export interface SimulationInputs {
   age: number;
@@ -103,6 +177,12 @@ export interface SimulationInputs {
   includeL4: boolean;
   postalCode?: string;
   earlyRetirement?: boolean; // Special professions (police, firefighters, etc.)
+
+  // ========== NOWE POLA ==========
+  contractType?: ContractType; // Typ umowy (domyślnie UOP)
+  employmentPeriods?: EmploymentPeriod[]; // Niestandardowe okresy zatrudnienia
+  lifeEvents?: LifeEvent[]; // Wydarzenia życiowe
+  retirementPrograms?: RetirementPrograms; // PPK, IKZP
 }
 
 // Calculation result types
@@ -175,6 +255,17 @@ export interface SimulationResults {
   // Paths
   capitalPath: CapitalEntry[];
   salaryPath: SalaryPathEntry[];
+
+  // ========== NOWE POLA - PPK/IKZP ==========
+  ppkCapital?: number; // Kapitał zgromadzony w PPK
+  ikzpCapital?: number; // Kapitał zgromadzony w IKZP
+  totalPensionWithPrograms?: number; // Łączna emerytura (ZUS + PPK + IKZP)
+  programsBreakdown?: {
+    // Podział emerytury na źródła
+    zus: number;
+    ppk: number;
+    ikzp: number;
+  };
 }
 
 // Dashboard modifications
@@ -187,6 +278,10 @@ export interface DashboardModifications {
   customSalaries: Record<number, number>;
   customL4Periods: L4Period[];
   customWageGrowth: Record<number, number>;
+  // New unified timeline data
+  contractPeriods?: EmploymentPeriod[];
+  gapPeriods?: EmploymentGapPeriod[];
+  lifeEvents?: LifeEvent[];
 }
 
 // Scenario snapshot

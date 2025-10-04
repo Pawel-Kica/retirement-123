@@ -8,6 +8,8 @@ import { Card } from "@/components/ui/Card";
 import { PensionDisplay } from "@/components/ui/PensionDisplay";
 import { Tooltip as InfoTooltip } from "@/components/ui/Tooltip";
 import { HistoryButton } from "@/components/ui/HistoryButton";
+import { CareerTimeline } from "@/components/ui/CareerTimeline";
+import { TimelineSidePanel } from "@/components/ui/TimelineSidePanel";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { formatPLN, formatPercent, formatYears } from "@/lib/utils/formatting";
 import { updateSimulationPostalCode } from "@/lib/utils/simulationHistory";
@@ -24,16 +26,16 @@ import {
   Filler,
 } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
-import { 
-  MapPin, 
-  FileText, 
-  CheckCircle, 
-  AlertTriangle, 
-  Lightbulb, 
-  BarChart3, 
-  TrendingUp, 
+import {
+  MapPin,
+  FileText,
+  CheckCircle,
+  AlertTriangle,
+  Lightbulb,
+  BarChart3,
+  TrendingUp,
   Table,
-  X
+  X,
 } from "lucide-react";
 
 // Register Chart.js components
@@ -68,10 +70,18 @@ const InfoIcon = () => (
 
 export default function WynikPage() {
   const router = useRouter();
-  const { state, loadFromHistory, getHistory, setInputs } = useSimulation();
+  const {
+    state,
+    loadFromHistory,
+    getHistory,
+    setInputs,
+    recalculate,
+    updateDashboardModifications,
+  } = useSimulation();
   const [deferralViewMode, setDeferralViewMode] = useState<
     "bar" | "line" | "table"
   >("bar");
+  const [selectedDeferralYears, setSelectedDeferralYears] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showPostalModal, setShowPostalModal] = useState(false);
   const [postalCode, setPostalCode] = useState("");
@@ -232,6 +242,26 @@ export default function WynikPage() {
     });
   };
 
+  const handleEditSalary = (year: number, newSalary: number) => {
+    console.log(`Editing salary for year ${year} to ${newSalary}`);
+    // TODO: Implement salary editing logic
+    // This would update the inputs and recalculate the simulation
+  };
+
+  const handleAddLifeEvent = (event: any) => {
+    console.log("Adding life event:", event);
+    setLifeEvents([...lifeEvents, { ...event, id: Date.now().toString() }]);
+    // TODO: Implement life event addition logic
+    // This would update the inputs and recalculate the simulation
+  };
+
+  const handleRemoveLifeEvent = (eventId: string) => {
+    console.log("Removing life event:", eventId);
+    setLifeEvents(lifeEvents.filter((e) => e.id !== eventId));
+    // TODO: Implement life event removal logic
+    // This would update the inputs and recalculate the simulation
+  };
+
   if (isLoading || !state.results || !state.inputs) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -290,10 +320,11 @@ export default function WynikPage() {
                 }}
                 placeholder="XX-XXX"
                 maxLength={6}
-                className={`w-full h-12 px-4 text-center text-lg font-semibold border-2 rounded-lg focus:outline-none transition-colors ${postalError
-                  ? "border-zus-error focus:border-zus-error"
-                  : "border-zus-grey-300 focus:border-zus-green"
-                  }`}
+                className={`w-full h-12 px-4 text-center text-lg font-semibold border-2 rounded-lg focus:outline-none transition-colors ${
+                  postalError
+                    ? "border-zus-error focus:border-zus-error"
+                    : "border-zus-grey-300 focus:border-zus-green"
+                }`}
                 aria-invalid={!!postalError}
                 aria-describedby={postalError ? "postal-error" : undefined}
               />
@@ -479,10 +510,11 @@ export default function WynikPage() {
                       Uwzględnienie zwolnień lekarskich
                     </p>
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1 ${inputs.includeL4
-                        ? "bg-zus-error/10 text-zus-error"
-                        : "bg-zus-green/10 text-zus-green"
-                        }`}
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1 ${
+                        inputs.includeL4
+                          ? "bg-zus-error/10 text-zus-error"
+                          : "bg-zus-green/10 text-zus-green"
+                      }`}
                     >
                       {inputs.includeL4 ? "Tak" : "Nie"}
                     </span>
@@ -671,129 +703,410 @@ export default function WynikPage() {
               <FileText className="w-5 h-5 text-zus-green" />
               Dane symulacji
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">
-                    Oczekiwana emerytura
+            <p className="text-sm text-zus-grey-700 mb-6">
+              Zobacz swoją ścieżkę kariery i dodaj wydarzenia, które wpłyną na
+              Twoją emeryturę
+            </p>
+
+            {/* Deferral Slider Section - NOW AT TOP */}
+            <div className="mb-8 p-6 bg-gradient-to-br from-zus-green-light to-blue-50 rounded-lg border-2 border-zus-green">
+              <h3 className="text-xl font-bold text-zus-grey-900 mb-2 flex items-center gap-2">
+                <span>🎯</span>
+                Symuluj: Pracuj dłużej, zarabiaj więcej
+              </h3>
+              <p className="text-sm text-zus-grey-700 mb-6">
+                Przesuń suwak, aby zobaczyć jak wydłużenie kariery zawodowej
+                wpłynie na Twoją przyszłą emeryturę
+              </p>
+
+              {/* Results Display - NEW LAYOUT */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* Base Pension */}
+                <div className="p-5 bg-white rounded-lg shadow-sm border-l-4 border-zus-grey-500">
+                  <p className="text-xs text-zus-grey-600 mb-1 uppercase tracking-wide">
+                    Emerytura bazowa
+                  </p>
+                  <p className="text-2xl font-bold text-zus-grey-900">
+                    {formatPLN(results.realPension)}
+                  </p>
+                  <p className="text-xs text-zus-grey-600 mt-1">
+                    Przejście: {inputs.workEndYear} (
+                    {inputs.age +
+                      (inputs.workEndYear - new Date().getFullYear())}{" "}
+                    lat)
                   </p>
                 </div>
-                <p className="text-sm font-bold text-zus-orange">
-                  {formatPLN(expectedPension)}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">Wiek obecny</p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.age} lat
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">Płeć</p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.sex === "M" ? "M" : "K"}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Rozpoczęcie pracy
-                </p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.workStartYear}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Przejście na emeryturę
-                </p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.workEndYear}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Wiek emerytalny
-                </p>
-                <p className="text-sm font-bold text-zus-green">
-                  {inputs.age + (inputs.workEndYear - new Date().getFullYear())}{" "}
-                  lat
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <p className="text-xs text-zus-grey-600 mb-1">
-                  Lata pracy (total)
-                </p>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.workEndYear - inputs.workStartYear} lat
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Wynagrodzenie</p>
-                  <InfoTooltip content="Twoje obecne miesięczne wynagrodzenie brutto (przed potrąceniem podatków i składek ZUS). Na tej podstawie obliczane są przyszłe składki emerytalne.">
-                    <InfoIcon />
-                  </InfoTooltip>
+
+                {/* Selected Deferral Pension */}
+                <div className="p-5 bg-gradient-to-br from-zus-green to-zus-green-dark rounded-lg shadow-md border-2 border-white">
+                  <p className="text-xs text-white/90 mb-1 uppercase tracking-wide flex items-center gap-2">
+                    <span>✨</span>
+                    Emerytura po +{selectedDeferralYears}{" "}
+                    {selectedDeferralYears === 1 ? "roku" : "latach"}
+                  </p>
+                  <p className="text-3xl font-bold text-white">
+                    {selectedDeferralYears === 0
+                      ? formatPLN(results.realPension)
+                      : formatPLN(
+                          results.deferrals[selectedDeferralYears - 1]
+                            ?.realPension || results.realPension
+                        )}
+                  </p>
+                  <p className="text-xs text-white/80 mt-1">
+                    {selectedDeferralYears === 0
+                      ? "Wybierz lata na suwaku powyżej"
+                      : `Przejście: ${
+                          inputs.workEndYear + selectedDeferralYears
+                        } (${
+                          inputs.age +
+                          (inputs.workEndYear - new Date().getFullYear()) +
+                          selectedDeferralYears
+                        } lat)`}
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {formatPLN(inputs.monthlyGross)}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">L4</p>
-                  <InfoTooltip content="Uwzględnienie zwolnień lekarskich (L4) w symulacji. Okres choroby nie generuje pełnych składek emerytalnych, co wpływa na wysokość przyszłej emerytury.">
-                    <InfoIcon />
-                  </InfoTooltip>
+
+                {/* Increase */}
+                <div
+                  className={`p-5 rounded-lg shadow-sm border-l-4 ${
+                    selectedDeferralYears === 0
+                      ? "bg-zus-grey-100 border-zus-grey-400"
+                      : "bg-zus-green-light border-zus-green"
+                  }`}
+                >
+                  <p className="text-xs text-zus-grey-600 mb-1 uppercase tracking-wide">
+                    💰 Wzrost emerytury
+                  </p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      selectedDeferralYears === 0
+                        ? "text-zus-grey-600"
+                        : "text-zus-green"
+                    }`}
+                  >
+                    {selectedDeferralYears === 0
+                      ? "+0 zł"
+                      : `+${formatPLN(
+                          (results.deferrals[selectedDeferralYears - 1]
+                            ?.realPension || results.realPension) -
+                            results.realPension
+                        )}`}
+                  </p>
+                  <p className="text-xs text-zus-grey-600 mt-1">
+                    {selectedDeferralYears === 0
+                      ? "Przesuń suwak, aby zobaczyć wzrost"
+                      : `+${
+                          results.deferrals[
+                            selectedDeferralYears - 1
+                          ]?.percentIncrease.toFixed(1) || "0.0"
+                        }% więcej miesięcznie`}
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.includeL4 ? "Tak" : "Nie"}
-                </p>
               </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Konto główne</p>
-                  <InfoTooltip content="Stan Twojego głównego konta emerytalnego w ZUS. Informację o stanie konta możesz znaleźć w rocznej informacji przesyłanej przez ZUS lub na Platformie Usług Elektronicznych (PUE ZUS).">
-                    <InfoIcon />
-                  </InfoTooltip>
+
+              {/* Slider Control */}
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="font-semibold text-zus-grey-900 text-lg">
+                    Ile lat dłużej chcesz pracować?
+                  </label>
+                  <span className="text-3xl font-bold text-zus-green">
+                    +{selectedDeferralYears}{" "}
+                    {selectedDeferralYears === 1
+                      ? "rok"
+                      : selectedDeferralYears < 5
+                      ? "lata"
+                      : "lat"}
+                  </span>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.accountBalance
-                    ? formatPLN(inputs.accountBalance)
-                    : "0,00 zł"}
-                </p>
-              </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Subkonto</p>
-                  <InfoTooltip content="Stan subkonta emerytalnego w ZUS. Subkonto zostało utworzone dla osób urodzonych po 1948 roku i gromadzi składki odprowadzane od 1999 roku. Sprawdź stan na PUE ZUS.">
-                    <InfoIcon />
-                  </InfoTooltip>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={Math.min(results.deferrals.length, 15)}
+                  value={selectedDeferralYears}
+                  onChange={(e) =>
+                    setSelectedDeferralYears(Number(e.target.value))
+                  }
+                  className="w-full h-4 bg-gradient-to-r from-zus-grey-300 to-zus-green rounded-lg appearance-none cursor-pointer accent-zus-green"
+                  style={{
+                    background: `linear-gradient(to right, #00843D 0%, #00843D ${
+                      (selectedDeferralYears /
+                        Math.min(results.deferrals.length, 15)) *
+                      100
+                    }%, #E0E0E0 ${
+                      (selectedDeferralYears /
+                        Math.min(results.deferrals.length, 15)) *
+                      100
+                    }%, #E0E0E0 100%)`,
+                  }}
+                />
+
+                <div className="flex justify-between text-sm text-zus-grey-600 mt-2">
+                  <span>
+                    Bazowy plan ({inputs.workEndYear} r. -{" "}
+                    {inputs.age +
+                      (inputs.workEndYear - new Date().getFullYear())}{" "}
+                    lat)
+                  </span>
+                  <span>
+                    +{Math.min(results.deferrals.length, 15)} lat (maks.)
+                  </span>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {inputs.subAccountBalance
-                    ? formatPLN(inputs.subAccountBalance)
-                    : "0,00 zł"}
-                </p>
               </div>
-              <div className="p-3 bg-white rounded border border-zus-grey-300">
-                <div className="flex items-center gap-1 mb-1">
-                  <p className="text-xs text-zus-grey-600">Stopa zastąpienia</p>
-                  <InfoTooltip content="Stopa zastąpienia to procent ostatniego wynagrodzenia, który będzie zastąpiony przez emeryturę. Na przykład 50% oznacza, że emerytura wyniesie połowę ostatniej pensji. Im wyższa stopa, tym lepiej.">
-                    <InfoIcon />
-                  </InfoTooltip>
+
+              {/* Tip */}
+              {selectedDeferralYears > 0 && (
+                <div className="mt-4 p-4 bg-white/70 rounded-lg border border-zus-green">
+                  <p className="text-sm text-zus-grey-700 flex items-start gap-2">
+                    <span className="text-zus-green flex-shrink-0 text-lg">
+                      💡
+                    </span>
+                    <span>
+                      <strong>Wskazówka:</strong> Pracując{" "}
+                      {selectedDeferralYears}{" "}
+                      {selectedDeferralYears === 1
+                        ? "rok"
+                        : selectedDeferralYears < 5
+                        ? "lata"
+                        : "lat"}{" "}
+                      dłużej zwiększysz swoją emeryturę o{" "}
+                      <strong className="text-zus-green">
+                        {formatPLN(
+                          (results.deferrals[selectedDeferralYears - 1]
+                            ?.realPension || results.realPension) -
+                            results.realPension
+                        )}
+                      </strong>{" "}
+                      miesięcznie! To daje{" "}
+                      <strong className="text-zus-green">
+                        {formatPLN(
+                          ((results.deferrals[selectedDeferralYears - 1]
+                            ?.realPension || results.realPension) -
+                            results.realPension) *
+                            12
+                        )}
+                      </strong>{" "}
+                      więcej rocznie.
+                    </span>
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-zus-grey-900">
-                  {formatPercent(results.replacementRate / 100)}
-                </p>
+              )}
+            </div>
+
+            {/* Career Timeline Visualization */}
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 mb-8">
+              <div className="bg-white p-6 rounded-lg border border-zus-grey-300">
+                {/* Timeline header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-sm text-zus-grey-700">
+                    Twoja ścieżka zawodowa
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const item = {
+                          id: Date.now().toString(),
+                          kind: "MATERNITY_LEAVE" as const,
+                          startYear: new Date().getFullYear() + 1,
+                          startMonth: 1 as const,
+                          endYear: new Date().getFullYear() + 1,
+                          endMonth: 6 as const,
+                        };
+                        setGapPeriods((prev) => [...prev, item]);
+                        updateDashboardModifications({
+                          gapPeriods: [...gapPeriods, item],
+                        });
+                        recalculate();
+                      }}
+                      className="px-3 py-1.5 rounded bg-zus-green text-white hover:bg-zus-green-dark text-xs font-semibold transition-colors"
+                    >
+                      👶 Urlop macierzyński
+                    </button>
+                    <button
+                      onClick={() => {
+                        const item = {
+                          id: Date.now().toString(),
+                          kind: "UNPAID_LEAVE" as const,
+                          startYear: new Date().getFullYear() + 1,
+                          startMonth: 1 as const,
+                          endYear: new Date().getFullYear() + 1,
+                          endMonth: 3 as const,
+                        };
+                        setGapPeriods((prev) => [...prev, item]);
+                        updateDashboardModifications({
+                          gapPeriods: [...gapPeriods, item],
+                        });
+                        recalculate();
+                      }}
+                      className="px-3 py-1.5 rounded bg-zus-navy text-white hover:bg-[#083A5F] text-xs font-semibold transition-colors"
+                    >
+                      🏖️ Urlop bezpłatny
+                    </button>
+                    <button
+                      onClick={() => {
+                        const item = {
+                          id: Date.now().toString(),
+                          type: "SICK_LEAVE" as const,
+                          year: new Date().getFullYear() + 1,
+                          month: 1 as const,
+                          days: 182,
+                        };
+                        setLifeEvents((prev) => [...prev, item]);
+                        updateDashboardModifications({
+                          lifeEvents: [...lifeEvents, item],
+                        });
+                        recalculate();
+                      }}
+                      className="px-3 py-1.5 rounded border-2 border-zus-green text-zus-green hover:bg-zus-green-light text-xs font-semibold transition-colors"
+                    >
+                      🏥 Długie L4
+                    </button>
+                  </div>
+                </div>
+
+                {/* Timeline visualization */}
+                <CareerTimeline
+                  salaryPath={results.salaryPath}
+                  capitalPath={results.capitalPath}
+                  contractPeriods={contractPeriods}
+                  gapPeriods={gapPeriods}
+                  lifeEvents={lifeEvents}
+                  currentYear={new Date().getFullYear()}
+                  retirementYear={inputs.workEndYear}
+                  onChangeRetirementYear={(year) => {
+                    const newInputs = { ...inputs, workEndYear: year };
+                    setInputs(newInputs);
+                    recalculate();
+                  }}
+                />
+
+                {/* Events list */}
+                {(lifeEvents.length > 0 ||
+                  gapPeriods.length > 0 ||
+                  contractPeriods.length > 0) && (
+                  <div className="mt-6 pt-6 border-t border-zus-grey-300">
+                    <h4 className="font-semibold text-zus-grey-900 mb-3">
+                      Twoje wydarzenia
+                    </h4>
+                    <div className="space-y-2">
+                      {gapPeriods.map((gap) => (
+                        <div
+                          key={gap.id}
+                          className="flex items-center justify-between p-3 bg-zus-grey-100 rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">
+                              {gap.kind === "MATERNITY_LEAVE"
+                                ? "👶"
+                                : gap.kind === "UNPAID_LEAVE"
+                                ? "🏖️"
+                                : "📉"}
+                            </span>
+                            <div>
+                              <p className="font-semibold text-sm text-zus-grey-900">
+                                {gap.kind === "MATERNITY_LEAVE"
+                                  ? "Urlop macierzyński"
+                                  : gap.kind === "UNPAID_LEAVE"
+                                  ? "Urlop bezpłatny"
+                                  : "Bezrobocie"}
+                              </p>
+                              <p className="text-xs text-zus-grey-600">
+                                {gap.startMonth}/{gap.startYear} -{" "}
+                                {gap.endMonth}/{gap.endYear}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const filtered = gapPeriods.filter(
+                                (g) => g.id !== gap.id
+                              );
+                              setGapPeriods(filtered);
+                              updateDashboardModifications({
+                                gapPeriods: filtered,
+                              });
+                              recalculate();
+                            }}
+                            className="text-zus-error hover:text-zus-error/80 text-sm font-semibold"
+                          >
+                            Usuń
+                          </button>
+                        </div>
+                      ))}
+                      {lifeEvents.map((event) => (
+                        <div
+                          key={event.id}
+                          className="flex items-center justify-between p-3 bg-zus-grey-100 rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">🏥</span>
+                            <div>
+                              <p className="font-semibold text-sm text-zus-grey-900">
+                                Długie L4
+                              </p>
+                              <p className="text-xs text-zus-grey-600">
+                                {event.month}/{event.year} ({event.days || 182}{" "}
+                                dni)
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const filtered = lifeEvents.filter(
+                                (e) => e.id !== event.id
+                              );
+                              setLifeEvents(filtered);
+                              updateDashboardModifications({
+                                lifeEvents: filtered,
+                              });
+                              recalculate();
+                            }}
+                            className="text-zus-error hover:text-zus-error/80 text-sm font-semibold"
+                          >
+                            Usuń
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              <TimelineSidePanel
+                onCreateEmployment={(p) => {
+                  const item = { ...p, id: Date.now().toString() };
+                  setContractPeriods((prev) => [...prev, item]);
+                  updateDashboardModifications({
+                    contractPeriods: [...contractPeriods, item],
+                  });
+                  recalculate();
+                }}
+                onCreateGap={(p) => {
+                  const item = { ...p, id: Date.now().toString() };
+                  setGapPeriods((prev) => [...prev, item]);
+                  updateDashboardModifications({
+                    gapPeriods: [...gapPeriods, item],
+                  });
+                  recalculate();
+                }}
+                onCreateSickPoint={(e) => {
+                  const item = { ...e, id: Date.now().toString() };
+                  setLifeEvents((prev) => [...prev, item]);
+                  updateDashboardModifications({
+                    lifeEvents: [...lifeEvents, item],
+                  });
+                  recalculate();
+                }}
+              />
             </div>
           </Card>
 
           {/* Deferral Scenarios */}
           <Card className="mb-8">
+            {/* Original View Mode Toggle */}
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-zus-grey-900">
-                Co jeśli będziesz pracować dłużej?
+                Szczegółowa analiza wszystkich scenariuszy
               </h3>
               <div className="flex gap-2 bg-zus-grey-100 p-1 rounded-lg">
                 <button
@@ -839,14 +1152,16 @@ export default function WynikPage() {
                   <Bar
                     data={{
                       labels: [
-                        `Bazowy (wiek ${inputs.age +
-                        (inputs.workEndYear - new Date().getFullYear())
+                        `Bazowy (wiek ${
+                          inputs.age +
+                          (inputs.workEndYear - new Date().getFullYear())
                         })`,
                         ...results.deferrals.map(
                           (d) =>
-                            `+${d.additionalYears} ${d.additionalYears === 1
-                              ? "rok"
-                              : d.additionalYears < 5
+                            `+${d.additionalYears} ${
+                              d.additionalYears === 1
+                                ? "rok"
+                                : d.additionalYears < 5
                                 ? "lata"
                                 : "lat"
                             } (wiek ${d.retirementAge})`
@@ -1002,8 +1317,9 @@ export default function WynikPage() {
                   <Line
                     data={{
                       labels: [
-                        `Bazowy\n${inputs.age +
-                        (inputs.workEndYear - new Date().getFullYear())
+                        `Bazowy\n${
+                          inputs.age +
+                          (inputs.workEndYear - new Date().getFullYear())
                         } lat`,
                         ...results.deferrals.map(
                           (d) => `+${d.additionalYears}\n${d.retirementAge} lat`
