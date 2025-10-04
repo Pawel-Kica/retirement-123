@@ -54,7 +54,7 @@ export function VerticalCarousel({
             <div
               key={index}
               ref={index === 0 ? measureRef : null}
-              className={`absolute top-0 left-[50%] whitespace-nowrap transition-all duration-700 ease-in-out ${className}`}
+              className={`absolute top-0 left-[50%] whitespace-nowrap transition-transform duration-700 ease-in-out ${className}`}
               style={{
                 transform: `translateY(${translateY}) translateX(-50%)`,
                 width: 'max-content',
