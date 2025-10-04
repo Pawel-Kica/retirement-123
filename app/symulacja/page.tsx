@@ -647,6 +647,7 @@ export default function SimulacjaPage() {
                       placeholder="np. 35"
                       required
                       error={getFieldError(errors, "age")}
+                      reserveErrorSpace="46px"
                     />
                     {formData.age &&
                       formData.age > 70 &&
@@ -838,6 +839,7 @@ export default function SimulacjaPage() {
                       required
                       error={getFieldError(errors, "workEndYear")}
                       errorSeverity={getFieldSeverity(errors, "workEndYear")}
+                      reserveErrorSpace="64px"
                       hint={
                         !getFieldError(errors, "workEndYear") &&
                         formData.workEndYear
@@ -1011,52 +1013,58 @@ export default function SimulacjaPage() {
                   </FormField>
 
                   <div className="pt-4">
-                    <div className="p-4 bg-blue-50 border-l-4 border-zus-navy rounded">
-                      <p className="text-sm text-zus-grey-700 mb-3 flex items-start gap-2">
-                        <LuHeartPulse className="w-5 h-5 text-zus-error flex-shrink-0 mt-0.5" />
-                        <span>
-                          <strong>Zwolnienia lekarskie (L4)</strong>
-                          <br />
-                          Uwzględnij statystyczne prawdopodobieństwo zwolnień
-                          lekarskich
-                        </span>
-                      </p>
-                      <label className="flex items-center gap-3 cursor-pointer">
+                    <div className="p-5 bg-blue-50 border-l-4 border-zus-navy rounded-lg shadow-sm">
+                      <div className="flex items-start gap-3 mb-4">
+                        <LuHeartPulse className="w-6 h-6 text-zus-error flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="text-lg font-bold text-zus-grey-900 mb-1">
+                            Zwolnienia lekarskie (L4)
+                          </h4>
+                          <p className="text-sm text-zus-grey-700">
+                            Uwzględnij statystyczne prawdopodobieństwo zwolnień lekarskich
+                          </p>
+                        </div>
+                      </div>
+
+                      <label className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-zus-green-light transition-colors border-2 border-transparent hover:border-zus-green mb-4">
                         <input
                           type="checkbox"
                           checked={formData.includeL4 || false}
                           onChange={(e) =>
                             handleChange("includeL4", e.target.checked)
                           }
-                          className="w-5 h-5 accent-zus-green"
+                          className="w-5 h-5 accent-zus-green flex-shrink-0"
                         />
                         <span className="font-semibold text-zus-grey-900">
                           Uwzględnij prawdopodobieństwo zwolnień lekarskich
                         </span>
                       </label>
-                    </div>
-                    <div className="mt-4 p-4 bg-white rounded border border-zus-grey-300">
-                      <h4 className="font-bold mb-2">
-                        Średnia długość L4 w Polsce:
-                      </h4>
-                      <ul className="list-disc pl-5 space-y-1 mb-3 text-sm">
-                        <li>
-                          Kobiety: średnio {data?.sickImpactF?.avgDaysPerYear || 0} dni
-                          rocznie
-                        </li>
-                        <li>
-                          Mężczyźni: średnio {data?.sickImpactM?.avgDaysPerYear || 0}{" "}
-                          dni rocznie
-                        </li>
-                      </ul>
-                      <p className="text-sm text-zus-grey-700">
-                        Podczas zwolnienia lekarskiego składki emerytalne są
-                        odprowadzane od zasiłku (zazwyczaj niższego niż pełne
-                        wynagrodzenie), co zmniejsza kapitał emerytalny. Średnio
-                        obniża to świadczenie o{" "}
-                        {((1 - l4Config.reductionCoefficient) * 100).toFixed(1)}
-                        %.
-                      </p>
+
+                      <div className="bg-white/70 rounded-lg p-4 space-y-3">
+                        <h5 className="font-bold text-zus-grey-900">
+                          Średnia długość L4 w Polsce:
+                        </h5>
+                        <ul className="space-y-2 text-sm">
+                          <li className="flex items-start gap-2">
+                            <span className="text-zus-green font-bold">•</span>
+                            <span className="text-zus-grey-700">
+                              <strong>Kobiety:</strong> średnio {data?.sickImpactF?.avgDaysPerYear || 0} dni rocznie
+                            </span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-zus-green font-bold">•</span>
+                            <span className="text-zus-grey-700">
+                              <strong>Mężczyźni:</strong> średnio {data?.sickImpactM?.avgDaysPerYear || 0} dni rocznie
+                            </span>
+                          </li>
+                        </ul>
+                        <p className="text-sm text-zus-grey-700 pt-2 border-t border-zus-grey-300">
+                          Podczas zwolnienia lekarskiego składki emerytalne są odprowadzane od zasiłku (zazwyczaj niższego niż pełne wynagrodzenie), co zmniejsza kapitał emerytalny. Średnio obniża to świadczenie o{" "}
+                          <strong className="text-zus-error">
+                            {((1 - l4Config.reductionCoefficient) * 100).toFixed(1)}%
+                          </strong>.
+                        </p>
+                      </div>
                     </div>
                   </div>
 

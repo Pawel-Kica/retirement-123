@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FormField } from "./FormField";
+import { FormField, FormFieldProps } from "./FormField";
 
 interface InputWithSliderProps {
   label: string;
@@ -15,6 +15,7 @@ interface InputWithSliderProps {
   required?: boolean;
   placeholder?: string;
   tooltip?: string;
+  reserveErrorSpace?: FormFieldProps['reserveErrorSpace']
 }
 
 export function InputWithSlider({
@@ -31,6 +32,7 @@ export function InputWithSlider({
   required = false,
   placeholder,
   tooltip,
+  reserveErrorSpace 
 }: InputWithSliderProps) {
   const [sliderValue, setSliderValue] = useState<number>(
     value !== undefined ? value : Math.round((min + max) / 2)
@@ -68,6 +70,7 @@ export function InputWithSlider({
       errorSeverity={errorSeverity}
       hint={hint}
       tooltip={tooltip}
+      reserveErrorSpace={reserveErrorSpace}
     >
       <div className="space-y-2">
         <div className="relative">

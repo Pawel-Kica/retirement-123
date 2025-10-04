@@ -1,7 +1,7 @@
 import React from "react";
 import { Tooltip } from "./Tooltip";
 
-interface FormFieldProps {
+export interface FormFieldProps {
   label: string;
   children: React.ReactNode;
   required?: boolean;
@@ -10,7 +10,7 @@ interface FormFieldProps {
   hint?: string | React.ReactNode;
   tooltip?: string;
   className?: string;
-  reserveErrorSpace?: boolean;
+  reserveErrorSpace?: `${number}px`;
 }
 
 export function FormField({
@@ -22,7 +22,7 @@ export function FormField({
   hint,
   tooltip,
   className = "",
-  reserveErrorSpace = false,
+  reserveErrorSpace
 }: FormFieldProps) {
   return (
     <div className={`mb-4 ${className}`}>
@@ -52,7 +52,10 @@ export function FormField({
         )}
       </label>
       {children}
-      <div className={`mt-1 ${reserveErrorSpace ? "min-h-[72px]" : ""}`}>
+      <div 
+        className={`mt-1`}
+        style={{ minHeight: reserveErrorSpace }}
+      >
         {error ? (
           <div
             className={`text-sm flex items-start gap-2 p-3 rounded border-l-4 ${
