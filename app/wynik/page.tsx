@@ -95,7 +95,7 @@ export default function WynikPage() {
     }
   }, [showPostalModal]);
 
-  const handlePostalSubmit = () => {
+  const handlePostalSubmit = async () => {
     if (postalCode && !validatePostalCode(postalCode)) {
       setPostalError("Nieprawidłowy kod pocztowy. Format: XX-XXX");
       return;
@@ -113,11 +113,39 @@ export default function WynikPage() {
       }
     }
 
+    await saveToDatabase(postalCode);
     setShowPostalModal(false);
   };
 
-  const handleSkipPostal = () => {
+  const handleSkipPostal = async () => {
+    await saveToDatabase(null);
     setShowPostalModal(false);
+  };
+
+  const saveToDatabase = async (postal: string | null) => {
+    if (!state.inputs || !state.results) return;
+
+    try {
+      await fetch("/api/simulations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          expectedPension: state.expectedPension,
+          age: state.inputs.age,
+          sex: state.inputs.sex,
+          monthlyGross: state.inputs.monthlyGross,
+          includeL4: state.inputs.includeL4,
+          accountBalance: state.inputs.accountBalance,
+          subAccountBalance: state.inputs.subAccountBalance,
+          nominalPension: state.results.nominalPension,
+          realPension: state.results.realPension,
+          postalCode: postal,
+        }),
+      });
+      console.log("✅ Simulation data saved to database");
+    } catch (error) {
+      console.error("Failed to save simulation to database:", error);
+    }
   };
 
   const validatePostalCode = (code: string): boolean => {
@@ -212,11 +240,10 @@ export default function WynikPage() {
                 }}
                 placeholder="XX-XXX"
                 maxLength={6}
-                className={`w-full h-12 px-4 text-center text-lg font-semibold border-2 rounded-lg focus:outline-none transition-colors ${
-                  postalError
-                    ? "border-zus-error focus:border-zus-error"
-                    : "border-zus-grey-300 focus:border-zus-green"
-                }`}
+                className={`w-full h-12 px-4 text-center text-lg font-semibold border-2 rounded-lg focus:outline-none transition-colors ${postalError
+                  ? "border-zus-error focus:border-zus-error"
+                  : "border-zus-grey-300 focus:border-zus-green"
+                  }`}
                 aria-invalid={!!postalError}
                 aria-describedby={postalError ? "postal-error" : undefined}
               />
@@ -382,11 +409,10 @@ export default function WynikPage() {
                       Uwzględnienie okresów choroby (L4)
                     </p>
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1 ${
-                        inputs.includeL4
-                          ? "bg-zus-error/10 text-zus-error"
-                          : "bg-zus-green/10 text-zus-green"
-                      }`}
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold mt-1 ${inputs.includeL4
+                        ? "bg-zus-error/10 text-zus-error"
+                        : "bg-zus-green/10 text-zus-green"
+                        }`}
                     >
                       {inputs.includeL4 ? "Tak" : "Nie"}
                     </span>
@@ -598,65 +624,65 @@ export default function WynikPage() {
               📋 Twoje dane wejściowe
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <div className="p-3 bg-white rounded border border-zus-grey-300">
-              <p className="text-xs text-zus-grey-600 mb-1">
-                Oczekiwana emerytura
-              </p>
-              <p className="text-sm font-bold text-zus-orange">
-                {formatPLN(expectedPension)}
-              </p>
-            </div>
-            <div className="p-3 bg-white rounded border border-zus-grey-300">
-              <p className="text-xs text-zus-grey-600 mb-1">Wiek obecny</p>
-              <p className="text-sm font-bold text-zus-grey-900">
-                {inputs.age} lat
-              </p>
-            </div>
-            <div className="p-3 bg-white rounded border border-zus-grey-300">
-              <p className="text-xs text-zus-grey-600 mb-1">Płeć</p>
-              <p className="text-sm font-bold text-zus-grey-900">
-                {inputs.sex === "M" ? "M" : "K"}
-              </p>
-            </div>
-            <div className="p-3 bg-white rounded border border-zus-grey-300">
-              <p className="text-xs text-zus-grey-600 mb-1">
-                Rozpoczęcie pracy
-              </p>
-              <p className="text-sm font-bold text-zus-grey-900">
-                {inputs.workStartYear}
-              </p>
-            </div>
-            <div className="p-3 bg-white rounded border border-zus-grey-300">
-              <p className="text-xs text-zus-grey-600 mb-1">
-                Przejście na emeryturę
-              </p>
-              <p className="text-sm font-bold text-zus-grey-900">
-                {inputs.workEndYear}
-              </p>
-            </div>
-            <div className="p-3 bg-white rounded border border-zus-grey-300">
-              <p className="text-xs text-zus-grey-600 mb-1">
-                Wiek emerytalny
-              </p>
-              <p className="text-sm font-bold text-zus-green">
-                {inputs.age + (inputs.workEndYear - new Date().getFullYear())}{" "}
-                lat
-              </p>
-            </div>
-            <div className="p-3 bg-white rounded border border-zus-grey-300">
-              <p className="text-xs text-zus-grey-600 mb-1">
-                Lata pracy (total)
-              </p>
-              <p className="text-sm font-bold text-zus-grey-900">
-                {inputs.workEndYear - inputs.workStartYear} lat
-              </p>
-            </div>
-            <div className="p-3 bg-white rounded border border-zus-grey-300">
-              <p className="text-xs text-zus-grey-600 mb-1">Wynagrodzenie</p>
-              <p className="text-sm font-bold text-zus-grey-900">
-                {formatPLN(inputs.monthlyGross)}
-              </p>
-            </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">
+                  Oczekiwana emerytura
+                </p>
+                <p className="text-sm font-bold text-zus-orange">
+                  {formatPLN(expectedPension)}
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">Wiek obecny</p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.age} lat
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">Płeć</p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.sex === "M" ? "M" : "K"}
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">
+                  Rozpoczęcie pracy
+                </p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.workStartYear}
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">
+                  Przejście na emeryturę
+                </p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.workEndYear}
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">
+                  Wiek emerytalny
+                </p>
+                <p className="text-sm font-bold text-zus-green">
+                  {inputs.age + (inputs.workEndYear - new Date().getFullYear())}{" "}
+                  lat
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">
+                  Lata pracy (total)
+                </p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {inputs.workEndYear - inputs.workStartYear} lat
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded border border-zus-grey-300">
+                <p className="text-xs text-zus-grey-600 mb-1">Wynagrodzenie</p>
+                <p className="text-sm font-bold text-zus-grey-900">
+                  {formatPLN(inputs.monthlyGross)}
+                </p>
+              </div>
               <div className="p-3 bg-white rounded border border-zus-grey-300">
                 <p className="text-xs text-zus-grey-600 mb-1">L4</p>
                 <p className="text-sm font-bold text-zus-grey-900">
@@ -699,31 +725,28 @@ export default function WynikPage() {
               <div className="flex gap-2 bg-zus-grey-100 p-1 rounded-lg">
                 <button
                   onClick={() => setDeferralViewMode("bar")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
-                    deferralViewMode === "bar"
-                      ? "bg-zus-green text-white shadow-md"
-                      : "text-zus-grey-700 hover:bg-white"
-                  }`}
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${deferralViewMode === "bar"
+                    ? "bg-zus-green text-white shadow-md"
+                    : "text-zus-grey-700 hover:bg-white"
+                    }`}
                 >
                   📊 Wykres słupkowy
                 </button>
                 <button
                   onClick={() => setDeferralViewMode("line")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
-                    deferralViewMode === "line"
-                      ? "bg-zus-green text-white shadow-md"
-                      : "text-zus-grey-700 hover:bg-white"
-                  }`}
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${deferralViewMode === "line"
+                    ? "bg-zus-green text-white shadow-md"
+                    : "text-zus-grey-700 hover:bg-white"
+                    }`}
                 >
                   📈 Wykres liniowy
                 </button>
                 <button
                   onClick={() => setDeferralViewMode("table")}
-                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
-                    deferralViewMode === "table"
-                      ? "bg-zus-green text-white shadow-md"
-                      : "text-zus-grey-700 hover:bg-white"
-                  }`}
+                  className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${deferralViewMode === "table"
+                    ? "bg-zus-green text-white shadow-md"
+                    : "text-zus-grey-700 hover:bg-white"
+                    }`}
                 >
                   📋 Tabela
                 </button>
@@ -737,16 +760,14 @@ export default function WynikPage() {
                   <Bar
                     data={{
                       labels: [
-                        `Bazowy (wiek ${
-                          inputs.age +
-                          (inputs.workEndYear - new Date().getFullYear())
+                        `Bazowy (wiek ${inputs.age +
+                        (inputs.workEndYear - new Date().getFullYear())
                         })`,
                         ...results.deferrals.map(
                           (d) =>
-                            `+${d.additionalYears} ${
-                              d.additionalYears === 1
-                                ? "rok"
-                                : d.additionalYears < 5
+                            `+${d.additionalYears} ${d.additionalYears === 1
+                              ? "rok"
+                              : d.additionalYears < 5
                                 ? "lata"
                                 : "lat"
                             } (wiek ${d.retirementAge})`
@@ -902,9 +923,8 @@ export default function WynikPage() {
                   <Line
                     data={{
                       labels: [
-                        `Bazowy\n${
-                          inputs.age +
-                          (inputs.workEndYear - new Date().getFullYear())
+                        `Bazowy\n${inputs.age +
+                        (inputs.workEndYear - new Date().getFullYear())
                         } lat`,
                         ...results.deferrals.map(
                           (d) => `+${d.additionalYears}\n${d.retirementAge} lat`
