@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import * as XLSX from "xlsx";
 import {
     IconRefresh,
     IconUsers,
@@ -16,6 +17,7 @@ import {
     IconReportMoney,
     IconHeartbeat,
     IconBriefcase,
+    IconDownload,
 } from "@tabler/icons-react";
 import {
     Chart as ChartJS,
@@ -108,6 +110,63 @@ export default function AdminPage() {
             console.error(err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleExportToExcel = async () => {
+        try {
+            const response = await fetch('/api/admin/export');
+            const result = await response.json();
+
+            if (result.success) {
+                // Format data for Excel with specified headers
+                const excelData = result.data.map((row: any) => ({
+                    'Data użycia': row.data_uzycia ? new Date(row.data_uzycia).toLocaleDateString('pl-PL') : '',
+                    'Godzina użycia': row.godzina_uzycia || '',
+                    'Emerytura oczekiwana': row.emerytura_oczekiwana || '',
+                    'Wiek': row.wiek || '',
+                    'Płeć': row.plec === 'M' ? 'Mężczyzna' : row.plec === 'F' ? 'Kobieta' : '',
+                    'Wysokość wynagrodzenia': row.wysokosc_wynagrodzenia || '',
+                    'Uwzględnił okresy choroby': row.uwzglednial_okresy_choroby ? 'Tak' : 'Nie',
+                    'Wysokość środków': row.wysokosc_srodkow || '',
+                    'Emerytura rzeczywista': row.emerytura_rzeczywista || '',
+                    'Emerytura urealniona': row.emerytura_urealniona || '',
+                    'Kod pocztowy': row.kod_pocztowy || ''
+                }));
+
+                // Create workbook and worksheet
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Raport użycia');
+
+                // Set column widths
+                const colWidths = [
+                    { wch: 15 }, // Data użycia
+                    { wch: 15 }, // Godzina użycia
+                    { wch: 20 }, // Emerytura oczekiwana
+                    { wch: 8 },  // Wiek
+                    { wch: 12 }, // Płeć
+                    { wch: 22 }, // Wysokość wynagrodzenia
+                    { wch: 28 }, // Uwzględnił okresy choroby
+                    { wch: 18 }, // Wysokość środków
+                    { wch: 22 }, // Emerytura rzeczywista
+                    { wch: 22 }, // Emerytura urealniona
+                    { wch: 15 }  // Kod pocztowy
+                ];
+                worksheet['!cols'] = colWidths;
+
+                // Generate filename with current date
+                const now = new Date();
+                const filename = `raport_uzycia_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}.xlsx`;
+
+                // Download file
+                XLSX.writeFile(workbook, filename);
+            } else {
+                alert('Nie udało się pobrać danych do eksportu');
+            }
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            alert('Wystąpił błąd podczas eksportu danych');
         }
     };
 
@@ -367,13 +426,22 @@ export default function AdminPage() {
                                 </button>
                             </div>
 
-                            <button
-                                onClick={fetchStatistics}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-zus-green text-white rounded-lg hover:bg-zus-green-dark transition-colors font-medium text-sm"
-                            >
-                                <IconRefresh size={18} />
-                                Odśwież
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleExportToExcel}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-zus-orange text-white rounded-lg hover:bg-amber-600 transition-colors font-medium text-sm cursor-pointer"
+                                >
+                                    <IconDownload size={18} />
+                                    Eksport do Excel
+                                </button>
+                                <button
+                                    onClick={fetchStatistics}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-zus-green text-white rounded-lg hover:bg-zus-green-dark transition-colors font-medium text-sm cursor-pointer"
+                                >
+                                    <IconRefresh size={18} />
+                                    Odśwież
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
