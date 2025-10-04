@@ -4,11 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-// Pre-calculate EU star positions to avoid hydration mismatch
+// Pre-calculate EU star positions with fixed precision to avoid hydration mismatch
 const EU_STAR_POSITIONS = [...Array(12)].map((_, i) => {
   const angle = (i * 30 - 90) * (Math.PI / 180);
-  const x = 24 + 14 * Math.cos(angle);
-  const y = 24 + 14 * Math.sin(angle);
+  const x = parseFloat((24 + 14 * Math.cos(angle)).toFixed(2));
+  const y = parseFloat((24 + 14 * Math.sin(angle)).toFixed(2));
   return { x, y };
 });
 
