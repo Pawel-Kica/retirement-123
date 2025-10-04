@@ -8,6 +8,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { getRandomFact } from "@/lib/data/loader";
 import { formatPLN } from "@/lib/utils/formatting";
+import { DynamicNumberInput } from "@/components/ui/DynamicNumberInput";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -350,104 +351,104 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Expected Pension Input */}
+        {/* Expected Pension Input - Merged Section */}
         <Card className="mb-4">
-          <div className="text-center mb-4">
-            <h2 className="text-xl font-bold text-zus-grey-900 mb-1">
-              Jaka emerytura Cię zadowoli?
-            </h2>
-            <p className="text-sm text-gray-600">
-              W dzisiejszych złotych (wartość realna)
-            </p>
-          </div>
-
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <input
-              type="number"
-              step={SLIDER_STEP}
-              value={pension}
-              onChange={(e) => handleDirectInput(Number(e.target.value))}
-              onBlur={(e) => {
-                // Ensure value is clamped when user leaves the field
-                const value = Number(e.target.value);
-                if (isNaN(value) || value < SLIDER_MIN) {
-                  handleDirectInput(SLIDER_MIN);
-                } else if (value > SLIDER_MAX) {
-                  handleDirectInput(SLIDER_MAX);
-                }
-              }}
-              className="w-28 p-2 text-center text-xl font-bold border-2 border-zus-grey-300 rounded-lg"
-            />
-            <div className="text-2xl font-bold text-zus-grey-900">
-              {formatPLN(pension)}
+          <div className="flex items-start gap-3 mb-6">
+            <div className="flex-1 text-center">
+              <h2 className="text-xl md:text-2xl font-semibold text-zus-grey-700 mb-6">
+                Jaka emerytura Cię zadowoli?
+              </h2>
+              
+              <div className="flex items-center justify-center text-3xl md:text-4xl mb-2">
+                <DynamicNumberInput
+                  value={pension}
+                  onChange={handleDirectInput}
+                  min={SLIDER_MIN}
+                  max={SLIDER_MAX}
+                  step={SLIDER_STEP}
+                  className="text-3xl md:text-4xl"
+                />
+              </div>
+              
+              <p className="text-xs text-gray-400 mb-6">
+                W dzisiejszych złotych (wartość realna)
+              </p>
             </div>
           </div>
 
           {/* Colorful Gradient Slider */}
-          <div className="relative mb-4">
-            {/* Gradient based on percentage distribution: 15%, 25%, 35%, 20%, 5% */}
-            <div
-              className="h-3 rounded-lg overflow-hidden mb-2"
-              style={{
-                background: `linear-gradient(to right,
-                #D32F2F 0%,
-                #D32F2F 15%,
-                #F5A623 15%,
-                #F5A623 40%,
-                #0088CC 40%,
-                #0088CC 75%,
-                #00843D 75%,
-                #00843D 95%,
-                #0B4C7C 95%,
-                #0B4C7C 100%)`,
-              }}
-            />
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={0.01}
-              value={sliderPosition}
-              onChange={(e) => handleSliderChange(Number(e.target.value))}
-              className="absolute top-0 w-full h-3 bg-transparent appearance-none cursor-pointer slider-thumb"
-              style={{
-                WebkitAppearance: "none",
-              }}
-            />
+          <div className="mb-6">
+            <div className="mb-4 text-center">
+              <p className="text-sm font-medium text-zus-grey-700 mb-2">
+                Przesuń suwak lub wpisz wartość
+              </p>
+            </div>
+
+            <div className="relative px-2">
+              {/* Gradient based on percentage distribution: 15%, 25%, 35%, 20%, 5% */}
+              <div
+                className="h-4 rounded-full overflow-hidden shadow-inner"
+                style={{
+                  background: `linear-gradient(to right,
+                  #D32F2F 0%,
+                  #D32F2F 15%,
+                  #F5A623 15%,
+                  #F5A623 40%,
+                  #0088CC 40%,
+                  #0088CC 75%,
+                  #00843D 75%,
+                  #00843D 95%,
+                  #0B4C7C 95%,
+                  #0B4C7C 100%)`,
+                }}
+              />
+              
+              {/* Average pension marker */}
+              {(() => {
+                const avgPension = 4045.20;
+                const avgPosition = pensionToPercentage(avgPension);
+                return (
+                  <div
+                    className="absolute top-0 h-4 w-0.5 bg-white pointer-events-none shadow-md"
+                    style={{
+                      left: `${avgPosition}%`,
+                      transform: 'translateX(-50%)',
+                    }}
+                    title="Średnia emerytura"
+                  >
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-zus-grey-700 shadow-md"></div>
+                  </div>
+                );
+              })()}
+              
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={0.01}
+                value={sliderPosition}
+                onChange={(e) => handleSliderChange(Number(e.target.value))}
+                className="absolute top-0 left-0 w-full h-4 bg-transparent appearance-none cursor-pointer slider-thumb px-2"
+                style={{
+                  WebkitAppearance: "none",
+                }}
+                aria-label="Wybierz wysokość emerytury"
+              />
+            </div>
 
             {/* Tick marks - only start and end */}
-            <div className="relative mt-2" style={{ height: "24px" }}>
+            <div className="flex items-center justify-between mt-2 px-2">
               {labeledMarks.map((mark, index) => {
-                const position = pensionToPercentage(mark);
                 const isFirst = index === 0;
                 const isLast = index === labeledMarks.length - 1;
 
                 return (
                   <div
                     key={`label-${mark}`}
-                    className="absolute top-0 pointer-events-none"
-                    style={{
-                      left: `${position}%`,
-                      transform: isFirst
-                        ? "none"
-                        : isLast
-                          ? "translateX(-100%)"
-                          : "translateX(-50%)",
-                    }}
+                    className="flex flex-col items-center gap-1"
                   >
-                    <div
-                      style={{
-                        width: "2px",
-                        height: "8px",
-                        backgroundColor: "#4b5563",
-                        marginBottom: "2px",
-                        marginLeft: isLast ? "auto" : "0",
-                      }}
-                    ></div>
-                    <span
-                      className="block text-xs whitespace-nowrap"
-                      style={{ color: "#4b5563" }}
-                    >
+                    <div className="w-px h-2 bg-zus-grey-400"></div>
+                    <span className="text-xs text-zus-grey-600 font-medium">
                       {mark.toLocaleString("pl-PL")} zł
                     </span>
                   </div>
@@ -456,66 +457,81 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Comparison to Average - Now Inside Same Card */}
+          <div className="border-t border-zus-grey-300 pt-6">
+            <div className="text-center">
+              {(() => {
+                const avgPension = 4045.20;
+                const difference = pension - avgPension;
+                const percentDiff = ((difference / avgPension) * 100).toFixed(0);
+                const isHigher = pension > avgPension;
+                const isEqual = Math.abs(difference) < 50;
+                
+                if (isEqual) {
+                  return (
+                    <p className="text-sm text-zus-grey-700">
+                      Twoje oczekiwania są <strong>zbliżone do średniej</strong>
+                    </p>
+                  );
+                }
+                
+                return (
+                  <p className={`text-sm font-medium ${isHigher ? 'text-zus-green' : 'text-zus-error'}`}>
+                    Twoje oczekiwania są <strong>{isHigher ? 'wyższe' : 'niższe'}</strong> o{' '}
+                    <strong>{Math.abs(Number(percentDiff))}%</strong> ({isHigher ? '+' : ''}{difference.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł)
+                    od średniej
+                  </p>
+                );
+              })()}
+            </div>
+
+          </div>
+
           <style jsx>{`
             .slider-thumb::-webkit-slider-thumb {
               -webkit-appearance: none;
               appearance: none;
-              width: 24px;
-              height: 24px;
+              width: 28px;
+              height: 28px;
               border-radius: 50%;
               background: white;
-              border: 3px solid ${groups[activeCategory]?.color || "#0B4C7C"};
-              cursor: pointer;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              border: 4px solid ${groups[activeCategory]?.color || "#0B4C7C"};
+              cursor: grab;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(0, 132, 61, 0.1);
+              transition: all 150ms ease-in-out;
+            }
+
+            .slider-thumb::-webkit-slider-thumb:hover {
+              transform: scale(1.15);
+              box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 0 0 6px rgba(0, 132, 61, 0.15);
+            }
+
+            .slider-thumb::-webkit-slider-thumb:active {
+              cursor: grabbing;
+              transform: scale(1.1);
             }
 
             .slider-thumb::-moz-range-thumb {
-              width: 24px;
-              height: 24px;
+              width: 28px;
+              height: 28px;
               border-radius: 50%;
               background: white;
-              border: 3px solid ${groups[activeCategory]?.color || "#0B4C7C"};
-              cursor: pointer;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              border: 4px solid ${groups[activeCategory]?.color || "#0B4C7C"};
+              cursor: grab;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(0, 132, 61, 0.1);
+              transition: all 150ms ease-in-out;
+            }
+
+            .slider-thumb::-moz-range-thumb:hover {
+              transform: scale(1.15);
+              box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 0 0 6px rgba(0, 132, 61, 0.15);
+            }
+
+            .slider-thumb::-moz-range-thumb:active {
+              cursor: grabbing;
+              transform: scale(1.1);
             }
           `}</style>
-        </Card>
-
-        {/* Comparison to Average */}
-        <Card variant="highlight" className="mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-700 mb-1">
-                Obecna średnia emerytura w Polsce:
-              </p>
-              <p className="text-2xl font-bold text-zus-grey-900">
-                4 045,20 zł
-              </p>
-            </div>
-            <Tooltip content="Średnia emerytura brutto w Polsce (dane GUS, 2024). Połowa emerytów otrzymuje mniej, połowa więcej. Twoje oczekiwania mogą być wyższe lub niższe.">
-              <svg
-                className="w-6 h-6 text-zus-blue cursor-pointer"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </Tooltip>
-          </div>
-          {pension < 3518 && (
-            <p className="text-xs text-gray-700 mt-2">
-              💡 Twoje oczekiwania są poniżej obecnej średniej
-            </p>
-          )}
-          {pension > 3518 && (
-            <p className="text-xs text-gray-700 mt-2">
-              💡 Twoje oczekiwania są powyżej obecnej średniej
-            </p>
-          )}
         </Card>
 
         {/* Distribution Chart - Split View */}
