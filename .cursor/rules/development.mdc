@@ -1,0 +1,461 @@
+---
+alwaysApply: true
+---
+## 🎨 CRITICAL: Design System Compliance
+
+**ALL UI components, styles, and visual elements MUST strictly follow the ZUS.pl Design System.**
+Reference: `DESGIN_GUIDELINE.md` for complete specifications.
+
+Do not add comments in code you were generated.
+
+## Color Palette (MANDATORY)
+
+### Primary Colors - USE THESE
+```css
+--zus-green: #00843D          /* Primary brand color - buttons, links, active states */
+--zus-green-dark: #006B32     /* Hover states, emphasis */
+--zus-green-light: #F0F8F4    /* Subtle backgrounds, highlights */
+```
+
+### Secondary Colors
+```css
+--zus-navy: #0B4C7C           /* Secondary action buttons */
+--zus-blue: #0088CC           /* Info sections */
+--zus-orange: #F5A623         /* Primary CTA buttons (like "OBLICZ") */
+--zus-teal: #00A99D           /* Accent elements */
+```
+
+### Utility Colors
+```css
+--error-red: #D32F2F          /* Errors, validation messages */
+--warning-orange: #F5A623     /* Warnings */
+--grey-900: #212121           /* Headings */
+--grey-700: #424242           /* Body text */
+--grey-500: #757575           /* Secondary text */
+--grey-300: #E0E0E0           /* Borders, dividers */
+--grey-100: #F5F5F5           /* Light backgrounds */
+--white: #FFFFFF              /* White backgrounds */
+```
+
+### ❌ NEVER USE
+- DO NOT use: rgb(0,65,110), rgb(63,132,210), rgb(255,179,79), rgb(0,153,63), rgb(240,94,94)
+- These colors are NOT part of the ZUS design system
+
+## Button Specifications
+
+### Primary Button (Orange/Amber) - Main Actions
+- Background: `#F5A623`
+- Text: `#FFFFFF`
+- Padding: `12px 24px`
+- Border Radius: `4-6px`
+- Font Weight: `600-700`
+- Hover: `#E89512`
+
+### Secondary Button (Navy)
+- Background: `#0B4C7C`
+- Text: `#FFFFFF`
+- Hover: `#083A5F`
+
+### Success Button (Green)
+- Background: `#00843D`
+- Text: `#FFFFFF`
+- Hover: `#006B32`
+
+### Ghost/Outline Button
+- Background: `transparent`
+- Border: `2px solid #00843D`
+- Text: `#00843D`
+- Hover Background: `#F0F8F4`
+
+## Form Elements
+
+### Input Fields
+- Height: `40-48px`
+- Border: `1px solid #E0E0E0`
+- Border Radius: `4px`
+- Padding: `12px 16px`
+- Font Size: `16px`
+- Focus Border: `2px solid #00843D`
+- Error Border: `2px solid #D32F2F`
+
+### Error Messages
+- Color: `#D32F2F`
+- Font Size: `14px`
+- Display below input field
+
+### Labels
+- Font Size: `14-16px`
+- Font Weight: `500-600`
+- Color: `#424242`
+- Margin Bottom: `8px`
+
+## Typography
+
+### Headings
+- H1: `36-40px` / `2.25-2.5rem`, Weight: 700, Color: `#212121`
+- H2: `28-32px` / `1.75-2rem`, Weight: 700, Color: `#212121`
+- H3: `24px` / `1.5rem`, Weight: 600, Color: `#424242`
+- H4: `20px` / `1.25rem`, Weight: 600, Color: `#424242`
+
+### Body Text
+- Size: `16px` / `1rem`
+- Weight: 400
+- Color: `#424242`
+- Line Height: `1.5-1.6`
+
+### Small Text
+- Size: `14px` / `0.875rem`
+- Color: `#757575`
+
+## Cards & Containers
+
+### Standard Card
+- Background: `#FFFFFF`
+- Border: `1px solid #E0E0E0` or none
+- Border Radius: `0-8px`
+- Padding: `24-32px`
+- Shadow: None or subtle `0 1px 3px rgba(0,0,0,0.12)` on hover
+
+## Layout
+
+### Spacing Scale (8px base)
+- XS: `4px`
+- S: `8px`
+- M: `16px`
+- L: `24px`
+- XL: `32px`
+- XXL: `48px`
+- XXXL: `64px`
+
+### Container
+- Max Width: `1200-1400px`
+- Padding: `16-24px` mobile, `32-48px` desktop
+
+## Design Principles
+
+1. **Flat Design**: Minimal shadows and gradients
+2. **High Contrast**: WCAG AA compliant contrast ratios
+3. **Accessibility First**: Large touch targets (44px minimum), clear focus states
+4. **Green as Brand**: Use `#00843D` consistently for brand identity
+5. **Professional**: Government/official style - trustworthy appearance
+
+## Component Guidelines
+
+### Accordions
+- Border: `1px solid #E0E0E0`
+- Active Header: Green bottom border `3-4px solid #00843D`
+- Icon: Green chevron
+- Hover: Light green background `#F0F8F4`
+
+### Validation States
+- Error: Red border `#D32F2F`, red text, red icon
+- Success: Green border `#00843D`, green text, checkmark
+- Warning: Orange `#F5A623`
+
+### Icons
+- Style: Line icons (outlined)
+- Primary Color: `#00843D`
+- Size Scale: 16-20px (small), 24-32px (medium), 48-64px (large)
+
+## Animation & Transitions
+
+- Default Duration: `200-300ms`
+- Easing: `ease-in-out` or `cubic-bezier(0.4, 0, 0.2, 1)`
+- Hover: Color change (200ms)
+- Focus: Border change (150ms)
+- Keep animations subtle and professional
+
+## Code Implementation
+
+### Tailwind CSS
+Always use the theme colors from tailwind.config:
+```tsx
+// ✅ CORRECT
+className="bg-zus-green text-white hover:bg-zus-green-dark"
+className="border-zus-grey-300 focus:border-zus-green"
+className="text-zus-error"
+
+// ❌ WRONG
+className="bg-[rgb(0,65,110)]"
+className="bg-blue-500"
+```
+
+### When Adding New Components
+1. Check `DESGIN_GUIDELINE.md` for component specifications
+2. Use ZUS color palette exclusively
+3. Follow spacing scale (8px base)
+4. Ensure WCAG AA accessibility
+5. Test on mobile and desktop
+6. Match ZUS.pl's professional, flat design aesthetic
+
+## Testing Checklist
+
+Before committing any UI changes, verify:
+- [ ] Uses only ZUS color palette
+- [ ] Matches specified button/form/card styles
+- [ ] Follows typography scale
+- [ ] Uses 8px spacing system
+- [ ] Has proper focus states
+- [ ] Meets WCAG AA contrast requirements
+- [ ] Looks professional and government-appropriate
+- [ ] Works on mobile and desktop
+
+## References
+
+- Complete Design System: `DESGIN_GUIDELINE.md`
+- Implementation Guide: `IMPLEMENTATION.md`
+- Color Palette: See `tailwind.config.ts` theme extension
+
+---
+
+**REMEMBER: Every pixel must reflect ZUS.pl's professional, accessible, government-grade design system.**
+
+---
+
+## 🚀 PROJECT-SPECIFIC GUIDELINES
+
+### Tech Stack
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS 4
+- **Charts**: Chart.js with react-chartjs-2
+- **Icons**: lucide-react
+- **PDF Generation**: jspdf + html2canvas
+- **Excel Export**: xlsx
+
+### Key Project Features
+1. **Retirement Simulation Engine** (`lib/engine/`)
+   - Capital accumulation calculations
+   - Pension calculations
+   - L4 (sick leave) impact analysis
+   - Salary path projections
+   - Deferral scenarios
+
+2. **Multi-Step Form** (`app/symulacja/page.tsx`)
+   - Step-by-step user input
+   - Real-time validation
+   - Live preview of calculations
+   - Progress indication
+
+3. **Results Dashboard** (`app/wynik/page.tsx`)
+   - Interactive charts
+   - Detailed pension breakdown
+   - PDF export functionality
+   - Comparison scenarios
+
+4. **Simulation Context** (`lib/context/SimulationContext.tsx`)
+   - Global state management
+   - Simulation data persistence
+   - Calculation triggers
+
+### Data Files (`/data`)
+All data files are JSON-based and contain:
+- `annuityDivisor.json` - Actuarial divisors by age/gender
+- `averagePensionByYear.json` - Historical pension data
+- `cpiByYear.json` - Consumer Price Index data
+- `retirementAgeBySex.json` - Legal retirement ages
+- `wageGrowthByYear.json` - Wage growth projections
+- `facts.json` - Educational content about Polish pension system
+- `simulations.json` - Saved user simulations
+
+### Component Architecture
+
+#### UI Components (`components/ui/`)
+- **Form Components**: `FormField`, `Input`, `Select`, `InputWithSlider`
+- **Visual Helpers**: `AgeVisual`, `SalaryVisual`, `SexVisual`, `WorkTimelineBar`
+- **Layout**: `Card`, `Header`, `StepIndicator`, `Accordion`
+- **Interactive**: `LivePreview`, `Tooltip`, `Button`
+
+#### When Creating New Components
+1. Check if similar component exists first
+2. Follow ZUS design system strictly
+3. Make components reusable and generic
+4. Add proper TypeScript interfaces
+5. Include accessibility attributes (ARIA labels)
+6. Support both mobile and desktop views
+7. Add loading and error states where applicable
+
+### Calculation Engine Best Practices
+- All calculations should be pure functions
+- Document complex financial formulas with comments
+- Use proper decimal handling for currency (avoid floating point errors)
+- Validate input ranges before calculations
+- Return detailed breakdown objects, not just final numbers
+- Include error handling for edge cases (division by zero, negative values)
+
+### Data Loading
+- Use `lib/data/loader.ts` for loading JSON data
+- Cache data where appropriate
+- Handle missing data gracefully
+- Validate data structure on load
+
+### State Management
+- Use React Context for global simulation state
+- Use local state for UI-specific state
+- Minimize state updates to prevent re-renders
+- Validate state changes
+
+### API Routes
+- Follow Next.js 15 App Router API route conventions
+- Return proper HTTP status codes
+- Include error handling middleware
+- Validate request bodies
+- Use TypeScript for request/response types
+
+### Validation (`lib/utils/validation.ts`)
+- Validate all user inputs
+- Provide clear, user-friendly error messages in Polish
+- Check for:
+  - Age ranges (18-80)
+  - Salary ranges (minimum wage to reasonable max)
+  - Date ranges
+  - Required fields
+  - Data type correctness
+
+### Formatting (`lib/utils/formatting.ts`)
+- Use Polish number formatting (space as thousands separator)
+- Format currency as "XX XXX,XX zł"
+- Format percentages with appropriate decimal places
+- Use Polish date formats (DD.MM.YYYY)
+
+### Internationalization
+- Primary language: Polish
+- All UI text should be in Polish
+- Currency: Polish Złoty (PLN)
+- Number formats: Polish standards
+- Consider adding i18n in future if needed
+
+### Accessibility Requirements
+- All interactive elements must be keyboard accessible
+- Proper ARIA labels and roles
+- Color contrast must meet WCAG AA standards
+- Form fields must have associated labels
+- Error messages must be announced to screen readers
+- Focus states must be clearly visible
+
+### Performance Considerations
+- Avoid recalculating on every keystroke (debounce expensive operations)
+- Memoize expensive calculations
+- Lazy load heavy components (charts, PDF generation)
+- Optimize images (use Next.js Image component)
+- Code split large pages
+
+### Error Handling Strategy
+1. **User Input Errors**: Show inline validation messages in red
+2. **Calculation Errors**: Show friendly error in results area
+3. **Data Loading Errors**: Show retry button with error message
+4. **API Errors**: Log to console, show user-friendly message
+5. **Unexpected Errors**: Use Error Boundary to catch and display
+
+### Common Tasks
+
+#### Adding a New Form Field
+1. Add to SimulationContext type definition
+2. Create FormField component with validation
+3. Add validation function to `lib/utils/validation.ts`
+4. Update calculation engine if needed
+5. Test on mobile and desktop
+
+#### Modifying Calculations
+1. Locate relevant function in `lib/engine/`
+2. Update logic with proper comments
+3. Ensure return type is correct
+4. Test with edge cases
+5. Update results display if needed
+
+#### Adding New Data File
+1. Create JSON file in `/data` directory
+2. Add TypeScript interface in `lib/types.ts`
+3. Add loader function in `lib/data/loader.ts`
+4. Validate data structure
+5. Use in calculations or display
+
+### Debugging Tips
+- Use React DevTools to inspect component state
+- Check console for calculation errors
+- Validate data files are loaded correctly
+- Test form validation with edge cases
+- Check mobile responsive design in DevTools
+
+### Documentation
+- Add comments to complex calculations
+- Document data file structures
+- Keep IMPLEMENTATION.md updated with major changes
+- Update README.md when adding new features
+
+### Before Completing a Task
+- [ ] Code follows TypeScript strict mode
+- [ ] Components use ZUS design system colors
+- [ ] Mobile responsive (test at 375px, 768px, 1024px)
+- [ ] Accessibility labels added
+- [ ] Error states handled
+- [ ] Loading states implemented
+- [ ] Polish language used for user-facing text
+- [ ] No console errors or warnings
+- [ ] Clean up any temporary files or debug code
+
+---
+
+## 🤖 AI AGENT WORKFLOW
+
+### When User Requests a Feature
+1. **Understand**: Ask clarifying questions if needed
+2. **Plan**: Break down into subtasks
+3. **Search**: Look for existing similar implementations
+4. **Design**: Ensure design matches ZUS system
+5. **Implement**: Write clean, typed code
+6. **Validate**: Check for errors and edge cases
+7. **Document**: Add comments and update docs if needed
+8. **Report**: Explain what was done
+
+### When User Reports a Bug
+1. **Reproduce**: Understand the issue
+2. **Locate**: Find the problematic code
+3. **Diagnose**: Identify root cause
+4. **Fix**: Implement solution
+5. **Test**: Verify fix works
+6. **Prevent**: Consider adding validation to prevent recurrence
+
+### When Making Changes
+- Always read existing files before modifying
+- Preserve existing code style and patterns
+- Don't break existing functionality
+- Update related documentation
+- Clean up any temporary debug code
+
+### Communication Style
+- Be clear and concise
+- Explain technical decisions
+- Use Polish for user-facing content discussions
+- Ask for clarification when requirements are unclear
+- Provide progress updates for long tasks
+
+---
+
+## 📚 QUICK REFERENCE
+
+### Key Files to Know
+- `lib/types.ts` - All TypeScript interfaces
+- `tailwind.config.ts` - Theme configuration with ZUS colors
+- `lib/context/SimulationContext.tsx` - Global state
+- `lib/engine/index.ts` - Main calculation entry point
+- `DESGIN_GUIDELINE.md` - Complete design system
+- `IMPLEMENTATION.md` - Implementation details
+
+### Common Commands (User runs these, NOT AI)
+```bash
+npm install              # Install dependencies
+npm run dev             # Start development server (USER RUNS THIS)
+npm run build           # Build for production (USER RUNS THIS)
+npm start               # Start production server (USER RUNS THIS)
+```
+
+### Useful VS Code Extensions (for user)
+- Tailwind CSS IntelliSense
+- TypeScript and JavaScript Language Features
+- ESLint
+- Prettier
+
+---
+
+**Remember: Quality over speed. Write maintainable, accessible, properly-typed code that follows the ZUS design system strictly.**

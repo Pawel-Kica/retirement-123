@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SimulationProvider } from "@/lib/context/SimulationContext";
 import { Header } from "@/components/ui/Header";
+import { HistorySidebar } from "@/components/ui/HistorySidebar";
 
 export const metadata: Metadata = {
   title: "Symulator Emerytalny ZUS",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <Header />
         <SimulationProvider>
           {children}
+          <HistorySidebar />
         </SimulationProvider>
       </body>
     </html>
