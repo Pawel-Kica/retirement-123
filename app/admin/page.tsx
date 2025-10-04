@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import * as XLSX from "xlsx";
 import {
     IconRefresh,
     IconUsers,
@@ -16,6 +17,7 @@ import {
     IconReportMoney,
     IconHeartbeat,
     IconBriefcase,
+    IconDownload,
 } from "@tabler/icons-react";
 import {
     Chart as ChartJS,
@@ -47,8 +49,7 @@ ChartJS.register(
 );
 
 interface StatisticsData {
-    dailySimulations: Array<{ date?: string; hour?: number; count: string }>;
-    hourlyUsage: Array<{ hour: number; count: string }>;
+    dailySimulations: Array<{ date?: string; hour?: number; month?: string; count: string }>;
     genderBreakdown: Array<{ gender: string; count: string }>;
     ageDistribution: Array<{ age_group: string; count: string }>;
     salaryDistribution: Array<{ salary_bucket: string; count: string }>;
@@ -111,6 +112,63 @@ export default function AdminPage() {
         }
     };
 
+    const handleExportToExcel = async () => {
+        try {
+            const response = await fetch('/api/admin/export');
+            const result = await response.json();
+
+            if (result.success) {
+                // Format data for Excel with specified headers
+                const excelData = result.data.map((row: any) => ({
+                    'Data użycia': row.data_uzycia ? new Date(row.data_uzycia).toLocaleDateString('pl-PL') : '',
+                    'Godzina użycia': row.godzina_uzycia || '',
+                    'Emerytura oczekiwana': row.emerytura_oczekiwana || '',
+                    'Wiek': row.wiek || '',
+                    'Płeć': row.plec === 'M' ? 'Mężczyzna' : row.plec === 'F' ? 'Kobieta' : '',
+                    'Wysokość wynagrodzenia': row.wysokosc_wynagrodzenia || '',
+                    'Uwzględnił okresy choroby': row.uwzglednial_okresy_choroby ? 'Tak' : 'Nie',
+                    'Wysokość środków': row.wysokosc_srodkow || '',
+                    'Emerytura rzeczywista': row.emerytura_rzeczywista || '',
+                    'Emerytura urealniona': row.emerytura_urealniona || '',
+                    'Kod pocztowy': row.kod_pocztowy || ''
+                }));
+
+                // Create workbook and worksheet
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Raport użycia');
+
+                // Set column widths
+                const colWidths = [
+                    { wch: 15 }, // Data użycia
+                    { wch: 15 }, // Godzina użycia
+                    { wch: 20 }, // Emerytura oczekiwana
+                    { wch: 8 },  // Wiek
+                    { wch: 12 }, // Płeć
+                    { wch: 22 }, // Wysokość wynagrodzenia
+                    { wch: 28 }, // Uwzględnił okresy choroby
+                    { wch: 18 }, // Wysokość środków
+                    { wch: 22 }, // Emerytura rzeczywista
+                    { wch: 22 }, // Emerytura urealniona
+                    { wch: 15 }  // Kod pocztowy
+                ];
+                worksheet['!cols'] = colWidths;
+
+                // Generate filename with current date
+                const now = new Date();
+                const filename = `raport_uzycia_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}.xlsx`;
+
+                // Download file
+                XLSX.writeFile(workbook, filename);
+            } else {
+                alert('Nie udało się pobrać danych do eksportu');
+            }
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            alert('Wystąpił błąd podczas eksportu danych');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -142,7 +200,18 @@ export default function AdminPage() {
         labels:
             timePeriod === "24hours"
                 ? Array.from({ length: 24 }, (_, i) => `${i}:00`)
-                : data.dailySimulations.map((d) => d.date || "").reverse(),
+                : (timePeriod === "3months" || timePeriod === "6months" || timePeriod === "all")
+                    ? data.dailySimulations.map((d) => {
+                        if (!d.month) return "";
+                        const [year, month] = d.month.split('-');
+                        const monthNames = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'];
+                        return `${monthNames[parseInt(month) - 1]} ${year}`;
+                    }).reverse()
+                    : data.dailySimulations.map((d) => {
+                        if (!d.date) return "";
+                        const date = new Date(d.date);
+                        return date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' });
+                    }).reverse(),
         datasets: [
             {
                 label: "Liczba symulacji",
@@ -163,20 +232,6 @@ export default function AdminPage() {
         ],
     };
 
-    const hourlyUsageChart = {
-        labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
-        datasets: [
-            {
-                label: "Liczba użyć",
-                data: Array.from({ length: 24 }, (_, i) => {
-                    const hour = data.hourlyUsage.find((h) => h.hour === i);
-                    return hour ? parseInt(hour.count) : 0;
-                }),
-                backgroundColor: "#00843D",
-                borderRadius: 4,
-            },
-        ],
-    };
 
     const genderChart = {
         labels: data.genderBreakdown.map((g) =>
@@ -233,17 +288,22 @@ export default function AdminPage() {
     };
 
     const illnessInclusionChart = {
-        labels: ["Nie uwzględniono L4", "Uwzględniono L4"],
+        labels: ["Bez zwolnień lekarskich", "Ze zwolnieniami lekarskimi"],
         datasets: [
             {
-                data: [
-                    parseInt(
+                data: (() => {
+                    const without = parseInt(
                         data.illnessInclusion.find((i) => !i.included_l4)?.count || "0"
-                    ),
-                    parseInt(
+                    );
+                    const with_ = parseInt(
                         data.illnessInclusion.find((i) => i.included_l4)?.count || "0"
-                    ),
-                ],
+                    );
+                    const total = without + with_;
+                    return [
+                        total > 0 ? ((without / total) * 100).toFixed(1) : 0,
+                        total > 0 ? ((with_ / total) * 100).toFixed(1) : 0,
+                    ];
+                })(),
                 backgroundColor: ["#00843D", "#D32F2F"],
                 borderWidth: 2,
                 borderColor: "#fff",
@@ -367,13 +427,22 @@ export default function AdminPage() {
                                 </button>
                             </div>
 
-                            <button
-                                onClick={fetchStatistics}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-zus-green text-white rounded-lg hover:bg-zus-green-dark transition-colors font-medium text-sm"
-                            >
-                                <IconRefresh size={18} />
-                                Odśwież
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleExportToExcel}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-zus-orange text-white rounded-lg hover:bg-amber-600 transition-colors font-medium text-sm cursor-pointer"
+                                >
+                                    <IconDownload size={18} />
+                                    Eksport do Excel
+                                </button>
+                                <button
+                                    onClick={fetchStatistics}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-zus-green text-white rounded-lg hover:bg-zus-green-dark transition-colors font-medium text-sm cursor-pointer"
+                                >
+                                    <IconRefresh size={18} />
+                                    Odśwież
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -657,7 +726,7 @@ export default function AdminPage() {
 
                 {/* Other Statistics - Row 2 */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                    {/* Without L4 */}
+                    {/* Without Sick Leave */}
                     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -669,12 +738,12 @@ export default function AdminPage() {
                                         data.illnessInclusion.find((i) => !i.included_l4)?.count || "0"
                                     )}
                                 </div>
-                                <div className="text-sm text-gray-600">Bez L4</div>
+                                <div className="text-sm text-gray-600">Bez zwolnień</div>
                             </div>
                         </div>
                     </div>
 
-                    {/* With L4 */}
+                    {/* With Sick Leave */}
                     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -686,7 +755,7 @@ export default function AdminPage() {
                                         data.illnessInclusion.find((i) => i.included_l4)?.count || "0"
                                     )}
                                 </div>
-                                <div className="text-sm text-gray-600">Z L4</div>
+                                <div className="text-sm text-gray-600">Ze zwolnieniami</div>
                             </div>
                         </div>
                     </div>
@@ -748,26 +817,6 @@ export default function AdminPage() {
                         </div>
                         <div className="h-64">
                             <Line data={dailySimulationsChart} options={chartOptions} />
-                        </div>
-                    </div>
-
-                    {/* Hourly Usage */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                                    <IconClock className="text-purple-600" size={20} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-900">
-                                        Wzorzec użycia
-                                    </h3>
-                                    <p className="text-sm text-gray-500">Według godziny</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="h-64">
-                            <Bar data={hourlyUsageChart} options={chartOptions} />
                         </div>
                     </div>
 
@@ -881,12 +930,27 @@ export default function AdminPage() {
                                     <h3 className="text-lg font-bold text-gray-900">
                                         Okresy choroby
                                     </h3>
-                                    <p className="text-sm text-gray-500">Uwzględnienie L4</p>
+                                    <p className="text-sm text-gray-500">Zwolnienia lekarskie</p>
                                 </div>
                             </div>
                         </div>
                         <div className="h-64 flex items-center justify-center">
-                            <Doughnut data={illnessInclusionChart} options={chartOptions} />
+                            <Doughnut
+                                data={illnessInclusionChart}
+                                options={{
+                                    ...chartOptions,
+                                    plugins: {
+                                        ...chartOptions.plugins,
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function (context: any) {
+                                                    return context.label + ': ' + context.parsed + '%';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }}
+                            />
                         </div>
                     </div>
 

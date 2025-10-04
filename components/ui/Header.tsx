@@ -4,6 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
+// Pre-calculate EU star positions to avoid hydration mismatch
+const EU_STAR_POSITIONS = [...Array(12)].map((_, i) => {
+  const angle = (i * 30 - 90) * (Math.PI / 180);
+  const x = 24 + 14 * Math.cos(angle);
+  const y = 24 + 14 * Math.sin(angle);
+  return { x, y };
+});
+
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -31,19 +39,16 @@ export function Header() {
               aria-label="Menu"
             >
               <span
-                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${
-                  isMenuOpen ? "rotate-45 translate-y-2" : ""
-                }`}
+                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${isMenuOpen ? "rotate-45 translate-y-2" : ""
+                  }`}
               ></span>
               <span
-                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${
-                  isMenuOpen ? "opacity-0" : ""
-                }`}
+                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${isMenuOpen ? "opacity-0" : ""
+                  }`}
               ></span>
               <span
-                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${
-                  isMenuOpen ? "-rotate-45 -translate-y-2" : ""
-                }`}
+                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${isMenuOpen ? "-rotate-45 -translate-y-2" : ""
+                  }`}
               ></span>
             </button>
 
@@ -178,30 +183,25 @@ export function Header() {
               <div className="flex flex-col items-center ml-2">
                 <div className="w-12 h-12 bg-[rgb(0,51,153)] rounded flex items-center justify-center relative">
                   {/* EU Stars */}
-                  {[...Array(12)].map((_, i) => {
-                    const angle = (i * 30 - 90) * (Math.PI / 180);
-                    const x = 24 + 14 * Math.cos(angle);
-                    const y = 24 + 14 * Math.sin(angle);
-                    return (
-                      <div
-                        key={i}
-                        className="absolute w-1.5 h-1.5"
-                        style={{
-                          left: `${x}px`,
-                          top: `${y}px`,
-                          transform: "translate(-50%, -50%)",
-                        }}
+                  {EU_STAR_POSITIONS.map((pos, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1.5 h-1.5"
+                      style={{
+                        left: `${pos.x}px`,
+                        top: `${pos.y}px`,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="#FFD700"
+                        className="w-full h-full"
                       >
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="#FFD700"
-                          className="w-full h-full"
-                        >
-                          <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z" />
-                        </svg>
-                      </div>
-                    );
-                  })}
+                        <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z" />
+                      </svg>
+                    </div>
+                  ))}
                 </div>
                 <span className="text-xs text-[rgb(0,65,110)] font-medium mt-1">
                   Unia Europejska
@@ -212,11 +212,10 @@ export function Header() {
 
           {/* Mobile and Tablet Menu */}
           <div
-            className={`lg:hidden overflow-hidden transition-all duration-300 ${
-              isMenuOpen
-                ? "max-h-[1000px] opacity-100 mt-4"
-                : "max-h-0 opacity-0"
-            }`}
+            className={`lg:hidden overflow-hidden transition-all duration-300 ${isMenuOpen
+              ? "max-h-[1000px] opacity-100 mt-4"
+              : "max-h-0 opacity-0"
+              }`}
           >
             <div className="flex flex-col gap-4 pb-4">
               {/* Main Actions - Full width buttons */}
@@ -352,30 +351,25 @@ export function Header() {
                 <div className="flex flex-col items-center">
                   <div className="w-12 h-12 bg-[rgb(0,51,153)] rounded flex items-center justify-center relative">
                     {/* EU Stars */}
-                    {[...Array(12)].map((_, i) => {
-                      const angle = (i * 30 - 90) * (Math.PI / 180);
-                      const x = 24 + 14 * Math.cos(angle);
-                      const y = 24 + 14 * Math.sin(angle);
-                      return (
-                        <div
-                          key={i}
-                          className="absolute w-1.5 h-1.5"
-                          style={{
-                            left: `${x}px`,
-                            top: `${y}px`,
-                            transform: "translate(-50%, -50%)",
-                          }}
+                    {EU_STAR_POSITIONS.map((pos, i) => (
+                      <div
+                        key={i}
+                        className="absolute w-1.5 h-1.5"
+                        style={{
+                          left: `${pos.x}px`,
+                          top: `${pos.y}px`,
+                          transform: "translate(-50%, -50%)",
+                        }}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="#FFD700"
+                          className="w-full h-full"
                         >
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="#FFD700"
-                            className="w-full h-full"
-                          >
-                            <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z" />
-                          </svg>
-                        </div>
-                      );
-                    })}
+                          <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z" />
+                        </svg>
+                      </div>
+                    ))}
                   </div>
                   <span className="text-xs text-[rgb(0,65,110)] font-medium mt-1">
                     Unia Europejska

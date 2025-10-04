@@ -22,8 +22,6 @@ export default function RootLayout({
         <SimulationProvider>
           <Header />
           {children}
-          <HistorySidebar />
-          <SnakeGame />
         </SimulationProvider>
       </ClientBody>
     </html>
