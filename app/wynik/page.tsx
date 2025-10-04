@@ -37,9 +37,9 @@ ChartJS.register(
 export default function WynikPage() {
   const router = useRouter();
   const { state } = useSimulation();
-  const [deferralViewMode, setDeferralViewMode] = useState<"chart" | "table">(
-    "chart"
-  );
+  const [deferralViewMode, setDeferralViewMode] = useState<
+    "bar" | "line" | "table"
+  >("bar");
 
   useEffect(() => {
     if (!state.results) {
@@ -59,7 +59,7 @@ export default function WynikPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px]">
         <h1 className="text-4xl font-bold text-zus-grey-900 mb-8 text-center">
           Twoja Prognoza Emerytury
         </h1>
@@ -138,14 +138,24 @@ export default function WynikPage() {
             </h3>
             <div className="flex gap-2 bg-zus-grey-100 p-1 rounded-lg">
               <button
-                onClick={() => setDeferralViewMode("chart")}
+                onClick={() => setDeferralViewMode("bar")}
                 className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
-                  deferralViewMode === "chart"
+                  deferralViewMode === "bar"
                     ? "bg-zus-green text-white shadow-md"
                     : "text-zus-grey-700 hover:bg-white"
                 }`}
               >
-                📊 Wykres
+                📊 Wykres słupkowy
+              </button>
+              <button
+                onClick={() => setDeferralViewMode("line")}
+                className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer ${
+                  deferralViewMode === "line"
+                    ? "bg-zus-green text-white shadow-md"
+                    : "text-zus-grey-700 hover:bg-white"
+                }`}
+              >
+                📈 Wykres liniowy
               </button>
               <button
                 onClick={() => setDeferralViewMode("table")}
@@ -160,14 +170,17 @@ export default function WynikPage() {
             </div>
           </div>
 
-          {deferralViewMode === "chart" ? (
+          {deferralViewMode === "bar" && (
             <div className="space-y-6">
               {/* Bar Chart */}
-              <div className="h-[400px]">
+              <div className="h-[500px]">
                 <Bar
                   data={{
                     labels: [
-                      "Bazowy",
+                      `Bazowy (wiek ${
+                        inputs.age +
+                        (inputs.workEndYear - new Date().getFullYear())
+                      })`,
                       ...results.deferrals.map(
                         (d) =>
                           `+${d.additionalYears} ${
@@ -176,7 +189,7 @@ export default function WynikPage() {
                               : d.additionalYears < 5
                               ? "lata"
                               : "lat"
-                          }`
+                          } (wiek ${d.retirementAge})`
                       ),
                     ],
                     datasets: [
@@ -198,6 +211,11 @@ export default function WynikPage() {
                           "#F5A623", // +8 - orange
                           "#00A99D", // +9 - teal
                           "#0B4C7C", // +10 - navy
+                          "#00843D", // +11 - green
+                          "#0088CC", // +12 - blue
+                          "#F5A623", // +13 - orange
+                          "#00A99D", // +14 - teal
+                          "#0B4C7C", // +15 - navy
                         ],
                         borderRadius: 8,
                         borderWidth: 0,
@@ -245,88 +263,6 @@ export default function WynikPage() {
                         ticks: {
                           color: "#424242",
                           font: { size: 12, weight: 600 },
-                        },
-                        grid: {
-                          display: false,
-                        },
-                      },
-                    },
-                  }}
-                />
-              </div>
-
-              {/* Growth Line Chart */}
-              <div className="h-[300px]">
-                <Line
-                  data={{
-                    labels: [
-                      "Bazowy",
-                      ...results.deferrals.map((d) => `+${d.additionalYears}`),
-                    ],
-                    datasets: [
-                      {
-                        label: "Procentowy wzrost emerytury",
-                        data: [
-                          0,
-                          ...results.deferrals.map((d) => d.percentIncrease),
-                        ],
-                        borderColor: "#00843D",
-                        backgroundColor: "rgba(0, 132, 61, 0.1)",
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: "#00843D",
-                        pointBorderColor: "#FFFFFF",
-                        pointBorderWidth: 2,
-                      },
-                    ],
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        display: true,
-                        position: "top" as const,
-                        labels: {
-                          color: "#424242",
-                          font: { size: 13, weight: 600 },
-                          padding: 12,
-                        },
-                      },
-                      tooltip: {
-                        backgroundColor: "#FFFFFF",
-                        titleColor: "#212121",
-                        bodyColor: "#424242",
-                        borderColor: "#E0E0E0",
-                        borderWidth: 2,
-                        padding: 12,
-                        callbacks: {
-                          label: function (context: any) {
-                            return `Wzrost: +${context.parsed.y.toFixed(1)}%`;
-                          },
-                        },
-                      },
-                    },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        ticks: {
-                          color: "#757575",
-                          font: { size: 12 },
-                          callback: function (value: any) {
-                            return `+${value}%`;
-                          },
-                        },
-                        grid: {
-                          color: "#E0E0E0",
-                        },
-                      },
-                      x: {
-                        ticks: {
-                          color: "#424242",
-                          font: { size: 12 },
                         },
                         grid: {
                           display: false,
@@ -397,7 +333,162 @@ export default function WynikPage() {
                 )}
               </div>
             </div>
-          ) : (
+          )}
+
+          {deferralViewMode === "line" && (
+            <div className="space-y-6">
+              {/* Growth Line Chart */}
+              <div className="h-[500px]">
+                <Line
+                  data={{
+                    labels: [
+                      `Bazowy\n${
+                        inputs.age +
+                        (inputs.workEndYear - new Date().getFullYear())
+                      } lat`,
+                      ...results.deferrals.map(
+                        (d) => `+${d.additionalYears}\n${d.retirementAge} lat`
+                      ),
+                    ],
+                    datasets: [
+                      {
+                        label: "Procentowy wzrost emerytury",
+                        data: [
+                          0,
+                          ...results.deferrals.map((d) => d.percentIncrease),
+                        ],
+                        borderColor: "#00843D",
+                        backgroundColor: "rgba(0, 132, 61, 0.1)",
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: "#00843D",
+                        pointBorderColor: "#FFFFFF",
+                        pointBorderWidth: 2,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        display: true,
+                        position: "top" as const,
+                        labels: {
+                          color: "#424242",
+                          font: { size: 13, weight: 600 },
+                          padding: 12,
+                        },
+                      },
+                      tooltip: {
+                        backgroundColor: "#FFFFFF",
+                        titleColor: "#212121",
+                        bodyColor: "#424242",
+                        borderColor: "#E0E0E0",
+                        borderWidth: 2,
+                        padding: 12,
+                        callbacks: {
+                          label: function (context: any) {
+                            return `Wzrost: +${context.parsed.y.toFixed(1)}%`;
+                          },
+                        },
+                      },
+                    },
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          color: "#757575",
+                          font: { size: 12 },
+                          callback: function (value: any) {
+                            return `+${value}%`;
+                          },
+                        },
+                        grid: {
+                          color: "#E0E0E0",
+                        },
+                      },
+                      x: {
+                        ticks: {
+                          color: "#424242",
+                          font: { size: 11, weight: 600 },
+                          maxRotation: 0,
+                          minRotation: 0,
+                        },
+                        grid: {
+                          display: false,
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="p-4 bg-zus-grey-100 rounded-lg border border-zus-grey-300">
+                  <p className="text-sm text-zus-grey-700 mb-1">
+                    Emerytura bazowa
+                  </p>
+                  <p className="text-2xl font-bold text-zus-grey-900">
+                    {formatPLN(results.realPension)}
+                  </p>
+                  <p className="text-xs text-zus-grey-500 mt-1">
+                    Przejście na emeryturę w {inputs.workEndYear} roku
+                  </p>
+                </div>
+                {results.deferrals.length > 0 && (
+                  <>
+                    <div className="p-4 bg-zus-green-light rounded-lg border border-zus-green">
+                      <p className="text-sm text-zus-grey-700 mb-1">
+                        Po +
+                        {
+                          results.deferrals[results.deferrals.length - 1]
+                            .additionalYears
+                        }{" "}
+                        {results.deferrals[results.deferrals.length - 1]
+                          .additionalYears < 5
+                          ? "latach"
+                          : "lat"}
+                      </p>
+                      <p className="text-2xl font-bold text-zus-green">
+                        {formatPLN(
+                          results.deferrals[results.deferrals.length - 1]
+                            .realPension
+                        )}
+                      </p>
+                      <p className="text-xs text-zus-grey-700 mt-1">
+                        Wzrost: +
+                        {results.deferrals[
+                          results.deferrals.length - 1
+                        ].percentIncrease.toFixed(1)}
+                        %
+                      </p>
+                    </div>
+                    <div className="p-4 bg-zus-orange/10 rounded-lg border border-zus-orange">
+                      <p className="text-sm text-zus-grey-700 mb-1">
+                        Maksymalna korzyść
+                      </p>
+                      <p className="text-2xl font-bold text-zus-orange">
+                        +
+                        {formatPLN(
+                          results.deferrals[results.deferrals.length - 1]
+                            .increaseVsBase
+                        )}
+                      </p>
+                      <p className="text-xs text-zus-grey-700 mt-1">
+                        Dodatkowy dochód miesięcznie
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {deferralViewMode === "table" && (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>

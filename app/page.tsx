@@ -338,7 +338,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px]">
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-zus-grey-900 mb-2">

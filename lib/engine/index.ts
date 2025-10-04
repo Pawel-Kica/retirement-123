@@ -50,8 +50,8 @@ export async function calculateSimulation(
     customOverrides: modifications?.customSalaries,
   });
 
-  // Extend salary path to allow for deferral scenarios (up to +5 years)
-  const maxExtendedYear = Math.min(inputs.workEndYear + 5, 2080);
+  // Extend salary path to allow for deferral scenarios (up to +15 years)
+  const maxExtendedYear = Math.min(inputs.workEndYear + 15, 2080);
   const completeSalaryPath = buildSalaryPath({
     currentSalary: inputs.monthlyGross,
     currentYear,
@@ -167,7 +167,7 @@ export async function calculateSimulation(
       ? finalCapitalWithL4.total
       : finalCapitalWithoutL4.total,
     baseRealPension: realPension,
-    deferralYears: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    deferralYears: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
     completeSalaryPath: inputs.includeL4
       ? calculateL4Comparison(
           completeSalaryPath,
