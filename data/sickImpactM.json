@@ -1,0 +1,11 @@
+{
+    "_metadata": {
+        "source": "ZUS, GUS",
+        "description": "Wpływ zwolnień lekarskich na składki emerytalne - mężczyźni",
+        "version": "1.0",
+        "date": "2025-01"
+    },
+    "avgDaysPerYear": 14,
+    "reductionCoefficient": 0.985,
+    "description": "Średnia dla mężczyzn w Polsce: 14 dni L4 rocznie, redukcja bazy składkowej o 1,5%"
+}

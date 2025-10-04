@@ -1,0 +1,80 @@
+[
+  {
+    "timestamp": "2025-10-04T12:06:24.074Z",
+    "expectedPension": 3000,
+    "age": 22,
+    "sex": "M",
+    "monthlyGross": 18000,
+    "includeL4": true,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 28751.78763647872,
+    "realPension": 11929.475313472394,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T12:31:44.106Z",
+    "expectedPension": 3000,
+    "age": 22,
+    "sex": "M",
+    "monthlyGross": 18000,
+    "includeL4": true,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 28751.78763647872,
+    "realPension": 11929.475313472394,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T12:32:41.973Z",
+    "expectedPension": 3000,
+    "age": 22,
+    "sex": "M",
+    "monthlyGross": 5000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 8058.200283201986,
+    "realPension": 3277.8900078502325,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T12:33:48.941Z",
+    "expectedPension": 9000,
+    "age": 22,
+    "sex": "M",
+    "monthlyGross": 5000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 7739.976459814079,
+    "realPension": 3148.443896524661,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T12:35:26.754Z",
+    "expectedPension": 9000,
+    "age": 22,
+    "sex": "M",
+    "monthlyGross": 15000,
+    "includeL4": true,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 22871.63043875059,
+    "realPension": 9303.651714230367,
+    "postalCode": null
+  },
+  {
+    "timestamp": "2025-10-04T12:37:24.974Z",
+    "expectedPension": 9000,
+    "age": 22,
+    "sex": "M",
+    "monthlyGross": 15000,
+    "includeL4": false,
+    "accountBalance": null,
+    "subAccountBalance": null,
+    "nominalPension": 23219.92937944223,
+    "realPension": 9445.331689573979,
+    "postalCode": null
+  }
+]

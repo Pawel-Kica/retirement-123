@@ -1,0 +1,11 @@
+{
+    "_metadata": {
+        "source": "Ustawa emerytalna - stan prawny 2025",
+        "description": "Ustawowy wiek emerytalny w Polsce według płci",
+        "version": "1.0",
+        "date": "2025-01"
+    },
+    "M": 65,
+    "F": 60,
+    "note": "Wiek emerytalny obowiązujący w Polsce od 2017 roku"
+}
