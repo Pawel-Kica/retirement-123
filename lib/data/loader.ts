@@ -11,6 +11,7 @@ import sickImpactFData from '@/data/sickImpactF.json';
 import factsData from '@/data/facts.json';
 import retirementAgeData from '@/data/retirementAgeBySex.json';
 import lifeDurationData from '@/data/lifeDuration.json';
+import { loadPrognosisData } from './prognosisLoader';
 
 import {
     WageGrowthData,
@@ -21,6 +22,8 @@ import {
     FactsData,
     RetirementAgeData,
     LifeDurationData,
+    PrognosisVariant,
+    PrognosisVariantType,
 } from '../types';
 
 export interface AllData {
@@ -33,12 +36,15 @@ export interface AllData {
     facts: FactsData;
     retirementAge: RetirementAgeData;
     lifeDuration: LifeDurationData;
+    prognosisVariants: Record<PrognosisVariantType, PrognosisVariant>;
 }
 
 /**
  * Load all data files
  */
-export function loadAllData(): AllData {
+export async function loadAllData(): Promise<AllData> {
+    const prognosisVariants = await loadPrognosisData();
+    
     return {
         wageGrowth: wageGrowthData as WageGrowthData,
         cpi: cpiData as CPIData,
@@ -49,6 +55,7 @@ export function loadAllData(): AllData {
         facts: factsData as FactsData,
         retirementAge: retirementAgeData as RetirementAgeData,
         lifeDuration: lifeDurationData as LifeDurationData,
+        prognosisVariants,
     };
 }
 
@@ -56,9 +63,8 @@ export function loadAllData(): AllData {
  * Get a random fact from facts.json
  */
 export function getRandomFact(): string {
-    const allData = loadAllData();
-    const facts = allData.facts.facts;
-    return facts[Math.floor(Math.random() * facts.length)];
+    const facts = factsData as FactsData;
+    return facts.facts[Math.floor(Math.random() * facts.facts.length)];
 }
 
 /**
@@ -69,8 +75,7 @@ export function getRandomFact(): string {
  * @returns Remaining life expectancy in months, or null if not found
  */
 export function getRemainingLifeMonths(age: number, month: number = 0): number | null {
-    const allData = loadAllData();
-    const lifeDuration = allData.lifeDuration;
+    const lifeDuration = lifeDurationData as LifeDurationData;
 
     // Clamp age to available range
     if (age < 30) age = 30;
