@@ -3,20 +3,23 @@ import React from 'react';
 interface CardProps {
     children: React.ReactNode;
     className?: string;
-    variant?: 'default' | 'highlight' | 'warning';
+    variant?: 'default' | 'success' | 'warning' | 'info';
 }
 
 export function Card({ children, className = '', variant = 'default' }: CardProps) {
+    // ZUS Design System: Flat design, minimal shadows, clean borders
     const variantClasses = {
-        default: 'bg-white border-[rgb(190,195,206)]',
-        highlight: 'bg-[rgb(0,153,63)]/5 border-[rgb(0,153,63)]',
-        warning: 'bg-[rgb(240,94,94)]/5 border-[rgb(240,94,94)]',
+        default: 'bg-white border-zus-grey-300',
+        success: 'bg-zus-green-light border-zus-green',      // Light green background
+        warning: 'bg-red-50 border-zus-error',                // Light red for warnings
+        info: 'bg-blue-50 border-zus-navy',                   // Light blue for info
     };
 
     return (
-        <div className={`rounded-lg border-2 p-6 ${variantClasses[variant]} ${className}`}>
+        <div className={`rounded border p-6 ${variantClasses[variant]} ${className}`}>
             {children}
         </div>
     );
 }
+
 

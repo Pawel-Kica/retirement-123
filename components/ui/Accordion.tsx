@@ -13,26 +13,33 @@ interface AccordionProps {
 
 export function Accordion({ title, children, isOpen, onToggle, badge, icon }: AccordionProps) {
     return (
-        <div className="border-2 border-[rgb(190,195,206)] rounded-lg overflow-hidden mb-4">
+        <div className="border border-zus-grey-300 rounded overflow-hidden mb-4">
             <button
                 type="button"
                 onClick={onToggle}
-                className="w-full px-6 py-4 bg-white hover:bg-gray-50 transition-colors flex items-center justify-between"
+                className={`w-full px-6 py-4 transition-colors flex items-center justify-between ${isOpen
+                        ? 'bg-zus-green-light border-b-4 border-b-zus-green'
+                        : 'bg-white hover:bg-zus-grey-100'
+                    }`}
             >
                 <div className="flex items-center gap-3">
                     {icon && <span className="text-2xl">{icon}</span>}
-                    <h3 className="text-xl font-bold text-[rgb(0,65,110)] text-left">
+                    <h3 className={`text-xl font-bold text-left ${isOpen ? 'text-zus-green' : 'text-zus-grey-900'}`}>
                         {title}
                     </h3>
                     {badge && (
-                        <span className="text-xs bg-[rgb(255,179,79)] text-black px-2 py-1 rounded font-semibold">
+                        <span className={`text-xs px-2 py-1 rounded font-semibold ${badge.includes('✓') || badge.includes('WYPEŁNIONE')
+                                ? 'bg-zus-green text-white'
+                                : badge.includes('WYMAGANE')
+                                    ? 'bg-zus-orange text-white'
+                                    : 'bg-zus-grey-300 text-zus-grey-700'
+                            }`}>
                             {badge}
                         </span>
                     )}
                 </div>
                 <svg
-                    className={`w-6 h-6 text-[rgb(0,65,110)] transition-transform ${isOpen ? 'rotate-180' : ''
-                        }`}
+                    className={`w-6 h-6 text-zus-green transition-transform ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -42,7 +49,7 @@ export function Accordion({ title, children, isOpen, onToggle, badge, icon }: Ac
             </button>
 
             {isOpen && (
-                <div className="px-6 py-6 bg-white border-t-2 border-[rgb(190,195,206)]">
+                <div className="px-6 py-6 bg-white border-t border-zus-grey-300">
                     {children}
                 </div>
             )}
