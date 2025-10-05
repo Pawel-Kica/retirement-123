@@ -149,6 +149,7 @@ export interface SimulationInputs {
   subAccountBalance?: number;
   includeZwolnienieZdrowotne: boolean;
   postalCode?: string;
+  expectedPension?: number; // User's expected pension amount (independent of calculations)
 
   // ========== NOWE POLA ==========
   contractType?: ContractType; // Typ umowy (domyślnie UOP)

@@ -141,7 +141,9 @@ export function WorkHistorySummary({ inputs }: WorkHistorySummaryProps) {
                   <div className="font-bold text-zus-green">
                     {formatPLN(period.monthlyGross)}
                   </div>
-                  {startingSalaries[period.id] && startingSalaries[period.id] !== period.monthlyGross && (
+                  {startingSalaries[period.id] && 
+                   startingSalaries[period.id] !== period.monthlyGross && 
+                   period.endYear >= currentYear && (
                     <div className="text-xs text-zus-grey-600">
                       Początkowe: {formatPLN(startingSalaries[period.id])}
                     </div>

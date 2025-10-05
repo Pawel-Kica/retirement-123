@@ -18,6 +18,42 @@ export interface AccumulateCapitalParams {
 }
 
 /**
+ * Find the most recent available valorization rate for a given year
+ * If the exact year is not available, use the first previous available data
+ */
+function findValorizationRate(
+  year: number,
+  valorizationData: Record<string, number>
+): number {
+  // First try to get the exact year
+  if (valorizationData[year.toString()]) {
+    return valorizationData[year.toString()];
+  }
+
+  // If not found, look for the most recent previous year
+  const availableYears = Object.keys(valorizationData)
+    .map(Number)
+    .filter((y) => y < year)
+    .sort((a, b) => b - a); // Sort descending to get most recent first
+
+  if (availableYears.length > 0) {
+    const mostRecentYear = availableYears[0];
+    console.warn(
+      `Brak danych waloryzacji dla roku ${year}, używam danych z roku ${mostRecentYear} - ${
+        valorizationData[mostRecentYear.toString()]
+      }`
+    );
+    return valorizationData[mostRecentYear.toString()];
+  }
+
+  // If no previous data available, use 1.0 (no valorization)
+  console.warn(
+    `Brak danych waloryzacji dla roku ${year} i poprzednich lat, używam 1.0`
+  );
+  return 1.0;
+}
+
+/**
  * Accumulate capital over time with annual valorization
  * Returns detailed yearly breakdown
  */
@@ -41,12 +77,7 @@ export function accumulateCapital(
 
     // Step 1: Apply valorization to existing capital
     // In Polish system, valorization uses waloryzacja formula: (1 + inflacja) × (1 + 0.75 × wzrost wynagrodzeń)
-    const valorizationRate = valorizationData[entry.year.toString()] || 1.0;
-    if (typeof valorizationRate !== "number") {
-      console.warn(
-        `Brak danych waloryzacji dla roku ${entry.year}, używam 1.0`
-      );
-    }
+    const valorizationRate = findValorizationRate(entry.year, valorizationData);
 
     mainAccount = mainAccount * valorizationRate;
     subAccount = subAccount * valorizationRate;

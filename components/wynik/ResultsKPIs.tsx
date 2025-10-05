@@ -13,8 +13,7 @@ export function ResultsKPIs({
   inputs,
   expectedPension,
 }: ResultsKPIsProps) {
-  const pensionDifference = results.realPension - expectedPension;
-  const isBelowExpectation = pensionDifference < 0;
+  // Expected pension is independent - no calculations based on it
 
   // Calculate total years worked from employment periods
   const totalYearsWorked =
@@ -37,19 +36,11 @@ export function ResultsKPIs({
         </div>
       </Card>
 
-      <Card
-        className={`bg-white border-2 p-3 ${
-          isBelowExpectation ? "border-zus-error" : "border-zus-green"
-        }`}
-      >
+      <Card className="bg-white border border-zus-grey-300 p-3">
         <div className="text-[10px] font-semibold text-zus-grey-600 uppercase tracking-wide mb-1">
           Emerytura prognozowana
         </div>
-        <div
-          className={`text-2xl font-bold ${
-            isBelowExpectation ? "text-zus-error" : "text-zus-green"
-          }`}
-        >
+        <div className="text-2xl font-bold text-zus-grey-900">
           {formatPLN(results.realPension)}
         </div>
         <div className="text-[10px] text-zus-grey-600 mt-0.5">

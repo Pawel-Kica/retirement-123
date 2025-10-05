@@ -155,7 +155,9 @@ export function DebugPanel({ results, inputs, expectedPension, waloryzacjaData }
                       <div className="font-mono text-green-600">
                         {formatPLN(period.monthlyGross)}
                       </div>
-                      {startingSalaries[period.id] && startingSalaries[period.id] !== period.monthlyGross && (
+                      {startingSalaries[period.id] && 
+                       startingSalaries[period.id] !== period.monthlyGross && 
+                       period.endYear >= currentYear && (
                         <div className="text-gray-500 text-xs">
                           Start: {formatPLN(startingSalaries[period.id])}
                         </div>

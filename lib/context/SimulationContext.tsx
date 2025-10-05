@@ -196,27 +196,8 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     try {
       console.log("🧮 Starting calculation...");
       
-      // For new simulations, use the current expectedPension from state
-      // For existing simulations, recalculate based on career path
-      const expectedPensionToUse = isNewSimulation 
-        ? state.expectedPension 
-        : await (async () => {
-            const data = await loadAllData();
-            const workHistory = inputs.employmentPeriods || [];
-            const retirementAge = inputs.age + (inputs.workEndYear - new Date().getFullYear());
-            const retirementYear = inputs.workEndYear;
-            const currentYear = new Date().getFullYear();
-            return await calculateExpectedPensionFromCareer(
-              workHistory,
-              inputs.sex,
-              retirementAge,
-              inputs.accountBalance,
-              inputs.subAccountBalance,
-              retirementYear,
-              currentYear,
-              data.cpi
-            );
-          })();
+      // Use user-provided expected pension from inputs, fallback to state value
+      const expectedPensionToUse = inputs.expectedPension || state.expectedPension;
 
       const results = await calculateSimulation({
         inputs: inputs,
@@ -428,34 +409,9 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
           state.inputs.employmentPeriods,
       };
 
-      // Check if career path has been modified (only contract periods, not life events or gaps)
-      const hasCareerModifications = 
-        state.dashboardModifications.contractPeriods;
-
-      let expectedPensionToUse = state.expectedPension;
-
-      // Only recalculate expected pension if contract periods have been modified
-      // Life events and gap periods should NOT change the expected pension
-      if (hasCareerModifications) {
-        console.log("🔄 Contract periods modified, recalculating expected pension...");
-        const data = await loadAllData();
-        const workHistory = syncedInputs.employmentPeriods || [];
-        const retirementAge = syncedInputs.age + (syncedInputs.workEndYear - new Date().getFullYear());
-        const retirementYear = syncedInputs.workEndYear;
-        const currentYear = new Date().getFullYear();
-        expectedPensionToUse = await calculateExpectedPensionFromCareer(
-          workHistory,
-          syncedInputs.sex,
-          retirementAge,
-          syncedInputs.accountBalance,
-          syncedInputs.subAccountBalance,
-          retirementYear,
-          currentYear,
-          data.cpi
-        );
-      } else {
-        console.log("📊 No contract modifications, keeping original expected pension");
-      }
+      // Use user-provided expected pension from inputs, fallback to state value
+      // Expected pension should be independent of career modifications
+      const expectedPensionToUse = syncedInputs.expectedPension || state.expectedPension;
 
       const results = await calculateSimulation({
         inputs: syncedInputs,

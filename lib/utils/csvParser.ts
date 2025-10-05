@@ -271,6 +271,41 @@ export function calculateStartingSalary(
   endYear: number,
   wageGrowthData: Record<string, number>
 ): number {
+  const currentYear = new Date().getFullYear();
+
+  // If both start and end dates are before current year,
+  // assume the salary is for the entire period and don't estimate
+  if (endYear < currentYear) {
+    return currentSalary;
+  }
+
+  // If both start and end dates are in the future,
+  // increase the starting salary by wage growth from current date to start date
+  if (startYear > currentYear) {
+    // Create a map for O(1) lookups
+    const wageGrowthMap = new Map<number, number>();
+    Object.entries(wageGrowthData).forEach(([year, growth]) => {
+      wageGrowthMap.set(parseInt(year), growth);
+    });
+
+    // Calculate cumulative wage growth from current year to start year
+    let cumulativeGrowth = 1;
+    let lastKnownGrowth = 1; // Default fallback
+
+    for (let year = currentYear; year < startYear; year++) {
+      // Use the wage growth value for this year if available, otherwise use the last known value
+      const yearGrowth = wageGrowthMap.get(year);
+      if (yearGrowth !== undefined) {
+        lastKnownGrowth = yearGrowth;
+      }
+      cumulativeGrowth *= lastKnownGrowth;
+    }
+
+    // Starting salary = Current salary * cumulative growth (inflate to future value)
+    return currentSalary * cumulativeGrowth;
+  }
+
+  // For periods that span current year (start <= current < end)
   // Create a map for O(1) lookups
   const wageGrowthMap = new Map<number, number>();
   Object.entries(wageGrowthData).forEach(([year, growth]) => {
