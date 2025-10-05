@@ -35,16 +35,6 @@ export interface AveragePensionData {
   [year: string]: number | object;
 }
 
-export interface AnnuityDivisors {
-  _metadata: {
-    source: string;
-    description: string;
-    version: string;
-    date: string;
-  };
-  M: Record<string, number>;
-  F: Record<string, number>;
-}
 
 export interface SickImpactConfig {
   _metadata: {

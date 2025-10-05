@@ -3,47 +3,65 @@
  * Calculates nominal and real pension values
  */
 
-import { Sex, AnnuityDivisors, CPIData } from "../types";
+import { Sex, CPIData, LifeDurationData } from "../types";
 
 /**
- * Calculate monthly pension from total capital
- * Pension = Total Capital / Annuity Divisor
+ * Calculate monthly pension from total capital using life duration data
+ * Pension = Total Capital / Life Expectancy in Months
  */
 export function calculatePension(
   totalCapital: number,
   retirementAge: number,
   sex: Sex,
-  annuityDivisors: AnnuityDivisors
+  lifeDuration: LifeDurationData
 ): number {
-  // Get divisor for this age and sex
-  let divisor = annuityDivisors[sex]?.[retirementAge.toString()];
+  // Get life expectancy in months for this age
+  // For simplicity, we'll use average of M and F data from lifeDuration
+  // Note: The lifeDuration data doesn't distinguish by sex in the current implementation
+  const ageData = lifeDuration[retirementAge.toString()];
 
-  // If no divisor found for this age, use the highest available age
-  if (!divisor) {
-    const ageData = annuityDivisors[sex];
-    if (!ageData) {
-      throw new Error(`Brak danych dzielników rentowych dla płci ${sex}`);
-    }
+  let divisor: number;
 
-    // Find the highest available age
-    const availableAges = Object.keys(ageData)
+  if (!ageData || typeof ageData !== 'object' || '_metadata' in ageData) {
+    // If no data found for this age, find the closest available age
+    const availableAges = Object.keys(lifeDuration)
+      .filter((key) => !key.startsWith('_'))
       .map((age) => parseInt(age))
       .filter((age) => !isNaN(age))
       .sort((a, b) => b - a);
 
     if (availableAges.length === 0) {
-      throw new Error(`Brak danych dzielników rentowych dla płci ${sex}`);
+      throw new Error(`Brak danych długości życia`);
     }
 
-    const highestAge = availableAges[0];
-    divisor = ageData[highestAge.toString()];
+    // Find closest age
+    const closestAge = availableAges.reduce((prev, curr) =>
+      Math.abs(curr - retirementAge) < Math.abs(prev - retirementAge) ? curr : prev
+    );
 
-    // For ages beyond the highest available age, use a conservative estimate
-    // Assume 1 year of remaining life for each year beyond the highest age
-    if (retirementAge > highestAge) {
-      const yearsBeyond = retirementAge - highestAge;
+    const closestAgeData = lifeDuration[closestAge.toString()];
+    if (!closestAgeData || typeof closestAgeData !== 'object') {
+      throw new Error(`Brak danych długości życia dla wieku ${closestAge}`);
+    }
+
+    // Use month 0 as default
+    divisor = (closestAgeData as Record<string, number>)['0'];
+
+    // Adjust for age difference
+    if (retirementAge > closestAge) {
+      const yearsBeyond = retirementAge - closestAge;
       divisor = Math.max(12, divisor - yearsBeyond * 12); // Minimum 1 year
+    } else if (retirementAge < closestAge) {
+      const yearsBefore = closestAge - retirementAge;
+      divisor = divisor + yearsBefore * 12;
     }
+  } else {
+    // Use month 0 as default
+    divisor = (ageData as Record<string, number>)['0'];
+  }
+
+  if (!divisor) {
+    throw new Error(`Brak dzielnika dla wieku ${retirementAge}`);
   }
 
   // Monthly pension = Total Capital / Divisor

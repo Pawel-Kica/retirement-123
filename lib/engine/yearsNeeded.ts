@@ -3,7 +3,7 @@
  * Iteratively extends retirement year until expected amount is reached
  */
 
-import { SalaryPathEntry, Sex, AnnuityDivisors, CPIData, WageGrowthData } from '../types';
+import { SalaryPathEntry, Sex, LifeDurationData, CPIData, WageGrowthData } from '../types';
 import { accumulateCapital } from './capitalAccumulation';
 import { calculatePension, calculateRealValue } from './pensionCalculation';
 
@@ -14,7 +14,7 @@ export interface CalculateYearsNeededParams {
     baseRealPension: number;
     completeSalaryPath: SalaryPathEntry[];
     sex: Sex;
-    annuityDivisors: AnnuityDivisors;
+    lifeDuration: LifeDurationData;
     cpiData: CPIData;
     wageGrowthData: WageGrowthData;
     currentYear: number;
@@ -35,7 +35,7 @@ export function calculateYearsNeeded(
         baseRealPension,
         completeSalaryPath,
         sex,
-        annuityDivisors,
+        lifeDuration,
         cpiData,
         wageGrowthData,
         currentYear,
@@ -55,9 +55,9 @@ export function calculateYearsNeeded(
         // Check if we have data for this year
         if (newRetirementYear > 2080) break;
 
-        // Check if divisor exists for this age
-        const divisor = annuityDivisors[sex]?.[newRetirementAge.toString()];
-        if (!divisor) break;
+        // Check if life duration data exists for this age
+        const ageData = lifeDuration[newRetirementAge.toString()];
+        if (!ageData || typeof ageData !== 'object' || '_metadata' in ageData) break;
 
         // Get extended salary path
         const extendedPath = completeSalaryPath.filter(
@@ -81,7 +81,7 @@ export function calculateYearsNeeded(
             newTotalCapital,
             newRetirementAge,
             sex,
-            annuityDivisors
+            lifeDuration
         );
 
         const newRealPension = calculateRealValue(

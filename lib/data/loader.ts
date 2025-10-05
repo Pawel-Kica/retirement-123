@@ -5,7 +5,6 @@
 import wageGrowthData from '@/data/wageGrowthByYear.json';
 import cpiData from '@/data/cpiByYear.json';
 import avgPensionData from '@/data/averagePensionByYear.json';
-import annuityDivisorData from '@/data/annuityDivisor.json';
 import sickImpactMData from '@/data/sickImpactM.json';
 import sickImpactFData from '@/data/sickImpactF.json';
 import factsData from '@/data/facts.json';
@@ -17,7 +16,6 @@ import {
     WageGrowthData,
     CPIData,
     AveragePensionData,
-    AnnuityDivisors,
     SickImpactConfig,
     FactsData,
     RetirementAgeData,
@@ -30,7 +28,6 @@ export interface AllData {
     wageGrowth: WageGrowthData;
     cpi: CPIData;
     avgPension: AveragePensionData;
-    annuityDivisors: AnnuityDivisors;
     sickImpactM: SickImpactConfig;
     sickImpactF: SickImpactConfig;
     facts: FactsData;
@@ -44,12 +41,11 @@ export interface AllData {
  */
 export async function loadAllData(): Promise<AllData> {
     const prognosisVariants = await loadPrognosisData();
-    
+
     return {
         wageGrowth: wageGrowthData as WageGrowthData,
         cpi: cpiData as CPIData,
         avgPension: avgPensionData as AveragePensionData,
-        annuityDivisors: annuityDivisorData as AnnuityDivisors,
         sickImpactM: sickImpactMData as SickImpactConfig,
         sickImpactF: sickImpactFData as SickImpactConfig,
         facts: factsData as FactsData,

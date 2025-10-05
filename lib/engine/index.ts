@@ -114,7 +114,7 @@ export async function calculateSimulation(
     finalCapitalWithoutZwolnienieZdrowotne.total,
     actualRetirementAge,
     inputs.sex,
-    data.annuityDivisors
+    data.lifeDuration
   );
 
   const realPensionWithoutZwolnienieZdrowotne = calculateRealValue(
@@ -129,7 +129,7 @@ export async function calculateSimulation(
     finalCapitalWithZwolnienieZdrowotne.total,
     actualRetirementAge,
     inputs.sex,
-    data.annuityDivisors
+    data.lifeDuration
   );
 
   const realPensionWithZwolnienieZdrowotne = calculateRealValue(
@@ -182,7 +182,7 @@ export async function calculateSimulation(
         ).withZwolnienieZdrowotne
       : completeSalaryPath,
     sex: inputs.sex,
-    annuityDivisors: data.annuityDivisors,
+    lifeDuration: data.lifeDuration,
     cpiData: data.cpi,
     wageGrowthData: data.wageGrowth,
     currentYear,
@@ -205,7 +205,7 @@ export async function calculateSimulation(
           ).withZwolnienieZdrowotne
         : completeSalaryPath,
       sex: inputs.sex,
-      annuityDivisors: data.annuityDivisors,
+      lifeDuration: data.lifeDuration,
       cpiData: data.cpi,
       wageGrowthData: data.wageGrowth,
       currentYear,

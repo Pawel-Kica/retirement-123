@@ -3,7 +3,7 @@
  * Shows what happens if user works +1, +2, +5 years longer
  */
 
-import { DeferralScenario, SalaryPathEntry, Sex, AnnuityDivisors, CPIData, WageGrowthData } from '../types';
+import { DeferralScenario, SalaryPathEntry, Sex, LifeDurationData, CPIData, WageGrowthData } from '../types';
 import { accumulateCapital } from './capitalAccumulation';
 import { calculatePension, calculateRealValue } from './pensionCalculation';
 
@@ -14,7 +14,7 @@ export interface CalculateDeferralScenariosParams {
     baseRealPension: number;
     completeSalaryPath: SalaryPathEntry[]; // Full path including potential future years
     sex: Sex;
-    annuityDivisors: AnnuityDivisors;
+    lifeDuration: LifeDurationData;
     cpiData: CPIData;
     wageGrowthData: WageGrowthData;
     currentYear: number;
@@ -38,11 +38,11 @@ export function calculateDeferralScenarios(
         baseRealPension,
         completeSalaryPath,
         sex,
-        annuityDivisors,
+        lifeDuration,
         cpiData,
         wageGrowthData,
         currentYear,
-        deferralYears = [1, 2, 5],
+        deferralYears = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     } = params;
 
     const scenarios: DeferralScenario[] = [];
@@ -51,10 +51,10 @@ export function calculateDeferralScenarios(
         const newRetirementYear = baseRetirementYear + additionalYears;
         const newRetirementAge = baseRetirementAge + additionalYears;
 
-        // Check if divisor exists for this age
-        const newDivisor = annuityDivisors[sex]?.[newRetirementAge.toString()];
-        if (!newDivisor) {
-            console.warn(`Brak dzielnika dla wieku ${newRetirementAge}, pomijam scenariusz +${additionalYears}`);
+        // Check if life duration data exists for this age
+        const ageData = lifeDuration[newRetirementAge.toString()];
+        if (!ageData || typeof ageData !== 'object' || '_metadata' in ageData) {
+            console.warn(`Brak danych długości życia dla wieku ${newRetirementAge}, pomijam scenariusz +${additionalYears}`);
             continue;
         }
 
@@ -79,12 +79,12 @@ export function calculateDeferralScenarios(
         const lastEntry = capitalPath[capitalPath.length - 1];
         const newTotalCapital = lastEntry.totalCapital;
 
-        // Calculate new pension with lower divisor
+        // Calculate new pension
         const newNominalPension = calculatePension(
             newTotalCapital,
             newRetirementAge,
             sex,
-            annuityDivisors
+            lifeDuration
         );
 
         const newRealPension = calculateRealValue(
