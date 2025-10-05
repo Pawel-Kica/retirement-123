@@ -103,26 +103,6 @@ export function Step0BasicInfo({
               </div>
             )}
         </FieldWithVisual>
-
-        <FieldWithVisual visual={<div className="w-16 h-16 bg-zus-green/10 rounded-full flex items-center justify-center">
-          <span className="text-2xl">💰</span>
-        </div>}>
-          <InputWithSlider
-            label="Oczekiwana emerytura (opcjonalnie)"
-            value={formData.expectedPension || 0}
-            onChange={(value) => onFieldChange("expectedPension", value)}
-            min={0}
-            max={20000}
-            step={100}
-            suffix="zł/miesiąc"
-            placeholder="np. 5000"
-            error={getFieldError(errors, "expectedPension")}
-            reserveErrorSpace="46px"
-          />
-          <div className="mt-2 text-sm text-zus-grey-600">
-            Podaj kwotę, jakiej emerytury oczekujesz. To pomoże porównać z prognozowaną emeryturą.
-          </div>
-        </FieldWithVisual>
       </div>
 
       <div className="mt-8 pt-6 border-t border-zus-grey-300">
