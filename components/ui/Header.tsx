@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { BookOpen } from "lucide-react";
 
 // Pre-calculate EU star positions with fixed precision to avoid hydration mismatch
 const EU_STAR_POSITIONS = [...Array(12)].map((_, i) => {
@@ -41,6 +42,14 @@ export function Header() {
                 className="hidden lg:inline-flex px-4 py-2.5 border-2 border-[rgb(0,65,110)] text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white rounded font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 Admin Panel
+              </Link>
+
+              <Link
+                href="/wynik?example=1"
+                className="hidden lg:inline-flex px-4 py-2.5 border-2 border-[rgb(0,65,110)] text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white rounded font-medium transition-colors whitespace-nowrap cursor-pointer items-center gap-2"
+              >
+                <BookOpen className="w-4 h-4" />
+                Przykłady
               </Link>
             </div>
 
@@ -233,6 +242,28 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <span>Admin Panel</span>
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </Link>
+
+              <Link
+                href="/wynik?example=1"
+                className="w-full px-4 py-3 border-2 border-[rgb(0,65,110)] text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white rounded font-medium transition-colors flex items-center justify-between cursor-pointer"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5" />
+                  Przykłady
+                </span>
                 <svg
                   className="w-5 h-5"
                   fill="currentColor"

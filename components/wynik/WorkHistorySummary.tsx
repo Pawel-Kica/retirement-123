@@ -48,8 +48,8 @@ export function WorkHistorySummary({ inputs }: WorkHistorySummaryProps) {
         </p>
       </div>
 
-      {/* Employment Periods List */}
-      <div className="space-y-3">
+      {/* Employment Periods List - Compact */}
+      <div className="space-y-2">
         <h3 className="text-lg font-bold text-zus-grey-900 mb-3">
           Okresy zatrudnienia
         </h3>
@@ -63,119 +63,58 @@ export function WorkHistorySummary({ inputs }: WorkHistorySummaryProps) {
           return (
             <div
               key={period.id}
-              className={`p-4 rounded-lg border-2 ${
+              className={`p-3 rounded-lg border ${
                 isCurrentPeriod
                   ? "bg-zus-green-light border-zus-green"
                   : "bg-white border-zus-grey-300"
               }`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <h4 className="font-bold text-zus-grey-900">
+              {/* Compact inline layout */}
+              <div className="flex items-center gap-4 flex-wrap text-sm">
+                <div className="font-bold text-zus-grey-900 min-w-[60px]">
                   Okres {index + 1}
-                </h4>
-                <span className="text-sm font-semibold text-zus-grey-700">
-                  {period.contractType === "UOP"
-                    ? "💼 UOP"
-                    : period.contractType === "UOZ"
-                    ? "📝 Zlecenie"
-                    : "🏢 B2B"}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div>
-                  <span className="text-zus-grey-600 block text-xs mb-1">
-                    Początek
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-semibold px-2 py-0.5 bg-zus-grey-100 rounded">
+                    {period.contractType === "UOP"
+                      ? "💼 UOP"
+                      : period.contractType === "UOZ"
+                      ? "📝 UOZ"
+                      : "🏢 B2B"}
                   </span>
-                  <span className="font-bold text-zus-grey-900">
-                    {period.startYear}
-                  </span>
+                </div>
+                <div className="text-zus-grey-700">
+                  <span className="text-xs text-zus-grey-500">Początek</span>{" "}
+                  <span className="font-semibold">{period.startYear}</span>
                   <span className="text-xs text-zus-grey-500 ml-1">
                     ({ageAtStart} lat)
                   </span>
                 </div>
-                <div>
-                  <span className="text-zus-grey-600 block text-xs mb-1">
-                    Koniec
-                  </span>
-                  <span className="font-bold text-zus-grey-900">
-                    {period.endYear}
-                  </span>
+                <div className="text-zus-grey-700">
+                  <span className="text-xs text-zus-grey-500">Koniec</span>{" "}
+                  <span className="font-semibold">{period.endYear}</span>
                   <span className="text-xs text-zus-grey-500 ml-1">
                     ({ageAtEnd} lat)
                   </span>
                 </div>
-                <div>
-                  <span className="text-zus-grey-600 block text-xs mb-1">
-                    Staż
-                  </span>
-                  <span className="font-bold text-zus-grey-900">
-                    {yearsWorked} lat
-                  </span>
+                <div className="text-zus-grey-700">
+                  <span className="text-xs text-zus-grey-500">Staż</span>{" "}
+                  <span className="font-semibold">{yearsWorked} lat</span>
                 </div>
-                <div>
-                  <span className="text-zus-grey-600 block text-xs mb-1">
+                <div className="ml-auto">
+                  <span className="text-xs text-zus-grey-500">
                     Wynagrodzenie
-                  </span>
+                  </span>{" "}
                   <span className="font-bold text-zus-green">
                     {formatPLN(period.monthlyGross)}
                   </span>
                 </div>
               </div>
 
-              {period.annualRaisePercentage !== undefined && (
-                <div className="mt-3">
-                  <button
-                    onClick={() => togglePeriod(period.id)}
-                    className="flex items-center gap-2 text-base hover:bg-zus-grey-100 rounded px-3 py-2 -mx-2 transition-colors w-full cursor-pointer"
-                  >
-                    <TrendingUp className="w-5 h-5 text-zus-blue" />
-                    <span className="text-zus-grey-600">Roczna podwyżka:</span>
-                    <span className="font-bold text-zus-blue">
-                      +{period.annualRaisePercentage}%
-                    </span>
-                    <ChevronDown
-                      className={`w-5 h-5 text-zus-grey-500 ml-auto transition-transform ${
-                        expandedPeriods.has(period.id) ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {/* Year-by-year salary breakdown */}
-                  {expandedPeriods.has(period.id) && (
-                    <div className="mt-2 bg-white/50 rounded p-2 border border-zus-grey-200">
-                      <div className="grid grid-cols-4 md:grid-cols-6 gap-1 text-xs">
-                        {Array.from({ length: yearsWorked }, (_, i) => {
-                          const year = period.startYear + i;
-                          const salary =
-                            period.monthlyGross *
-                            Math.pow(
-                              1 + period.annualRaisePercentage! / 100,
-                              i
-                            );
-                          return (
-                            <div
-                              key={year}
-                              className="text-center py-1 px-1 rounded hover:bg-zus-green-light transition-colors"
-                            >
-                              <div className="text-zus-grey-500 font-medium">
-                                {year}
-                              </div>
-                              <div className="font-bold text-zus-grey-900 whitespace-nowrap">
-                                {formatPLN(salary)}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
+              {/* Description on separate line if exists */}
               {period.description && (
-                <div className="mt-3 pt-3 border-t border-zus-grey-300">
-                  <p className="text-xs text-zus-grey-600">
+                <div className="mt-2 pt-2 border-t border-zus-grey-200">
+                  <p className="text-xs text-zus-grey-600 italic">
                     {period.description}
                   </p>
                 </div>

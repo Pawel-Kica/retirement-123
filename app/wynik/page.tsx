@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { HistoryButton } from "@/components/ui/HistoryButton";
 import { PDFPreviewModal } from "@/components/ui/PDFPreviewModal";
@@ -21,6 +21,9 @@ import { SalaryGrowthImpact } from "@/components/wynik/SalaryGrowthImpact";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { generatePDFReport } from "@/lib/utils/pdfGenerator";
 import { loadAllData } from "@/lib/data/loader";
+import { getExampleById, EXAMPLE_PERSONAS } from "@/lib/data/examples";
+import { ExampleBrowser } from "@/components/ui/ExampleBrowser";
+import { ChevronDown } from "lucide-react";
 import type {
   EmploymentPeriod,
   EmploymentGapPeriod,
@@ -53,6 +56,7 @@ ChartJS.register(
 
 export default function WynikPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     state,
     loadFromHistory,
@@ -63,11 +67,17 @@ export default function WynikPage() {
     updateLifeEvents,
     loadTimelineFromStorage,
     updateInputs,
+    setInputsAndRecalculate,
   } = useSimulation();
 
   const [isLoading, setIsLoading] = useState(true);
   const [showPDFPreview, setShowPDFPreview] = useState(false);
   const [data, setData] = useState<any>(null);
+  const [isExampleMode, setIsExampleMode] = useState(false);
+  const [exampleId, setExampleId] = useState<string | null>(null);
+
+  // Track loaded example to prevent re-loading
+  const loadedExampleRef = useRef<string | null>(null);
 
   // Timeline panel state
   const [activePanelType, setActivePanelType] = useState<PanelType>(null);
@@ -95,10 +105,73 @@ export default function WynikPage() {
     fetchData();
   }, []);
 
+  // Handle example query parameter
+  useEffect(() => {
+    const exampleParam = searchParams.get("example");
+
+    if (exampleParam) {
+      // Skip if we've already loaded this example
+      if (loadedExampleRef.current === exampleParam) {
+        return;
+      }
+
+      const example = getExampleById(exampleParam);
+
+      if (example) {
+        setIsExampleMode(true);
+        setExampleId(exampleParam);
+
+        // Load example data into simulation
+        const loadExample = async () => {
+          try {
+            setIsLoading(true);
+
+            // Merge inputs with dashboard modifications
+            const exampleInputs = {
+              ...example.inputs,
+              employmentPeriods: example.modifications.contractPeriods,
+            };
+
+            await setInputsAndRecalculate(exampleInputs, false);
+
+            // Also set the dashboard modifications
+            if (example.modifications.gapPeriods) {
+              setGapPeriods(example.modifications.gapPeriods);
+            }
+            if (example.modifications.lifeEvents) {
+              setLifeEvents(example.modifications.lifeEvents);
+            }
+
+            // Mark this example as loaded
+            loadedExampleRef.current = exampleParam;
+            setIsLoading(false);
+          } catch (error) {
+            console.error("Failed to load example:", error);
+            setIsLoading(false);
+          }
+        };
+
+        loadExample();
+      }
+    } else {
+      setIsExampleMode(false);
+      setExampleId(null);
+      loadedExampleRef.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // Only depend on searchParams to avoid infinite loop
+
   useEffect(() => {
     // Small delay to allow state to be loaded from localStorage
     const checkResults = async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Check if we're loading an example - if so, don't redirect
+      const exampleParam = searchParams.get("example");
+      if (exampleParam) {
+        // Example will be loaded by the other useEffect
+        return;
+      }
 
       if (!state.results) {
         // Try to load from history before redirecting
@@ -120,7 +193,7 @@ export default function WynikPage() {
 
     checkResults();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount to avoid race conditions
+  }, [searchParams]); // Re-run when searchParams change
 
   useEffect(() => {
     if (state.inputs && !isLoading) {
@@ -154,18 +227,21 @@ export default function WynikPage() {
   const pensionDifferencePercent = (pensionDifference / expectedPension) * 100;
   const isBelowExpectation = pensionDifference < 0;
 
-  // Panel handlers
+  // Panel handlers (disabled in example mode)
   const handleOpenEmploymentPanel = (period?: EmploymentPeriod) => {
+    if (isExampleMode) return; // Disable editing in example mode
     setEditingItem(period || null);
     setActivePanelType("employment");
   };
 
   const handleOpenGapPanel = (gap?: EmploymentGapPeriod) => {
+    if (isExampleMode) return; // Disable editing in example mode
     setEditingItem(gap || null);
     setActivePanelType("gap");
   };
 
   const handleOpenSickLeavePanel = (event?: LifeEvent) => {
+    if (isExampleMode) return; // Disable editing in example mode
     setEditingItem(event || null);
     setActivePanelType("sick");
   };
@@ -232,6 +308,16 @@ export default function WynikPage() {
   const birthYear = currentYear - inputs.age;
   const maxYearAge90 = birthYear + 90;
 
+  const handleExitExample = () => {
+    router.push("/wynik");
+    setIsExampleMode(false);
+    setExampleId(null);
+  };
+
+  const handleSelectExample = (newExampleId: string) => {
+    router.push(`/wynik?example=${newExampleId}`);
+  };
+
   const handleOpenPDFPreview = () => {
     setShowPDFPreview(true);
   };
@@ -250,10 +336,33 @@ export default function WynikPage() {
     setShowPDFPreview(false);
   };
 
+  // Get current example for educational banner
+  const currentExample = exampleId ? getExampleById(exampleId) : null;
+
   return (
     <>
       <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] py-8 relative">
+          {/* Example Selector - Top Left (only when in example mode) */}
+          {isExampleMode && (
+            <div className="absolute top-4 left-4 sm:left-6 lg:left-8 z-30">
+              <div className="relative">
+                <select
+                  value={exampleId || ""}
+                  onChange={(e) => handleSelectExample(e.target.value)}
+                  className="appearance-none bg-white border-2 border-zus-green text-zus-grey-900 font-semibold rounded-lg px-4 py-2.5 pr-10 shadow-md hover:shadow-lg transition-shadow cursor-pointer focus:outline-none focus:ring-2 focus:ring-zus-green"
+                >
+                  {EXAMPLE_PERSONAS.map((example) => (
+                    <option key={example.id} value={example.id}>
+                      {example.title}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zus-green pointer-events-none" />
+              </div>
+            </div>
+          )}
+
           {/* History Button - Top Right of Container */}
           <div className="absolute top-4 right-4 sm:right-6 lg:right-8 z-30">
             <HistoryButton />
@@ -262,6 +371,42 @@ export default function WynikPage() {
           <h1 className="text-4xl font-bold text-zus-grey-900 mb-6 text-center">
             Twoja Prognoza Emerytury
           </h1>
+
+          {/* Educational Example Banner */}
+          {isExampleMode && currentExample && (
+            <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6 shadow-md">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">📚</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h2 className="text-xl font-bold text-blue-900">
+                      Przykład Edukacyjny: {currentExample.title}
+                    </h2>
+                    <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
+                      DEMO
+                    </span>
+                  </div>
+                  <p className="text-sm text-blue-800 mb-3">
+                    {currentExample.educationalDescription}
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={handleExitExample}
+                      variant="secondary"
+                      size="sm"
+                    >
+                      Wróć do swoich wyników
+                    </Button>
+                    <Button onClick={() => router.push("/")} size="sm">
+                      Stwórz własną symulację
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <ComparisonBanner
             pensionDifference={pensionDifference}
@@ -336,6 +481,9 @@ export default function WynikPage() {
           </div>
         </div>
       </main>
+
+      {/* Example Browser - Floating Button (hidden in example mode) */}
+      {!isExampleMode && <ExampleBrowser />}
 
       {/* PDF Preview Modal */}
       <PDFPreviewModal
