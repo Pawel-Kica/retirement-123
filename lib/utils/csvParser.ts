@@ -258,6 +258,43 @@ export function getLifeExpectancy(
 }
 
 /**
+ * Calculate starting salary based on current salary and wage growth data
+ * @param currentSalary - Current salary
+ * @param startYear - Year when employment started
+ * @param endYear - Year when employment ended
+ * @param wageGrowthData - Historical wage growth data
+ * @returns Starting salary at the beginning of employment
+ */
+export function calculateStartingSalary(
+  currentSalary: number,
+  startYear: number,
+  endYear: number,
+  wageGrowthData: Record<string, number>
+): number {
+  // Create a map for O(1) lookups
+  const wageGrowthMap = new Map<number, number>();
+  Object.entries(wageGrowthData).forEach(([year, growth]) => {
+    wageGrowthMap.set(parseInt(year), growth);
+  });
+
+  // Calculate cumulative wage growth from start year to end year
+  let cumulativeGrowth = 1;
+  let lastKnownGrowth = 1; // Default fallback
+
+  for (let year = startYear; year < endYear; year++) {
+    // Use the wage growth value for this year if available, otherwise use the last known value
+    const yearGrowth = wageGrowthMap.get(year);
+    if (yearGrowth !== undefined) {
+      lastKnownGrowth = yearGrowth;
+    }
+    cumulativeGrowth *= lastKnownGrowth;
+  }
+
+  // Starting salary = Current salary / cumulative growth
+  return currentSalary / cumulativeGrowth;
+}
+
+/**
  * Calculate average pension based on inflation and other factors
  * This is a simplified calculation - in reality it would be more complex
  */

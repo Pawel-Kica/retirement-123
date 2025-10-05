@@ -33,7 +33,7 @@ export function ResultsKPIs({
           {formatPLN(expectedPension)}
         </div>
         <div className="text-[10px] text-zus-grey-600 mt-0.5">
-          (wartość realna)
+          (w dzisiejszych złotych)
         </div>
       </Card>
 
@@ -53,7 +53,7 @@ export function ResultsKPIs({
           {formatPLN(results.realPension)}
         </div>
         <div className="text-[10px] text-zus-grey-600 mt-0.5">
-          (wartość realna)
+          (w dzisiejszych złotych)
         </div>
       </Card>
 
@@ -65,7 +65,7 @@ export function ResultsKPIs({
           {formatPLN(results.nominalPension)}
         </div>
         <div className="text-[10px] text-zus-grey-600 mt-0.5">
-          (w roku przejścia na emeryturę)
+          (w złotych w roku {inputs.workEndYear})
         </div>
       </Card>
 

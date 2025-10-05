@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { formatPLN } from "@/lib/utils/formatting";
+import { calculateStartingSalary } from "@/lib/utils/csvParser";
+import { getWageGrowthByYear } from "@/data/tables/wageGrowthByYear";
 import { Briefcase, TrendingUp, ChevronDown } from "lucide-react";
 import type { SimulationInputs } from "@/lib/types";
 import { retirementAgeBySex } from "@/data/retirementAgeBySex";
@@ -15,12 +17,43 @@ export function WorkHistorySummary({ inputs }: WorkHistorySummaryProps) {
   const [expandedPeriods, setExpandedPeriods] = useState<Set<string>>(
     new Set()
   );
+  const [wageGrowthData, setWageGrowthData] = useState<Record<string, number>>({});
+  const [startingSalaries, setStartingSalaries] = useState<Record<string, number>>({});
 
   if (!inputs.employmentPeriods || inputs.employmentPeriods.length === 0) {
     return null;
   }
 
   const currentYear = new Date().getFullYear();
+
+  // Load wage growth data and calculate starting salaries
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const wageDataResponse = await getWageGrowthByYear();
+        // Extract only the data part, excluding metadata
+        const { _metadata, ...wageData } = wageDataResponse;
+        setWageGrowthData(wageData);
+
+        // Calculate starting salaries for each period
+        const salaries: Record<string, number> = {};
+        inputs.employmentPeriods?.forEach((period) => {
+          const startingSalary = calculateStartingSalary(
+            period.monthlyGross,
+            period.startYear,
+            period.endYear,
+            wageData
+          );
+          salaries[period.id] = startingSalary;
+        });
+        setStartingSalaries(salaries);
+      } catch (error) {
+        console.error("Error loading wage growth data:", error);
+      }
+    };
+
+    loadData();
+  }, [inputs.employmentPeriods]);
 
   const togglePeriod = (periodId: string) => {
     setExpandedPeriods((prev) => {
@@ -101,13 +134,18 @@ export function WorkHistorySummary({ inputs }: WorkHistorySummaryProps) {
                   <span className="text-xs text-zus-grey-500">Staż</span>{" "}
                   <span className="font-semibold">{yearsWorked} lat</span>
                 </div>
-                <div className="ml-auto">
-                  <span className="text-xs text-zus-grey-500">
-                    Wynagrodzenie
-                  </span>{" "}
-                  <span className="font-bold text-zus-green">
+                <div className="ml-auto text-right">
+                  <div className="text-xs text-zus-grey-500">
+                    {isCurrentPeriod ? "Obecne wynagrodzenie" : "Wynagrodzenie"}
+                  </div>
+                  <div className="font-bold text-zus-green">
                     {formatPLN(period.monthlyGross)}
-                  </span>
+                  </div>
+                  {startingSalaries[period.id] && startingSalaries[period.id] !== period.monthlyGross && (
+                    <div className="text-xs text-zus-grey-600">
+                      Początkowe: {formatPLN(startingSalaries[period.id])}
+                    </div>
+                  )}
                 </div>
               </div>
 

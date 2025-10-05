@@ -305,7 +305,7 @@ export function PDFPreviewModal({
               </div>
               <div className="bg-white rounded p-4">
                 <div className="text-xs font-semibold text-zus-grey-600 uppercase tracking-wide mb-1">
-                  Emerytura prognozowana (wartość realna)
+                  Emerytura prognozowana (w dzisiejszych złotych)
                 </div>
                 <div className="text-2xl font-bold text-zus-green">
                   {formatPLN(results.realPension)}

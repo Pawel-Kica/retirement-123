@@ -18,6 +18,7 @@ import { WorkHistorySummary } from "@/components/wynik/WorkHistorySummary";
 import { TimelineSection } from "@/components/wynik/TimelineSection";
 import { DeferralScenarios } from "@/components/wynik/DeferralScenarios";
 import { SalaryGrowthImpact } from "@/components/wynik/SalaryGrowthImpact";
+import { DebugPanel } from "@/components/wynik/DebugPanel";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { generatePDFReport } from "@/lib/utils/pdfGenerator";
 import { loadAllData } from "@/lib/data/loader";
@@ -541,6 +542,13 @@ function WynikPageContent() {
           />
         )}
       </TimelinePanelContainer>
+
+      {/* Debug Panel */}
+      <DebugPanel
+        results={results}
+        inputs={inputs}
+        expectedPension={expectedPension}
+      />
     </>
   );
 }

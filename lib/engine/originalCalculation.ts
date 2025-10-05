@@ -43,15 +43,17 @@ const PPK_MULTIPLIER = 0.1; // 10% boost
 const IKZE_MULTIPLIER = 0.1; // 10% boost
 
 // Pension boost multiplier to make results more realistic
-const PENSION_BOOST_MULTIPLIER = 2.5;
+const PENSION_BOOST_MULTIPLIER = 1.0; // Disabled - was causing unrealistic numbers
 
 /**
  * Calculate waloryzacja (indexation) rate using ZUS formula
  * Wskaźnik waloryzacji = (1 + inflacja) × (1 + 0.75 × wzrost wynagrodzeń)
  */
 function calculateWaloryzacjaRate(prognosisData: PrognosisData): number {
-  const inflation = prognosisData.inflation / 100; // Convert percentage to decimal
-  const wageGrowth = prognosisData.wage_growth / 100; // Convert percentage to decimal
+  // Data is already in percentage format (113.50 = 13.5% inflation)
+  // Convert to decimal: 113.50 -> 0.135
+  const inflation = (prognosisData.inflation - 100) / 100;
+  const wageGrowth = (prognosisData.wage_growth - 100) / 100;
 
   const waloryzacjaRate = (1 + inflation) * (1 + 0.75 * wageGrowth);
   return waloryzacjaRate;

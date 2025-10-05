@@ -370,7 +370,7 @@ export default function Home() {
               </div>
 
               <p className="text-xs text-gray-400 mb-4">
-                W dzisiejszych złotych (wartość realna)
+                W dzisiejszych złotych
               </p>
             </div>
           </div>
