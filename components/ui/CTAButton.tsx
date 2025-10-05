@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 interface CTAButtonProps {
   onClick: () => void;
   children: React.ReactNode;
-  size?: "default" | "lg";
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 

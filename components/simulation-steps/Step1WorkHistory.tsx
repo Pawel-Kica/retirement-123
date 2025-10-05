@@ -342,7 +342,7 @@ export function Step1WorkHistory({
                                 type="button"
                                 onClick={() => {
                                   const minRetirementAge =
-                                    retirementAgeBySex[formData.sex];
+                                    retirementAgeBySex[formData.sex!];
                                   const minRetirementYear =
                                     currentYear +
                                     (minRetirementAge - formData.age!);

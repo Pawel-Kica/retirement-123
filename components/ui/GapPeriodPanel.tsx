@@ -37,7 +37,7 @@ const MONTHS: { value: Month; label: string }[] = [
 const GAP_TYPES: {
   value: "MATERNITY_LEAVE" | "UNPAID_LEAVE" | "UNEMPLOYMENT";
   label: string;
-  icon: React.ReactNode;
+  icon: React.ReactElement;
   color: string;
 }[] = [
   {
@@ -165,7 +165,7 @@ export function GapPeriodPanel({
                 }
                 className="w-4 h-4 accent-zus-green"
               />
-              <div className="text-zus-green w-5 h-5">{React.cloneElement(type.icon as React.ReactElement, { className: 'w-5 h-5' })}</div>
+              <div className="text-zus-green w-5 h-5">{React.cloneElement(type.icon, { className: 'w-5 h-5' } as any)}</div>
               <span className="font-semibold text-sm text-zus-grey-900">
                 {type.label}
               </span>

@@ -127,7 +127,7 @@ export function HistoryButton() {
                         </div>
                         <div>
                           <p className="text-xs text-zus-grey-500">
-                            {formatDate(entry.timestamp)}
+                            {formatDate(Number(entry.timestamp))}
                           </p>
                         </div>
                       </div>

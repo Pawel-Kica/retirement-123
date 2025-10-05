@@ -100,10 +100,10 @@ export default function HistorySection({
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <p className="text-sm text-zus-grey-500 mb-1">
-                        {formatDate(entry.timestamp)}
+                        {formatDate(Number(entry.timestamp))}
                       </p>
                       <p className="text-lg font-bold text-zus-green group-hover:text-zus-green-dark">
-                        {formatPLN(entry.results.pensionResults.basePension)}
+                        {formatPLN(entry.results.realPension)}
                       </p>
                       <p className="text-xs text-zus-grey-500 mt-1">
                         Emerytura miesięczna
