@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
 import { averagePensionByYear } from "@/data/tables/averagePensionByYear";
 import { cpiByYear } from "@/data/tables/cpiByYear";
 import { wageGrowthByYear } from "@/data/tables/wageGrowthByYear";
@@ -37,17 +36,17 @@ export default function RaportyPage() {
 
     return (
       <div>
-        <div className="mb-6 p-3 bg-gray-50 rounded border border-gray-200">
-          <h3 className="text-sm font-semibold text-zus-grey-900 mb-2">
+        <div className="mb-6 p-4 bg-blue-50 rounded border border-blue-200">
+          <h3 className="text-base font-semibold text-zus-grey-900 mb-2">
             Źródło danych
           </h3>
-          <p className="text-xs text-zus-grey-700 mb-1">
+          <p className="text-sm text-zus-grey-700 mb-1">
             <span className="font-medium">Źródło:</span> {metadata.source}
           </p>
-          <p className="text-xs text-zus-grey-700 mb-1">
+          <p className="text-sm text-zus-grey-700 mb-1">
             <span className="font-medium">Opis:</span> {metadata.description}
           </p>
-          <p className="text-xs text-zus-grey-600">
+          <p className="text-sm text-zus-grey-600">
             <span className="font-medium">Wersja:</span> {metadata.version} |{" "}
             <span className="font-medium">Data:</span> {metadata.date}
           </p>
@@ -56,18 +55,18 @@ export default function RaportyPage() {
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="border-b-2 border-zus-green">
+              <tr className="bg-gray-50 border-b-2 border-zus-green">
                 {columns.map((_, colIndex) => (
                   <>
                     <th
                       key={`year-${colIndex}`}
-                      className="px-4 py-2 text-left text-sm font-semibold text-zus-grey-900"
+                      className="px-4 py-3 text-left text-base font-bold text-zus-grey-900"
                     >
                       Rok
                     </th>
                     <th
                       key={`value-${colIndex}`}
-                      className="px-4 py-2 text-left text-sm font-semibold text-zus-grey-900"
+                      className="px-4 py-3 text-left text-base font-bold text-zus-grey-900"
                     >
                       {valueLabel}
                     </th>
@@ -82,7 +81,7 @@ export default function RaportyPage() {
               {Array.from({ length: itemsPerColumn }).map((_, rowIndex) => (
                 <tr
                   key={rowIndex}
-                  className={`border-b border-gray-200 ${
+                  className={`border-b border-gray-200 hover:bg-gray-100 transition-colors ${
                     rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                   }`}
                 >
@@ -104,13 +103,13 @@ export default function RaportyPage() {
                       <>
                         <td
                           key={`year-${colIndex}`}
-                          className="px-4 py-2 text-sm text-zus-grey-800"
+                          className="px-4 py-3 text-base text-zus-grey-800"
                         >
                           {year}
                         </td>
                         <td
                           key={`value-${colIndex}`}
-                          className="px-4 py-2 text-sm text-zus-grey-800"
+                          className="px-4 py-3 text-base text-zus-grey-800"
                         >
                           {typeof value === "number"
                             ? value.toLocaleString("pl-PL", {
@@ -138,42 +137,63 @@ export default function RaportyPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <main className="bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] py-8">
-        <h1 className="text-4xl font-bold text-zus-grey-900 mb-6 text-center">
+        <h1 className="text-5xl font-bold text-zus-grey-900 mb-8 text-center">
           Raporty Danych
         </h1>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           {/* Tabs */}
-          <div className="border-b border-gray-200 mb-6">
-            <nav className="flex space-x-8" aria-label="Tabs">
+          <div className="border-b border-gray-200 mb-6 relative">
+            {/* Back Button - Top Left */}
+            <button
+              onClick={() => router.back()}
+              className="absolute -top-2 left-0 flex items-center gap-2 text-gray-600 hover:text-zus-green transition-colors group"
+              aria-label="Powrót"
+            >
+              <svg
+                className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              <span className="text-sm font-medium">Powrót</span>
+            </button>
+            <nav className="flex space-x-4 justify-center" aria-label="Tabs">
               <button
                 onClick={() => setActiveTab("pension")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors ${
                   activeTab === "pension"
-                    ? "border-zus-green text-zus-green"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "bg-zus-green text-white"
+                    : "text-gray-600 hover:text-zus-green hover:bg-gray-50"
                 }`}
               >
                 Średnia Emerytura
               </button>
               <button
                 onClick={() => setActiveTab("cpi")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors ${
                   activeTab === "cpi"
-                    ? "border-zus-green text-zus-green"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "bg-zus-green text-white"
+                    : "text-gray-600 hover:text-zus-green hover:bg-gray-50"
                 }`}
               >
                 Wskaźnik CPI
               </button>
               <button
                 onClick={() => setActiveTab("wages")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors ${
                   activeTab === "wages"
-                    ? "border-zus-green text-zus-green"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "bg-zus-green text-white"
+                    : "text-gray-600 hover:text-zus-green hover:bg-gray-50"
                 }`}
               >
                 Wzrost Wynagrodzeń
@@ -189,29 +209,13 @@ export default function RaportyPage() {
               averagePensionByYear._metadata
             )}
           {activeTab === "cpi" &&
-            renderTable(
-              cpiData,
-              "Wskaźnik CPI",
-              cpiByYear._metadata
-            )}
+            renderTable(cpiData, "Wskaźnik CPI", cpiByYear._metadata)}
           {activeTab === "wages" &&
             renderTable(
               wagesData,
               "Wzrost wynagrodzeń",
               wageGrowthByYear._metadata
             )}
-        </div>
-
-        {/* Back Button */}
-        <div className="flex justify-center">
-          <Button
-            onClick={() => router.back()}
-            variant="secondary"
-            size="lg"
-            className="min-w-[200px]"
-          >
-            Powrót
-          </Button>
         </div>
       </div>
     </main>

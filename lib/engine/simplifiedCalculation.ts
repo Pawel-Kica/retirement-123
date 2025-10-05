@@ -238,6 +238,10 @@ function applyRetirementPrograms(
 
 /**
  * Calculate deferral scenarios (working additional years)
+ * Uses exponential growth model:
+ * - Years 1-4: 3% increase per year (compound)
+ * - Years 5-7: 5% increase per year (compound)
+ * - Years 8-10: 10% increase per year (compound)
  */
 function calculateDeferralScenarios(
   baseCapital: number,
@@ -251,21 +255,31 @@ function calculateDeferralScenarios(
 ) {
   const currentYear = new Date().getFullYear();
   const scenarios = [];
-  const years = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  const years = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  let previousRealPension = basePension;
 
   for (const additionalYears of years) {
-    const extraCapital =
-      additionalYears * lastSalary * 12 * CONTRACT_RATES[contractType];
-    const newCapital = baseCapital + extraCapital;
+    // Determine growth rate based on year
+    let growthRate: number;
+    if (additionalYears <= 4) {
+      growthRate = 0.03; // 3% for years 1-4
+    } else if (additionalYears <= 7) {
+      growthRate = 0.05; // 5% for years 5-7
+    } else {
+      growthRate = 0.1; // 10% for years 8-10
+    }
+
+    // Calculate new pension using compound growth from previous year
+    const newRealPension = previousRealPension * (1 + growthRate);
+
     const newAge = baseRetirementAge + additionalYears;
     const newRetirementYear = baseRetirementYear + additionalYears;
     const newDivisor = calculateDivisor(newAge, sex);
-    const newNominalPension = newCapital / newDivisor;
-    const newRealPension = calculateRealPension(
-      newNominalPension,
-      newRetirementYear,
-      currentYear
-    );
+
+    // Back-calculate capital needed for this pension
+    const newNominalPension = newRealPension;
+    const newCapital = newNominalPension * newDivisor;
 
     scenarios.push({
       additionalYears,
@@ -277,6 +291,9 @@ function calculateDeferralScenarios(
       increaseVsBase: newRealPension - basePension,
       percentIncrease: (newRealPension / basePension - 1) * 100,
     });
+
+    // Update for next iteration
+    previousRealPension = newRealPension;
   }
 
   return scenarios;

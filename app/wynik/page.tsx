@@ -17,6 +17,7 @@ import { ResultsKPIs } from "@/components/wynik/ResultsKPIs";
 import { WorkHistorySummary } from "@/components/wynik/WorkHistorySummary";
 import { TimelineSection } from "@/components/wynik/TimelineSection";
 import { DeferralScenarios } from "@/components/wynik/DeferralScenarios";
+import { SalaryGrowthImpact } from "@/components/wynik/SalaryGrowthImpact";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { generatePDFReport } from "@/lib/utils/pdfGenerator";
 import { loadAllData } from "@/lib/data/loader";
@@ -296,7 +297,15 @@ export default function WynikPage() {
             onUpdateInputs={updateInputs}
           />
 
-          <DeferralScenarios results={results} />
+          {/* Growth Scenarios Grid - 2 columns on large screens, stacked on mobile/tablet */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <DeferralScenarios results={results} />
+            <SalaryGrowthImpact
+              results={results}
+              inputs={inputs}
+              modifications={state.dashboardModifications}
+            />
+          </div>
 
           {/* Actions */}
           <div className="flex flex-col md:flex-row gap-4">

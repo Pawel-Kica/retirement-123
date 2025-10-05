@@ -76,6 +76,9 @@ export function ResultsKPIs({
         <div className="text-2xl font-bold text-zus-grey-900">
           {totalYearsWorked} lat
         </div>
+        <div className="text-[10px] text-zus-grey-600 mt-0.5">
+          (od roku rozpoczęcia pracy)
+        </div>
       </Card>
     </div>
   );

@@ -35,7 +35,6 @@ export interface AveragePensionData {
   [year: string]: number | object;
 }
 
-
 export interface SickImpactConfig {
   _metadata: {
     source: string;
@@ -69,7 +68,6 @@ export interface RetirementAgeData {
   F: number;
   note: string;
 }
-
 
 // ==========================================
 // NOWE TYPY - Rozszerzona funkcjonalność
@@ -302,3 +300,6 @@ export interface SimulationHistoryEntry {
   inputs: SimulationInputs;
   results: SimulationResults;
 }
+
+// Type alias for backwards compatibility
+export type PensionResults = SimulationResults;

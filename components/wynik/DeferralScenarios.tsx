@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
-import { Bar, Line } from "react-chartjs-2";
-import { BarChart3, TrendingUp, Table } from "lucide-react";
+import { Bar } from "react-chartjs-2";
+import { BarChart3, Table } from "lucide-react";
 import { formatPLN, formatYears } from "@/lib/utils/formatting";
 import type { PensionResults } from "@/lib/types";
 
@@ -12,15 +12,33 @@ interface DeferralScenariosProps {
 export function DeferralScenarios({ results }: DeferralScenariosProps) {
   const [viewMode, setViewMode] = useState<"bar" | "line" | "table">("bar");
 
-  // Safety check for deferrals
-  const deferrals = results.deferrals || [];
+  // Safety check for deferrals - limit to 10 years maximum
+  const deferrals = (results.deferrals || []).slice(0, 10);
 
   return (
-    <Card className="mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-zus-grey-900">
+    <Card className="h-full">
+      <div className="mb-6">
+        <h3 className="text-xl font-bold text-zus-grey-900 mb-2">
           Scenariusze wydłużenia kariery
         </h3>
+        <p className="text-sm text-zus-grey-600">
+          Pracując dłużej, twoja emerytura rośnie wykładniczo. Każdy dodatkowy
+          rok to wyższe składki, więcej kapitału i mniejszy dzielnik!
+        </p>
+      </div>
+
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex gap-2 text-xs text-zus-grey-600">
+          <span className="px-2 py-1 bg-blue-100 rounded">
+            Lata 1-4: +3%/rok
+          </span>
+          <span className="px-2 py-1 bg-green-100 rounded">
+            Lata 5-7: +5%/rok
+          </span>
+          <span className="px-2 py-1 bg-purple-100 rounded">
+            Lata 8-10: +10%/rok
+          </span>
+        </div>
         <div className="flex gap-2 bg-zus-grey-100 p-1 rounded-lg">
           <button
             onClick={() => setViewMode("bar")}
@@ -32,17 +50,6 @@ export function DeferralScenarios({ results }: DeferralScenariosProps) {
           >
             <BarChart3 className="w-4 h-4" />
             Wykres
-          </button>
-          <button
-            onClick={() => setViewMode("line")}
-            className={`px-4 py-2 rounded-md font-semibold text-sm transition-all cursor-pointer flex items-center gap-2 ${
-              viewMode === "line"
-                ? "bg-zus-green text-white shadow-md"
-                : "text-zus-grey-700 hover:bg-white"
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            Linia
           </button>
           <button
             onClick={() => setViewMode("table")}
@@ -87,36 +94,11 @@ export function DeferralScenarios({ results }: DeferralScenariosProps) {
               scales: {
                 y: {
                   ticks: {
-                    callback: (value: any) => `${(value / 1000).toFixed(0)}k zł`,
+                    callback: (value: any) =>
+                      `${(value / 1000).toFixed(0)}k zł`,
                   },
                 },
               },
-            }}
-          />
-        </div>
-      )}
-
-      {viewMode === "line" && (
-        <div className="h-[400px]">
-          <Line
-            data={{
-              labels: [
-                "Bazowy",
-                ...deferrals.map((d) => `+${d.additionalYears}`),
-              ],
-              datasets: [
-                {
-                  label: "Wzrost emerytury (%)",
-                  data: [0, ...deferrals.map((d) => d.percentIncrease)],
-                  borderColor: "#00843D",
-                  backgroundColor: "rgba(0, 132, 61, 0.1)",
-                  fill: true,
-                },
-              ],
-            }}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
             }}
           />
         </div>
