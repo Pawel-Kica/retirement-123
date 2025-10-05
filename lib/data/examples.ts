@@ -357,14 +357,14 @@ const EXAMPLE_4_LOW: ExamplePersona = {
   shortDescription:
     "Bardzo późny start, głównie B2B, niskie zarobki, wiele przerw, brak programów",
   educationalDescription:
-    "Niska emerytura to efekt późnego startu kariery (26 lat), przewagi B2B w historii zatrudnienia (składki tylko 8% - mniej niż połowa UOP 19.52%!), częstych i długich przerw w pracy (bezrobocie i urlopy bezpłatne dają 100% redukcję składek), niskich zarobków oraz całkowitego braku dodatkowych programów emerytalnych (PPK, IKZE). To pokazuje, jak ważne są wczesne decyzje zawodowe.",
+    "Niska emerytura to efekt późnego startu kariery (29 lat), przewagi B2B w historii zatrudnienia (składki tylko 8% - mniej niż połowa UOP 19.52%!), częstych i długich przerw w pracy (bezrobocie i urlopy bezpłatne dają 100% redukcję składek), niskich zarobków oraz całkowitego braku dodatkowych programów emerytalnych (PPK, IKZE). To pokazuje, jak ważne są wczesne decyzje zawodowe.",
   color: "red",
   estimatedPensionRange: "1,800 - 2,500 PLN",
   inputs: {
     age: CURRENT_AGE,
     sex: "F",
     monthlyGross: 4500,
-    workStartYear: 2026,
+    workStartYear: 2029,
     workEndYear: RETIREMENT_YEAR,
     accountBalance: 0,
     subAccountBalance: 0,
@@ -389,14 +389,6 @@ const EXAMPLE_4_LOW: ExamplePersona = {
     contractPeriods: [
       {
         id: "period-1",
-        startYear: 2026,
-        endYear: 2028,
-        monthlyGross: 3500,
-        contractType: "B2B",
-        description: "Nisko płatny freelancing",
-      },
-      {
-        id: "period-2",
         startYear: 2029,
         endYear: 2031,
         monthlyGross: 4000,
@@ -404,7 +396,7 @@ const EXAMPLE_4_LOW: ExamplePersona = {
         description: "Krótki okres na etacie",
       },
       {
-        id: "period-3",
+        id: "period-2",
         startYear: 2032,
         endYear: 2039,
         monthlyGross: 4200,
@@ -412,7 +404,7 @@ const EXAMPLE_4_LOW: ExamplePersona = {
         description: "Długi okres B2B",
       },
       {
-        id: "period-4",
+        id: "period-3",
         startYear: 2040,
         endYear: 2043,
         monthlyGross: 4500,
@@ -420,7 +412,7 @@ const EXAMPLE_4_LOW: ExamplePersona = {
         description: "Powrót do UOP",
       },
       {
-        id: "period-5",
+        id: "period-4",
         startYear: 2044,
         endYear: 2051,
         monthlyGross: 4800,
@@ -428,7 +420,7 @@ const EXAMPLE_4_LOW: ExamplePersona = {
         description: "Ponownie B2B",
       },
       {
-        id: "period-6",
+        id: "period-5",
         startYear: 2052,
         endYear: RETIREMENT_YEAR,
         monthlyGross: 5000,
