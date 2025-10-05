@@ -9,9 +9,11 @@ import {
   DashboardModifications,
   EmploymentPeriod,
   EmploymentGapPeriod,
+  LifeEvent,
   Sex,
   ContractType,
 } from "../types";
+import { sickImpact } from "@/data/sickImpact";
 
 // Contract contribution rates
 const CONTRACT_RATES: Record<ContractType, number> = {
@@ -28,14 +30,17 @@ const GAP_PENALTIES = {
 };
 
 // Retirement program multipliers
-const PPK_MULTIPLIER = 0.10; // 10% boost
-const IKZE_MULTIPLIER = 0.10; // 10% boost
+const PPK_MULTIPLIER = 0.1; // 10% boost
+const IKZE_MULTIPLIER = 0.1; // 10% boost
 
 // Life expectancy divisors (in months)
 const BASE_DIVISORS = {
   F: { age: 60, months: 277 },
   M: { age: 65, months: 217 },
 };
+
+// Default CPI (inflation) assumption for future years
+const DEFAULT_CPI = 1.025; // 2.5% annual inflation
 
 /**
  * Calculate divisor based on retirement age and sex
@@ -55,7 +60,10 @@ function buildWorkHistory(
   modifications?: DashboardModifications
 ): EmploymentPeriod[] {
   // If timeline modifications exist, use those
-  if (modifications?.contractPeriods && modifications.contractPeriods.length > 0) {
+  if (
+    modifications?.contractPeriods &&
+    modifications.contractPeriods.length > 0
+  ) {
     return modifications.contractPeriods;
   }
 
@@ -128,6 +136,72 @@ function applyGapPenalties(
 }
 
 /**
+ * Apply sick leave impact to capital
+ * This includes both general sick leave (checkbox) and specific long-term sick leave events
+ */
+function applySickLeaveImpact(
+  baseCapital: number,
+  inputs: SimulationInputs,
+  lifeEvents: LifeEvent[]
+): number {
+  let capital = baseCapital;
+
+  // Apply general sick leave reduction if enabled (checkbox)
+  if (inputs.includeZwolnienieZdrowotne) {
+    const sickConfig = inputs.sex === "M" ? sickImpact.M : sickImpact.F;
+    // reductionCoefficient is like 0.978 (2.2% reduction) or 0.985 (1.5% reduction)
+    capital = capital * sickConfig.reductionCoefficient;
+  }
+
+  // Apply additional penalties from specific long-term sick leave events
+  // Each sick leave event represents a period with reduced contributions
+  const sickLeaveEvents = lifeEvents.filter((e) => e.type === "SICK_LEAVE");
+
+  for (const event of sickLeaveEvents) {
+    if (!event.durationYears) continue;
+
+    // Long-term sick leave typically receives ~70-80% of normal salary
+    // but contributions are calculated on this reduced base
+    // This means approximately 30% reduction in contributions for that period
+    const yearsFraction = event.durationYears;
+    const yearsInCareer = inputs.workEndYear - inputs.workStartYear;
+
+    // Calculate proportional impact on total capital
+    const impactRatio = yearsFraction / yearsInCareer;
+    const reductionForPeriod = capital * impactRatio * 0.3; // 30% reduction for sick leave period
+
+    capital = Math.max(0, capital - reductionForPeriod);
+  }
+
+  return capital;
+}
+
+/**
+ * Calculate real value of pension (adjusted for inflation to present day)
+ */
+function calculateRealPension(
+  nominalPension: number,
+  retirementYear: number,
+  currentYear: number
+): number {
+  // If retiring this year or in the past, no adjustment needed
+  if (retirementYear <= currentYear) {
+    return nominalPension;
+  }
+
+  // Calculate cumulative CPI from current year to retirement year
+  let cumulativeCPI = 1.0;
+
+  for (let year = currentYear + 1; year <= retirementYear; year++) {
+    cumulativeCPI *= DEFAULT_CPI;
+  }
+
+  // Real value = Nominal / Cumulative CPI
+  // This converts future pension to "today's złoty"
+  return nominalPension / cumulativeCPI;
+}
+
+/**
  * Apply retirement program bonuses
  */
 function applyRetirementPrograms(
@@ -169,6 +243,7 @@ function calculateDeferralScenarios(
   contractType: ContractType,
   sex: Sex
 ) {
+  const currentYear = new Date().getFullYear();
   const scenarios = [];
   const years = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
@@ -177,18 +252,24 @@ function calculateDeferralScenarios(
       additionalYears * lastSalary * 12 * CONTRACT_RATES[contractType];
     const newCapital = baseCapital + extraCapital;
     const newAge = baseRetirementAge + additionalYears;
+    const newRetirementYear = baseRetirementYear + additionalYears;
     const newDivisor = calculateDivisor(newAge, sex);
-    const newPension = newCapital / newDivisor;
+    const newNominalPension = newCapital / newDivisor;
+    const newRealPension = calculateRealPension(
+      newNominalPension,
+      newRetirementYear,
+      currentYear
+    );
 
     scenarios.push({
       additionalYears,
-      retirementYear: baseRetirementYear + additionalYears,
+      retirementYear: newRetirementYear,
       retirementAge: newAge,
       totalCapital: newCapital,
-      nominalPension: newPension,
-      realPension: newPension, // Simplified: no inflation adjustment
-      increaseVsBase: newPension - basePension,
-      percentIncrease: ((newPension / basePension - 1) * 100),
+      nominalPension: newNominalPension,
+      realPension: newRealPension,
+      increaseVsBase: newRealPension - basePension,
+      percentIncrease: (newRealPension / basePension - 1) * 100,
     });
   }
 
@@ -242,20 +323,41 @@ export async function calculateSimulationSimplified(params: {
   const lastSalary = lastPeriod.monthlyGross;
   const contractType = lastPeriod.contractType;
 
-  // Calculate base capital
-  let capital = calculateBaseCapital(workHistory);
+  // Calculate base capital WITHOUT sick leave/gaps
+  let baseCapital = calculateBaseCapital(workHistory);
 
   // Add initial account balances
   if (inputs.accountBalance) {
-    capital += inputs.accountBalance;
+    baseCapital += inputs.accountBalance;
   }
   if (inputs.subAccountBalance) {
-    capital += inputs.subAccountBalance;
+    baseCapital += inputs.subAccountBalance;
   }
 
-  // Apply gap penalties
+  // Calculate scenario WITHOUT sick leave impact (for comparison)
   const gapPeriods = modifications?.gapPeriods || [];
-  capital = applyGapPenalties(capital, gapPeriods, avgSalary);
+  const lifeEvents = modifications?.lifeEvents || [];
+
+  let capitalWithoutSickLeave = applyGapPenalties(
+    baseCapital,
+    gapPeriods,
+    avgSalary
+  );
+
+  // Calculate scenario WITH sick leave impact
+  let capitalWithSickLeave = applyGapPenalties(
+    baseCapital,
+    gapPeriods,
+    avgSalary
+  );
+  capitalWithSickLeave = applySickLeaveImpact(
+    capitalWithSickLeave,
+    inputs,
+    lifeEvents
+  );
+
+  // Use appropriate capital based on whether sick leave is considered
+  const capital = capitalWithSickLeave;
 
   // Store capital before programs (for deferrals)
   const capitalBeforePrograms = capital;
@@ -266,28 +368,46 @@ export async function calculateSimulationSimplified(params: {
     inputs
   );
 
-  // Calculate retirement age
+  // Calculate retirement age and year
   const retirementAge = inputs.age + (inputs.workEndYear - currentYear);
+  const retirementYear = inputs.workEndYear;
 
   // Calculate divisor
   const divisor = calculateDivisor(retirementAge, inputs.sex);
 
   // Calculate pension
   const nominalPension = finalCapital / divisor;
-  const realPension = nominalPension; // Simplified: no inflation adjustment
 
-  // Calculate replacement rate
-  const replacementRate = Math.round(
-    (nominalPension / lastSalary) * 100 * 10
-  ) / 10;
+  // Apply CPI adjustment to get real pension (in today's money)
+  const realPension = calculateRealPension(
+    nominalPension,
+    retirementYear,
+    currentYear
+  );
+
+  // Calculate replacement rate (using real pension)
+  const replacementRate =
+    Math.round((realPension / lastSalary) * 100 * 10) / 10;
+
+  // Calculate comparison scenario without sick leave
+  const { finalCapital: finalCapitalWithoutSick } = applyRetirementPrograms(
+    capitalWithoutSickLeave,
+    inputs
+  );
+  const nominalPensionWithoutSick = finalCapitalWithoutSick / divisor;
+  const realPensionWithoutSick = calculateRealPension(
+    nominalPensionWithoutSick,
+    retirementYear,
+    currentYear
+  );
 
   // Calculate deferral scenarios
   const deferrals = calculateDeferralScenarios(
     capitalBeforePrograms,
     divisor,
-    nominalPension,
+    realPension,
     retirementAge,
-    inputs.workEndYear,
+    retirementYear,
     lastSalary,
     contractType,
     inputs.sex
@@ -296,7 +416,7 @@ export async function calculateSimulationSimplified(params: {
   // Calculate years needed
   const yearsNeeded = calculateYearsNeeded(
     expectedPension,
-    nominalPension,
+    realPension,
     capitalBeforePrograms,
     retirementAge,
     lastSalary,
@@ -306,26 +426,26 @@ export async function calculateSimulationSimplified(params: {
 
   // Calculate total pension with programs
   const totalPensionWithPrograms =
-    nominalPension + (ppkCapital + ikzeCapital) / (20 * 12);
+    realPension + (ppkCapital + ikzeCapital) / (20 * 12);
 
   return {
     nominalPension,
     realPension,
     replacementRate,
     avgPensionInRetirementYear: 3500, // Placeholder
-    differenceVsAverage: nominalPension - 3500,
+    differenceVsAverage: realPension - 3500,
     differenceVsExpected: realPension - expectedPension,
     withoutZwolnienieZdrowotne: {
-      nominalPension,
-      realPension,
-      totalCapital: finalCapital,
+      nominalPension: nominalPensionWithoutSick,
+      realPension: realPensionWithoutSick,
+      totalCapital: finalCapitalWithoutSick,
     },
     withZwolnienieZdrowotne: {
       nominalPension,
       realPension,
       totalCapital: finalCapital,
     },
-    zwolnienieZdrwotneDifference: 0,
+    zwolnienieZdrwotneDifference: realPensionWithoutSick - realPension,
     deferrals,
     yearsNeeded,
     capitalPath: [], // Simplified: no detailed path
@@ -334,7 +454,7 @@ export async function calculateSimulationSimplified(params: {
     ikzeCapital,
     totalPensionWithPrograms,
     programsBreakdown: {
-      zus: nominalPension,
+      zus: realPension,
       ppk: ppkCapital / (20 * 12),
       ikze: ikzeCapital / (20 * 12),
     },

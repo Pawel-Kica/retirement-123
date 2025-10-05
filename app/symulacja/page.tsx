@@ -35,7 +35,7 @@ const STEPS = [
 
 export default function SimulacjaPage() {
   const router = useRouter();
-  const { state, setInputs, recalculate, isCalculating } = useSimulation();
+  const { state, setInputsAndRecalculate, isCalculating } = useSimulation();
   const [data, setData] = useState<any>(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
@@ -113,7 +113,13 @@ export default function SimulacjaPage() {
         }
       }
     }
-  }, [formData.age, formData.sex, hasInitializedDefaults, currentYear, currentStep]);
+  }, [
+    formData.age,
+    formData.sex,
+    hasInitializedDefaults,
+    currentYear,
+    currentStep,
+  ]);
 
   const minWorkStartYear = formData.age
     ? currentYear - (formData.age - 18)
@@ -190,7 +196,9 @@ export default function SimulacjaPage() {
 
   const validateStep1 = useCallback(() => {
     const stepErrors: any[] = [];
-    const minRetirementAge = formData.sex ? retirementAgeBySex[formData.sex] : 65;
+    const minRetirementAge = formData.sex
+      ? retirementAgeBySex[formData.sex]
+      : 65;
 
     if (workHistory.length === 0) {
       stepErrors.push({
@@ -358,19 +366,18 @@ export default function SimulacjaPage() {
       return;
     }
 
-    setInputs(inputs);
-    await recalculate(true);
-    router.push("/wynik");
-  }, [formData, workHistory, setInputs, recalculate, router]);
+    // Set inputs and calculate in one atomic operation
+    await setInputsAndRecalculate(inputs, true);
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      // Show postal code modal before proceeding
-      setShowPostalCodeModal(true);
-    },
-    []
-  );
+    // Use hard refresh to ensure clean state
+    router.push("/wynik");
+  }, [formData, workHistory, setInputsAndRecalculate]);
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    // Show postal code modal before proceeding
+    setShowPostalCodeModal(true);
+  }, []);
 
   const handlePostalCodeSave = useCallback(
     (code: string) => {

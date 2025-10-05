@@ -39,6 +39,10 @@ interface SimulationContextType {
   currentSimulationId: string | null;
   setExpectedPension: (amount: number) => void;
   setInputs: (inputs: SimulationInputs) => void;
+  setInputsAndRecalculate: (
+    inputs: SimulationInputs,
+    isNewSimulation?: boolean
+  ) => Promise<boolean>;
   updateInputs: (inputs: Partial<SimulationInputs>) => Promise<void>;
   setResults: (results: SimulationResults, isNewSimulation?: boolean) => void;
   updateDashboardModifications: (mods: Partial<DashboardModifications>) => void;
@@ -154,6 +158,71 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       }));
     } else {
       setState((prev) => ({ ...prev, inputs }));
+    }
+  };
+
+  const setInputsAndRecalculate = async (
+    inputs: SimulationInputs,
+    isNewSimulation: boolean = true
+  ) => {
+    console.log("🚀 Starting setInputsAndRecalculate", { isNewSimulation });
+
+    // Create simulation ID if needed
+    let simId = currentSimulationId;
+    if (!simId) {
+      simId = createNewSimulation();
+      setCurrentSimId(simId);
+      console.log("✨ Created new simulation ID:", simId);
+    } else {
+      console.log("📝 Using existing simulation ID:", simId);
+    }
+
+    const defaultMods = initializeDefaultTimelineForSimulation(simId, inputs);
+
+    // Update state with inputs
+    setState((prev) => ({
+      ...prev,
+      inputs,
+      dashboardModifications: defaultMods,
+    }));
+
+    // Calculate immediately with the new inputs (don't wait for state update)
+    setIsCalculating(true);
+    try {
+      console.log("🧮 Starting calculation...");
+      const results = await calculateSimulation({
+        inputs: inputs,
+        expectedPension: state.expectedPension,
+        modifications: defaultMods,
+      });
+
+      console.log("💾 Saving to history...", {
+        simId,
+        expectedPension: state.expectedPension,
+        hasInputs: !!inputs,
+        hasResults: !!results,
+      });
+
+      // Save to history
+      saveSimulationToHistory(
+        state.expectedPension,
+        inputs,
+        results,
+        defaultMods,
+        isNewSimulation
+      );
+
+      console.log("✅ Simulation saved successfully!");
+
+      // Update results in state
+      setState((prev) => ({ ...prev, results }));
+
+      return true;
+    } catch (error) {
+      console.error("❌ Calculation error:", error);
+      throw error;
+    } finally {
+      setIsCalculating(false);
     }
   };
 
@@ -453,6 +522,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     currentSimulationId,
     setExpectedPension,
     setInputs,
+    setInputsAndRecalculate,
     updateInputs,
     setResults,
     updateDashboardModifications,

@@ -100,9 +100,9 @@ export default function WynikPage() {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       if (!state.results) {
-        // Always load from history (which now includes example by default)
-        const history = getHistory();
-        loadFromHistory(history[0].id);
+        // If no results, redirect to home page
+        router.push("/");
+        return;
       }
       setIsLoading(false);
     };

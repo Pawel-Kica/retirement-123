@@ -7,7 +7,6 @@ import { SimulationHistoryEntry } from "@/lib/types";
 import { formatPLN } from "@/lib/utils/formatting";
 import { History, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { deleteSimulationById } from "@/lib/utils/simulationHistory";
-import { EXAMPLE_SIMULATION_ID } from "@/lib/utils/exampleSimulation";
 
 export function HistorySidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,8 +28,6 @@ export function HistorySidebar() {
 
   const handleDeleteSimulation = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    // Prevent deleting the example simulation
-    if (id === EXAMPLE_SIMULATION_ID) return;
     deleteSimulationById(id);
     setHistory(getHistory());
   };
@@ -102,81 +99,65 @@ export function HistorySidebar() {
             ) : (
               <div className="space-y-3">
                 {history.map((entry, index) => {
-                  const isExample = entry.id === EXAMPLE_SIMULATION_ID;
                   return (
                     <div
                       key={entry.id}
                       onClick={() => handleLoadSimulation(entry.id)}
-                      className={`p-4 border-2 rounded-lg hover:shadow-md transition-all cursor-pointer group ${
-                        isExample
-                          ? "border-zus-green bg-zus-green/5 hover:border-zus-green-dark"
-                          : "border-zus-grey-300 bg-white hover:border-zus-green"
-                      }`}
+                      className="p-4 border-2 rounded-lg hover:shadow-md transition-all cursor-pointer group border-zus-grey-300 bg-white hover:border-zus-green"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                              isExample
-                                ? "bg-zus-green-dark text-white"
-                                : "bg-zus-green text-white"
-                            }`}
-                          >
-                            {isExample ? "★" : index + 1}
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm bg-zus-green text-white">
+                            {index + 1}
                           </div>
                           <div>
-                            {isExample && (
-                              <p className="text-xs font-semibold text-zus-green-dark">
-                                PRZYKŁAD
-                              </p>
-                            )}
                             <p className="text-xs text-zus-grey-500">
                               {formatDate(entry.timestamp)}
                             </p>
                           </div>
                         </div>
-                        {!isExample && (
-                          <button
-                            onClick={(e) => handleDeleteSimulation(e, entry.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1 text-zus-error hover:bg-zus-error/10 rounded transition-all"
-                            aria-label="Usuń"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        <button
+                          onClick={(e) => handleDeleteSimulation(e, entry.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-zus-error hover:bg-zus-error/10 rounded transition-all"
+                          aria-label="Usuń"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-zus-grey-700">
-                          Oczekiwana:
-                        </span>
-                        <span className="text-sm font-semibold text-zus-grey-900">
-                          {formatPLN(entry.expectedPension)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-zus-grey-700">
-                          Rzeczywista:
-                        </span>
-                        <span className="text-sm font-bold text-zus-green">
-                          {formatPLN(entry.results.realPension)}
-                        </span>
-                      </div>
-
-                      <div className="pt-2 border-t border-zus-grey-200">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-zus-grey-600">
-                            {entry.inputs.sex === "M" ? "Mężczyzna" : "Kobieta"}
-                            , {entry.inputs.age} lat
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-zus-grey-700">
+                            Oczekiwana:
                           </span>
-                          <span className="text-zus-grey-600">
-                            {formatPLN(entry.inputs.monthlyGross)} brutto
+                          <span className="text-sm font-semibold text-zus-grey-900">
+                            {formatPLN(entry.expectedPension)}
                           </span>
                         </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-zus-grey-700">
+                            Rzeczywista:
+                          </span>
+                          <span className="text-sm font-bold text-zus-green">
+                            {formatPLN(entry.results.realPension)}
+                          </span>
+                        </div>
+
+                        <div className="pt-2 border-t border-zus-grey-200">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-zus-grey-600">
+                              {entry.inputs.sex === "M"
+                                ? "Mężczyzna"
+                                : "Kobieta"}
+                              , {entry.inputs.age} lat
+                            </span>
+                            <span className="text-zus-grey-600">
+                              {formatPLN(entry.inputs.monthlyGross)} brutto
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
                       <div className="mt-3 text-xs text-zus-green font-semibold flex items-center gap-1">
                         <span>Kliknij, aby załadować</span>
@@ -199,9 +180,7 @@ export function HistorySidebar() {
                 Wyczyść całą historię
               </button>
               <p className="text-xs text-zus-grey-500 text-center mt-2">
-                Zapisanych:{" "}
-                {history.filter((h) => h.id !== EXAMPLE_SIMULATION_ID).length}/5
-                symulacji
+                Zapisanych: {history.length}/5 symulacji
               </p>
             </div>
           )}
