@@ -12,9 +12,11 @@ import {
   LifeEvent,
   Sex,
   ContractType,
+  CPIData,
 } from "../types";
 import { sickImpact } from "@/data/sickImpact";
 import { loadLifeExpectancyData, getLifeExpectancy } from "../utils/csvParser";
+import { calculateRealValue } from "./pensionCalculation";
 
 // Contract contribution rates (pension capital contribution)
 // ORDER OF BENEFIT: UOP (best) > UOZ (medium) > B2B (worst)
@@ -353,14 +355,63 @@ async function calculateYearsNeeded(
 }
 
 /**
+ * Calculate expected pension based on career path
+ * Exported for use in other modules
+ * Uses the same calculation method as the main pension calculation
+ */
+export async function calculateExpectedPensionFromCareer(
+  workHistory: EmploymentPeriod[],
+  sex: Sex,
+  retirementAge: number,
+  accountBalance?: number,
+  subAccountBalance?: number,
+  retirementYear?: number,
+  currentYear?: number,
+  cpiData?: CPIData
+): Promise<number> {
+  if (workHistory.length === 0) return 3000; // Default fallback
+
+  // Calculate base capital from work history (same as main calculation)
+  let baseCapital = calculateBaseCapital(workHistory);
+
+  // Add initial account balances (same as main calculation)
+  if (accountBalance) {
+    baseCapital += accountBalance;
+  }
+  if (subAccountBalance) {
+    baseCapital += subAccountBalance;
+  }
+
+  // Apply boost multiplier to make pension amounts more realistic (same as main calculation)
+  baseCapital = baseCapital * PENSION_BOOST_MULTIPLIER;
+
+  // Calculate divisor using accurate life expectancy data
+  const divisor = await calculateDivisor(retirementAge, sex);
+
+  // Calculate nominal pension
+  const nominalPension = baseCapital / divisor;
+
+  // Apply CPI adjustment if retirement year is provided
+  if (retirementYear && currentYear) {
+    const realPension = cpiData
+      ? calculateRealValue(nominalPension, retirementYear, currentYear, cpiData)
+      : calculateRealPension(nominalPension, retirementYear, currentYear);
+    return realPension;
+  }
+
+  return nominalPension;
+}
+
+/**
  * Main simplified calculation function
  */
 export async function calculateSimulationSimplified(params: {
   inputs: SimulationInputs;
   expectedPension: number;
   modifications?: DashboardModifications;
+  cpiData?: CPIData;
 }): Promise<SimulationResults> {
-  const { inputs, expectedPension, modifications } = params;
+  const { inputs, expectedPension, modifications, cpiData } = params;
   const currentYear = new Date().getFullYear();
 
   // Build work history
@@ -429,11 +480,9 @@ export async function calculateSimulationSimplified(params: {
   const nominalPension = finalCapital / divisor;
 
   // Apply CPI adjustment to get real pension (in today's money)
-  const realPension = calculateRealPension(
-    nominalPension,
-    retirementYear,
-    currentYear
-  );
+  const realPension = cpiData
+    ? calculateRealValue(nominalPension, retirementYear, currentYear, cpiData)
+    : calculateRealPension(nominalPension, retirementYear, currentYear);
 
   // Calculate replacement rate (using real pension)
   const replacementRate =
@@ -445,11 +494,18 @@ export async function calculateSimulationSimplified(params: {
     inputs
   );
   const nominalPensionWithoutSick = finalCapitalWithoutSick / divisor;
-  const realPensionWithoutSick = calculateRealPension(
-    nominalPensionWithoutSick,
-    retirementYear,
-    currentYear
-  );
+  const realPensionWithoutSick = cpiData
+    ? calculateRealValue(
+        nominalPensionWithoutSick,
+        retirementYear,
+        currentYear,
+        cpiData
+      )
+    : calculateRealPension(
+        nominalPensionWithoutSick,
+        retirementYear,
+        currentYear
+      );
 
   // Calculate deferral scenarios
   const deferrals = await calculateDeferralScenarios(

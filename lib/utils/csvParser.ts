@@ -124,20 +124,46 @@ export function parseLifeDurationCSV(csvContent: string): LifeExpectancyData {
     if (!line) continue;
 
     const values = line.split(";");
+
+    // Check if we have enough columns (at least 13: age + 12 months)
+    if (values.length < 13) {
+      console.warn(
+        `Skipping line ${i + 1}: insufficient columns (${values.length} < 13)`,
+        line
+      );
+      continue;
+    }
+
     const age = parseInt(values[0]);
 
-    if (isNaN(age)) continue;
+    if (isNaN(age)) {
+      console.warn(`Skipping line ${i + 1}: invalid age`, values[0]);
+      continue;
+    }
 
     data[age] = {};
 
     // Parse months 0-11 (columns 1-12)
     for (let month = 0; month < 12; month++) {
       const value = values[month + 1];
-      if (value) {
-        // Convert comma decimal to dot decimal and parse
-        const lifeExpectancy = parseFloat(value.replace(",", "."));
-        if (!isNaN(lifeExpectancy)) {
-          data[age][month] = lifeExpectancy;
+      if (value && value.trim()) {
+        try {
+          // Convert comma decimal to dot decimal and parse
+          const lifeExpectancy = parseFloat(value.replace(",", "."));
+          if (!isNaN(lifeExpectancy)) {
+            data[age][month] = lifeExpectancy;
+          } else {
+            console.warn(
+              `Invalid number format for age ${age}, month ${month}:`,
+              value
+            );
+          }
+        } catch (error) {
+          console.warn(
+            `Error parsing value for age ${age}, month ${month}:`,
+            value,
+            error
+          );
         }
       }
     }
@@ -166,8 +192,31 @@ export async function loadLifeExpectancyData(): Promise<LifeExpectancyData> {
 
   try {
     const response = await fetch("/data/life-duration.csv");
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch life-duration.csv: ${response.status} ${response.statusText}`
+      );
+    }
+
     const csvContent = await response.text();
+
+    if (!csvContent || csvContent.trim().length === 0) {
+      throw new Error("Empty CSV content received");
+    }
+
+    console.log("Parsing life-duration.csv...");
     const parsedData = parseLifeDurationCSV(csvContent);
+
+    // Check if we got any data
+    const ageCount = Object.keys(parsedData).length;
+    if (ageCount === 0) {
+      throw new Error("No valid data parsed from life-duration.csv");
+    }
+
+    console.log(
+      `Successfully parsed life expectancy data for ${ageCount} ages`
+    );
 
     // Update cache
     cachedLifeExpectancyData = parsedData;
@@ -185,6 +234,7 @@ export async function loadLifeExpectancyData(): Promise<LifeExpectancyData> {
       return cachedLifeExpectancyData;
     }
 
+    console.warn("No cached data available, returning empty data");
     return {};
   }
 }

@@ -39,8 +39,16 @@ export async function calculateSimulation(
   params: CalculateParams
 ): Promise<SimulationResults> {
   // Import simplified calculation engine
-  const { calculateSimulationSimplified } = await import('./simplifiedCalculation');
+  const { calculateSimulationSimplified } = await import(
+    "./simplifiedCalculation"
+  );
 
-  // Use simplified calculation
-  return calculateSimulationSimplified(params);
+  // Load CPI data for accurate inflation calculations
+  const data = await loadAllData();
+
+  // Use simplified calculation with CPI data
+  return calculateSimulationSimplified({
+    ...params,
+    cpiData: data.cpi,
+  });
 }

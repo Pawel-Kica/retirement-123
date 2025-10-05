@@ -20,6 +20,8 @@ import {
   LifeEvent,
 } from "../types";
 import { calculateSimulation } from "../engine";
+import { calculateExpectedPensionFromCareer } from "../engine/simplifiedCalculation";
+import { loadAllData } from "../data/loader";
 import {
   saveSimulationToHistory,
   loadSimulationById,
@@ -193,22 +195,45 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     setIsCalculating(true);
     try {
       console.log("🧮 Starting calculation...");
+      
+      // For new simulations, use the current expectedPension from state
+      // For existing simulations, recalculate based on career path
+      const expectedPensionToUse = isNewSimulation 
+        ? state.expectedPension 
+        : await (async () => {
+            const data = await loadAllData();
+            const workHistory = inputs.employmentPeriods || [];
+            const retirementAge = inputs.age + (inputs.workEndYear - new Date().getFullYear());
+            const retirementYear = inputs.workEndYear;
+            const currentYear = new Date().getFullYear();
+            return await calculateExpectedPensionFromCareer(
+              workHistory,
+              inputs.sex,
+              retirementAge,
+              inputs.accountBalance,
+              inputs.subAccountBalance,
+              retirementYear,
+              currentYear,
+              data.cpi
+            );
+          })();
+
       const results = await calculateSimulation({
         inputs: inputs,
-        expectedPension: state.expectedPension,
+        expectedPension: expectedPensionToUse,
         modifications: defaultMods,
       });
 
       console.log("💾 Saving to history...", {
         simId,
-        expectedPension: state.expectedPension,
+        expectedPension: expectedPensionToUse,
         hasInputs: !!inputs,
         hasResults: !!results,
       });
 
       // Save to history
       saveSimulationToHistory(
-        state.expectedPension,
+        expectedPensionToUse,
         inputs,
         results,
         defaultMods,
@@ -217,8 +242,12 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
       console.log("✅ Simulation saved successfully!");
 
-      // Update results in state
-      setState((prev) => ({ ...prev, results }));
+      // Update results and expected pension in state
+      setState((prev) => ({ 
+        ...prev, 
+        expectedPension: expectedPensionToUse,
+        results 
+      }));
 
       return true;
     } catch (error) {
@@ -399,9 +428,39 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
           state.inputs.employmentPeriods,
       };
 
+      // Check if career path has been modified (contract periods, gap periods, or life events)
+      const hasCareerModifications = 
+        state.dashboardModifications.contractPeriods ||
+        (state.dashboardModifications.gapPeriods && state.dashboardModifications.gapPeriods.length > 0) ||
+        (state.dashboardModifications.lifeEvents && state.dashboardModifications.lifeEvents.length > 0);
+
+      let expectedPensionToUse = state.expectedPension;
+
+      // Only recalculate expected pension if career path has been modified
+      if (hasCareerModifications) {
+        console.log("🔄 Career path modified, recalculating expected pension...");
+        const data = await loadAllData();
+        const workHistory = syncedInputs.employmentPeriods || [];
+        const retirementAge = syncedInputs.age + (syncedInputs.workEndYear - new Date().getFullYear());
+        const retirementYear = syncedInputs.workEndYear;
+        const currentYear = new Date().getFullYear();
+        expectedPensionToUse = await calculateExpectedPensionFromCareer(
+          workHistory,
+          syncedInputs.sex,
+          retirementAge,
+          syncedInputs.accountBalance,
+          syncedInputs.subAccountBalance,
+          retirementYear,
+          currentYear,
+          data.cpi
+        );
+      } else {
+        console.log("📊 No career modifications, using existing expected pension");
+      }
+
       const results = await calculateSimulation({
         inputs: syncedInputs,
-        expectedPension: state.expectedPension,
+        expectedPension: expectedPensionToUse,
         modifications: state.dashboardModifications,
       });
 
@@ -414,9 +473,9 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         }
 
         if (syncedInputs && results) {
-          console.log("💾 Saving simulation to history with synced inputs");
+          console.log("💾 Saving simulation to history");
           saveSimulationToHistory(
-            prev.expectedPension,
+            expectedPensionToUse,
             syncedInputs,
             results,
             prev.dashboardModifications,
@@ -426,6 +485,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
         return {
           ...prev,
+          expectedPension: expectedPensionToUse,
           inputs: syncedInputs,
           results,
         };

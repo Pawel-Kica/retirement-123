@@ -303,3 +303,25 @@ export interface SimulationHistoryEntry {
 
 // Type alias for backwards compatibility
 export type PensionResults = SimulationResults;
+
+// Prognosis data types
+export interface PrognosisData {
+  year: number;
+  unemployment: number;
+  inflation: number;
+  pensioners_inflation: number;
+  wage_growth: number;
+  gdp_growth: number;
+  contribution_collection: number;
+}
+
+export type PrognosisVariantType = 1 | 2 | 3;
+
+export interface PrognosisVariant {
+  _metadata: {
+    name: string;
+    description: string;
+    variant: PrognosisVariantType;
+  };
+  data: PrognosisData[];
+}

@@ -490,7 +490,7 @@ export default function Home() {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
-                    zł) od średniej
+                    zł) od średniej krajowej
                   </p>
                 );
               })()}

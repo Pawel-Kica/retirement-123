@@ -405,11 +405,19 @@ function WynikPageContent() {
 
           <ResultsKPIs
             results={results}
-            inputs={inputs}
+            inputs={{
+              ...inputs,
+              employmentPeriods: contractPeriods.length > 0 ? contractPeriods : inputs.employmentPeriods
+            }}
             expectedPension={expectedPension}
           />
 
-          <WorkHistorySummary inputs={inputs} />
+          <WorkHistorySummary 
+            inputs={{
+              ...inputs,
+              employmentPeriods: contractPeriods.length > 0 ? contractPeriods : inputs.employmentPeriods
+            }} 
+          />
 
           <TimelineSection
             contractPeriods={contractPeriods}

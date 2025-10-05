@@ -27,6 +27,12 @@ export async function calculatePension(
     // Load life expectancy data
     const lifeExpectancyData = await loadLifeExpectancyData();
 
+    // Check if we have any data at all
+    if (!lifeExpectancyData || Object.keys(lifeExpectancyData).length === 0) {
+      console.warn("No life expectancy data available, using fallback calculation");
+      return calculatePensionFallback(totalCapital, retirementAge, sex);
+    }
+
     // Get life expectancy for the specific age and month
     const lifeExpectancyMonths = getLifeExpectancy(
       retirementAge,
