@@ -21,9 +21,9 @@ import { SalaryGrowthImpact } from "@/components/wynik/SalaryGrowthImpact";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { generatePDFReport } from "@/lib/utils/pdfGenerator";
 import { loadAllData } from "@/lib/data/loader";
-import { getExampleById, EXAMPLE_PERSONAS } from "@/lib/data/examples";
+import { getExampleById } from "@/lib/data/examples";
 import { ExampleBrowser } from "@/components/ui/ExampleBrowser";
-import { ChevronDown } from "lucide-react";
+import { ExampleDropdown } from "@/components/ui/ExampleDropdown";
 import type {
   EmploymentPeriod,
   EmploymentGapPeriod,
@@ -346,20 +346,10 @@ function WynikPageContent() {
           {/* Example Selector - Top Left (only when in example mode) */}
           {isExampleMode && (
             <div className="absolute top-4 left-4 sm:left-6 lg:left-8 z-30">
-              <div className="relative">
-                <select
-                  value={exampleId || ""}
-                  onChange={(e) => handleSelectExample(e.target.value)}
-                  className="appearance-none bg-white border-2 border-zus-green text-zus-grey-900 font-semibold rounded-lg px-4 py-2.5 pr-10 shadow-md hover:shadow-lg transition-shadow cursor-pointer focus:outline-none focus:ring-2 focus:ring-zus-green"
-                >
-                  {EXAMPLE_PERSONAS.map((example) => (
-                    <option key={example.id} value={example.id}>
-                      {example.title}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zus-green pointer-events-none" />
-              </div>
+              <ExampleDropdown
+                value={exampleId || ""}
+                onChange={handleSelectExample}
+              />
             </div>
           )}
 

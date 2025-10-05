@@ -83,14 +83,6 @@ export function Header() {
               className="hidden lg:flex items-center gap-3 flex-wrap"
               aria-label="Nawigacja główna"
             >
-              {/* Kontakt */}
-              <Link
-                href="#"
-                className="text-gray-700 hover:text-[rgb(0,65,110)] font-medium transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-zus-green rounded px-2 py-1"
-              >
-                Kontakt
-              </Link>
-
               {/* Language Selector */}
               <button
                 className="flex items-center gap-1 text-gray-700 hover:text-[rgb(0,65,110)] font-medium transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-zus-green rounded px-2 py-1"
