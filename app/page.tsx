@@ -143,6 +143,7 @@ function InteractiveBackground() {
   return (
     <canvas
       ref={canvasRef}
+      aria-hidden="true"
       className="fixed inset-0 pointer-events-none z-0"
       style={{ opacity: 0.4 }}
     />
@@ -195,6 +196,7 @@ export default function Home() {
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm">
                 <svg
+                  aria-hidden="true"
                   className="w-5 h-5 text-zus-green"
                   fill="currentColor"
                   viewBox="0 0 20 20"
@@ -211,6 +213,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm">
                 <svg
+                  aria-hidden="true"
                   className="w-5 h-5 text-zus-blue"
                   fill="currentColor"
                   viewBox="0 0 20 20"
@@ -227,6 +230,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm">
                 <svg
+                  aria-hidden="true"
                   className="w-5 h-5 text-zus-orange"
                   fill="currentColor"
                   viewBox="0 0 20 20"

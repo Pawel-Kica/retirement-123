@@ -29,42 +29,46 @@ export function FormField({
       <label className="block mb-2">
         <span className="font-semibold text-zus-grey-700">
           {label}
-          {required && <span className="text-zus-error ml-1">*</span>}
+          {required && <span className="text-zus-error ml-1" aria-label="wymagane">*</span>}
         </span>
         {tooltip && (
           <Tooltip content={tooltip}>
-            <span className="inline-flex ml-2 align-middle">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-zus-green text-zus-green hover:bg-zus-green hover:text-white transition-all duration-200 cursor-help">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </span>
-            </span>
+            <button
+              type="button"
+              aria-label={`Więcej informacji: ${label}`}
+              className="inline-flex ml-2 align-middle items-center justify-center w-6 h-6 rounded-full border-2 border-zus-green text-zus-green hover:bg-zus-green hover:text-white transition-all duration-200 cursor-help"
+            >
+              <svg
+                aria-hidden="true"
+                className="w-4 h-4"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
           </Tooltip>
         )}
       </label>
       {children}
-      <div 
+      <div
         className={`mt-1`}
         style={{ minHeight: reserveErrorSpace }}
       >
         {error ? (
           <div
+            role="alert"
             className={`text-sm flex items-start gap-2 p-3 rounded border-l-4 ${
-              errorSeverity === "warning" 
-                ? "bg-red-50 border-red-500 text-red-700" 
+              errorSeverity === "warning"
+                ? "bg-red-50 border-red-500 text-red-700"
                 : "bg-red-50 border-zus-error text-zus-error"
             }`}
           >
-            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               {errorSeverity === "warning" ? (
                 <path
                   fillRule="evenodd"

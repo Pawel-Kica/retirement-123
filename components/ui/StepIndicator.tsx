@@ -36,7 +36,7 @@ export function StepIndicator({
   };
 
   return (
-    <div className="w-full py-8 px-4">
+    <nav aria-label="Postęp formularza" className="w-full py-8 px-4">
       {/* Desktop horizontal layout */}
       <div className="hidden md:flex items-start justify-between max-w-4xl mx-auto relative">
         {steps.map((step, index) => {
@@ -76,6 +76,7 @@ export function StepIndicator({
                 >
                   {state === "completed" ? (
                     <svg
+                      aria-hidden="true"
                       className="w-7 h-7"
                       fill="none"
                       stroke="currentColor"
@@ -183,6 +184,7 @@ export function StepIndicator({
                   >
                     {state === "completed" ? (
                       <svg
+                        aria-hidden="true"
                         className="w-6 h-6"
                         fill="none"
                         stroke="currentColor"
@@ -243,6 +245,6 @@ export function StepIndicator({
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

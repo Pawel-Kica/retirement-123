@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface TooltipProps {
@@ -30,14 +30,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
         onMouseLeave={() => setIsVisible(false)}
         onClick={handleToggle}
         className="cursor-help touch-manipulation"
-        role="button"
-        aria-label="Więcej informacji"
-        tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleToggle();
-          }
           if (e.key === "Escape") {
             handleClose();
           }
@@ -70,7 +63,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
             {content}
 
             {/* Arrow */}
-            <div className="absolute right-full top-1/2 -translate-y-1/2 mr-[-1px]">
+            <div className="absolute right-full top-1/2 -translate-y-1/2 mr-[-1px]" aria-hidden="true">
               <div className="border-[6px] border-transparent border-r-zus-navy" />
             </div>
 
@@ -84,6 +77,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
               aria-label="Zamknij"
             >
               <svg
+                aria-hidden="true"
                 className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"

@@ -48,7 +48,7 @@ export function Header() {
                 href="/wynik?example=1"
                 className="hidden lg:inline-flex px-4 py-2.5 border-2 border-[rgb(0,65,110)] text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white rounded font-medium transition-colors whitespace-nowrap cursor-pointer items-center gap-2"
               >
-                <BookOpen className="w-4 h-4" />
+                <BookOpen aria-hidden="true" className="w-4 h-4" />
                 Przykłady
               </Link>
             </div>
@@ -91,6 +91,7 @@ export function Header() {
               >
                 <span>PL</span>
                 <svg
+                  aria-hidden="true"
                   className="w-4 h-4"
                   fill="currentColor"
                   viewBox="0 0 20 20"
@@ -109,6 +110,7 @@ export function Header() {
                 aria-label="Wersja dla osób z wadami słuchu"
               >
                 <svg
+                  aria-hidden="true"
                   className="w-6 h-6"
                   fill="currentColor"
                   viewBox="0 0 24 24"
@@ -122,6 +124,7 @@ export function Header() {
                 aria-label="Wersja dla osób niepełnosprawnych"
               >
                 <svg
+                  aria-hidden="true"
                   className="w-6 h-6"
                   fill="currentColor"
                   viewBox="0 0 24 24"
@@ -131,8 +134,8 @@ export function Header() {
               </button>
 
               {/* BIP Logo */}
-              <div className="w-12 h-12 flex items-center justify-center">
-                <svg viewBox="0 0 60 40" className="h-10 w-auto">
+              <div className="w-12 h-12 flex items-center justify-center" role="img" aria-label="Biuletyn Informacji Publicznej">
+                <svg aria-hidden="true" viewBox="0 0 60 40" className="h-10 w-auto">
                   <text
                     x="5"
                     y="25"
@@ -153,6 +156,7 @@ export function Header() {
               >
                 Zaloguj do PUE/eZUS
                 <svg
+                  aria-hidden="true"
                   className="w-4 h-4"
                   fill="currentColor"
                   viewBox="0 0 20 20"
@@ -171,6 +175,7 @@ export function Header() {
                 aria-label="Szukaj"
               >
                 <svg
+                  aria-hidden="true"
                   className="w-6 h-6 text-gray-700"
                   fill="none"
                   stroke="currentColor"
@@ -186,8 +191,8 @@ export function Header() {
               </button>
 
               {/* EU Flag */}
-              <div className="flex flex-col items-center ml-2">
-                <div className="w-12 h-12 bg-[rgb(0,51,153)] rounded flex items-center justify-center relative">
+              <div className="flex flex-col items-center ml-2" role="img" aria-label="Unia Europejska">
+                <div className="w-12 h-12 bg-[rgb(0,51,153)] rounded flex items-center justify-center relative" aria-hidden="true">
                   {/* EU Stars */}
                   {EU_STAR_POSITIONS.map((pos, i) => (
                     <div
@@ -253,10 +258,11 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <span className="flex items-center gap-2">
-                  <BookOpen className="w-5 h-5" />
+                  <BookOpen aria-hidden="true" className="w-5 h-5" />
                   Przykłady
                 </span>
                 <svg
+                  aria-hidden="true"
                   className="w-5 h-5"
                   fill="currentColor"
                   viewBox="0 0 20 20"

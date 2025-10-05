@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     label?: string;
@@ -11,17 +11,24 @@ export function Select({
     error,
     options,
     className = '',
+    id: providedId,
     ...props
 }: SelectProps) {
+    const generatedId = useId();
+    const selectId = providedId || generatedId;
+
     return (
         <div className="w-full">
             {label && (
-                <label className="block text-sm font-semibold text-[rgb(0,65,110)] mb-2">
+                <label htmlFor={selectId} className="block text-sm font-semibold text-[rgb(0,65,110)] mb-2">
                     {label}
-                    {props.required && <span className="text-[rgb(240,94,94)] ml-1">*</span>}
+                    {props.required && <span className="text-[rgb(240,94,94)] ml-1" aria-label="wymagane">*</span>}
                 </label>
             )}
             <select
+                id={selectId}
+                aria-invalid={error ? 'true' : 'false'}
+                aria-describedby={error ? `${selectId}-error` : undefined}
                 className={`w-full px-4 py-2 border-2 border-[rgb(190,195,206)] rounded-lg focus:outline-none focus:border-[rgb(63,132,210)] ${error ? 'border-[rgb(240,94,94)]' : ''
                     } ${className}`}
                 {...props}
@@ -33,7 +40,7 @@ export function Select({
                 ))}
             </select>
             {error && (
-                <p className="text-sm text-[rgb(240,94,94)] mt-1">{error}</p>
+                <p id={`${selectId}-error`} className="text-sm text-[rgb(240,94,94)] mt-1" role="alert">{error}</p>
             )}
         </div>
     );

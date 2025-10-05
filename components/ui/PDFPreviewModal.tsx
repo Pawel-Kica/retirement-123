@@ -59,13 +59,18 @@ export function PDFPreviewModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pdf-preview-title"
+        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200"
+      >
         {/* Header */}
         <div className="bg-zus-green p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <FileText className="w-8 h-8 text-white" />
+            <FileText aria-hidden="true" className="w-8 h-8 text-white" />
             <div>
-              <h2 className="text-2xl font-bold text-white">
+              <h2 id="pdf-preview-title" className="text-2xl font-bold text-white">
                 Podgląd Raportu PDF
               </h2>
               <p className="text-sm text-white/90">
@@ -75,9 +80,10 @@ export function PDFPreviewModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Zamknij podgląd"
             className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
           >
-            <X className="w-6 h-6" />
+            <X aria-hidden="true" className="w-6 h-6" />
           </button>
         </div>
 
@@ -341,7 +347,7 @@ export function PDFPreviewModal({
             size="lg"
             className="flex-1 flex items-center justify-center gap-2"
           >
-            <Download className="w-5 h-5" />
+            <Download aria-hidden="true" className="w-5 h-5" />
             Pobierz raport PDF
           </Button>
         </div>
