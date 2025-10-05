@@ -5,6 +5,7 @@ import { Header } from "@/components/ui/Header";
 import { ClientBody } from "@/components/ClientBody";
 import { HistorySidebar } from "@/components/ui/HistorySidebar";
 import { SnakeGame } from "@/components/ui/SnakeGame";
+import { SkipLink } from "@/components/ui/SkipLink";
 
 export const metadata: Metadata = {
   title: "Symulator Emerytalny ZUS",
@@ -19,9 +20,12 @@ export default function RootLayout({
   return (
     <html lang="pl">
       <ClientBody className="antialiased">
+        <SkipLink />
         <SimulationProvider>
           <Header />
-          {children}
+          <main id="main-content" tabIndex={-1}>
+            {children}
+          </main>
         </SimulationProvider>
       </ClientBody>
     </html>

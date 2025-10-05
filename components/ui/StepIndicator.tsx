@@ -36,9 +36,9 @@ export function StepIndicator({
   };
 
   return (
-    <div className="w-full py-8 px-4">
+    <nav className="w-full py-8 px-4" aria-label="Postęp symulacji">
       {/* Desktop horizontal layout */}
-      <div className="hidden md:flex items-start justify-between max-w-4xl mx-auto relative">
+      <div className="hidden md:flex items-start justify-between max-w-4xl mx-auto relative" role="list">
         {steps.map((step, index) => {
           const state = getStepState(index);
           const isClickable = canNavigateToStep(index);
@@ -48,7 +48,7 @@ export function StepIndicator({
           return (
             <React.Fragment key={step.number}>
               {/* Step Circle and Label */}
-              <div className="flex flex-col items-center gap-3 relative z-10 flex-1">
+              <div className="flex flex-col items-center gap-3 relative z-10 flex-1" role="listitem">
                 <button
                   onClick={() => isClickable && onStepClick(index)}
                   disabled={!isClickable}
@@ -145,7 +145,7 @@ export function StepIndicator({
       </div>
 
       {/* Mobile vertical layout */}
-      <div className="md:hidden space-y-0">
+      <div className="md:hidden space-y-0" role="list">
         {steps.map((step, index) => {
           const state = getStepState(index);
           const isClickable = canNavigateToStep(index);
@@ -153,7 +153,7 @@ export function StepIndicator({
           const nextStepCompleted = completedSteps.includes(index);
 
           return (
-            <div key={step.number} className="relative">
+            <div key={step.number} className="relative" role="listitem">
               <div className="flex items-start gap-4">
                 {/* Step Circle with connecting line */}
                 <div className="flex flex-col items-center relative">
@@ -243,6 +243,6 @@ export function StepIndicator({
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

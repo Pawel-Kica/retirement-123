@@ -17,9 +17,9 @@ export function Card({ children, className = '', variant = 'default' }: CardProp
   };
 
   return (
-    <div className={`rounded border p-6 ${variantClasses[variant]} ${className}`}>
+    <section className={`rounded border p-6 ${variantClasses[variant]} ${className}`}>
       {children}
-    </div>
+    </section>
   );
 }
 

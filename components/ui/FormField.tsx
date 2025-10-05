@@ -24,21 +24,43 @@ export function FormField({
   className = "",
   reserveErrorSpace
 }: FormFieldProps) {
+  const fieldId = React.useId();
+  const errorId = `${fieldId}-error`;
+  const hintId = `${fieldId}-hint`;
+
+  // Clone children to add accessibility attributes
+  const childrenWithProps = React.Children.map(children, (child) => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child as React.ReactElement<any>, {
+        id: child.props.id || fieldId,
+        'aria-invalid': error ? "true" : "false",
+        'aria-describedby': error ? errorId : hint ? hintId : child.props['aria-describedby'],
+        'aria-required': required || child.props['aria-required'],
+      });
+    }
+    return child;
+  });
+
   return (
     <div className={`mb-4 ${className}`}>
-      <label className="block mb-2">
+      <label htmlFor={fieldId} className="block mb-2">
         <span className="font-semibold text-zus-grey-700">
           {label}
-          {required && <span className="text-zus-error ml-1">*</span>}
+          {required && <span className="text-zus-error ml-1" aria-label="wymagane">*</span>}
         </span>
         {tooltip && (
           <Tooltip content={tooltip}>
             <span className="inline-flex ml-2 align-middle">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-zus-green text-zus-green hover:bg-zus-green hover:text-white transition-all duration-200 cursor-help">
+              <span
+                className="inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-zus-green text-zus-green hover:bg-zus-green hover:text-white transition-all duration-200 cursor-help"
+                role="img"
+                aria-label="Dodatkowe informacje"
+              >
                 <svg
                   className="w-4 h-4"
                   fill="currentColor"
                   viewBox="0 0 20 20"
+                  aria-hidden="true"
                 >
                   <path
                     fillRule="evenodd"
@@ -51,20 +73,23 @@ export function FormField({
           </Tooltip>
         )}
       </label>
-      {children}
-      <div 
+      {childrenWithProps}
+      <div
         className={`mt-1`}
         style={{ minHeight: reserveErrorSpace }}
+        aria-live="polite"
       >
         {error ? (
           <div
+            id={errorId}
+            role="alert"
             className={`text-sm flex items-start gap-2 p-3 rounded border-l-4 ${
-              errorSeverity === "warning" 
-                ? "bg-red-50 border-red-500 text-red-700" 
+              errorSeverity === "warning"
+                ? "bg-red-50 border-red-500 text-red-700"
                 : "bg-red-50 border-zus-error text-zus-error"
             }`}
           >
-            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               {errorSeverity === "warning" ? (
                 <path
                   fillRule="evenodd"
@@ -82,7 +107,7 @@ export function FormField({
             <span>{error}</span>
           </div>
         ) : hint ? (
-          <p className="text-sm text-zus-grey-500">{hint}</p>
+          <p id={hintId} className="text-sm text-zus-grey-500">{hint}</p>
         ) : null}
       </div>
     </div>

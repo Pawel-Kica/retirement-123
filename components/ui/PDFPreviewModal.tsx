@@ -3,6 +3,7 @@ import { SimulationInputs, SimulationResults } from "@/lib/types";
 import { formatPLN, formatPercent } from "@/lib/utils/formatting";
 import { Button } from "@/components/ui/Button";
 import { X, FileText, Download } from "lucide-react";
+import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 
 interface PDFPreviewModalProps {
   isOpen: boolean;
@@ -21,6 +22,26 @@ export function PDFPreviewModal({
   results,
   expectedPension,
 }: PDFPreviewModalProps) {
+  const modalRef = useFocusTrap(isOpen);
+
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const currentYear = new Date().getFullYear();
@@ -58,14 +79,24 @@ export function PDFPreviewModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+    <div
+      className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pdf-preview-title"
+      onClick={onClose}
+    >
+      <div
+        ref={modalRef}
+        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-zus-green p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <FileText className="w-8 h-8 text-white" />
+            <FileText className="w-8 h-8 text-white" aria-hidden="true" />
             <div>
-              <h2 className="text-2xl font-bold text-white">
+              <h2 id="pdf-preview-title" className="text-2xl font-bold text-white">
                 Podgląd Raportu PDF
               </h2>
               <p className="text-sm text-white/90">
@@ -75,9 +106,10 @@ export function PDFPreviewModal({
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+            className="text-white hover:bg-white/20 rounded-full p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Zamknij podgląd PDF"
           >
-            <X className="w-6 h-6" />
+            <X className="w-6 h-6" aria-hidden="true" />
           </button>
         </div>
 

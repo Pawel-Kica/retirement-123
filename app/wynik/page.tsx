@@ -252,7 +252,7 @@ export default function WynikPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] py-8 relative">
           {/* History Button - Top Right of Container */}
           <div className="absolute top-4 right-4 sm:right-6 lg:right-8 z-30">
@@ -335,7 +335,7 @@ export default function WynikPage() {
             </Button>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* PDF Preview Modal */}
       <PDFPreviewModal

@@ -32,6 +32,8 @@ export function Tooltip({ content, children, className }: TooltipProps) {
         className="cursor-help touch-manipulation"
         role="button"
         aria-label="Więcej informacji"
+        aria-expanded={isVisible}
+        aria-describedby={isVisible ? "tooltip-content" : undefined}
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -56,6 +58,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
 
           {/* Tooltip */}
           <div
+            id="tooltip-content"
             ref={tooltipRef}
             className={cn(
               "absolute z-50 px-4 py-3 bg-zus-navy text-white text-sm rounded-lg shadow-xl",
@@ -66,11 +69,12 @@ export function Tooltip({ content, children, className }: TooltipProps) {
               "left-full ml-2 top-1/2 -translate-y-1/2"
             )}
             role="tooltip"
+            aria-live="polite"
           >
             {content}
 
             {/* Arrow */}
-            <div className="absolute right-full top-1/2 -translate-y-1/2 mr-[-1px]">
+            <div className="absolute right-full top-1/2 -translate-y-1/2 mr-[-1px]" aria-hidden="true">
               <div className="border-[6px] border-transparent border-r-zus-navy" />
             </div>
 
@@ -80,7 +84,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
                 e.stopPropagation();
                 handleClose();
               }}
-              className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-white/80 hover:text-white md:hidden rounded-full hover:bg-white/10 transition-colors"
+              className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-white/80 hover:text-white md:hidden rounded-full hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
               aria-label="Zamknij"
             >
               <svg
@@ -88,6 +92,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"

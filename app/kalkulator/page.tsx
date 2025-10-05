@@ -337,7 +337,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-4">
@@ -432,6 +432,10 @@ export default function Home() {
                   WebkitAppearance: "none",
                 }}
                 aria-label="Wybierz wysokość emerytury"
+                aria-valuemin={SLIDER_MIN}
+                aria-valuemax={SLIDER_MAX}
+                aria-valuenow={pension}
+                aria-valuetext={`${pension.toLocaleString("pl-PL")} złotych`}
               />
             </div>
 
@@ -721,6 +725,6 @@ export default function Home() {
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

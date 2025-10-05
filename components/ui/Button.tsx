@@ -19,22 +19,22 @@ export function Button({
 }: ButtonProps) {
   // ZUS Design System: Flat design, professional, accessible
   const baseClasses =
-    "font-semibold rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 cursor-pointer";
+    "font-semibold rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 cursor-pointer focus:outline-none";
 
   // ZUS Color System - Following official design guidelines
   const variantClasses = {
     // Primary: Orange/Amber CTA button (like "OBLICZ" on ZUS.pl)
     primary:
-      "bg-zus-orange text-white hover:bg-zus-orange-dark focus:ring-2 focus:ring-zus-orange focus:ring-offset-2",
+      "bg-zus-orange text-white hover:bg-zus-orange-dark focus:ring-4 focus:ring-zus-orange focus:ring-offset-2",
     // Secondary: Navy blue for secondary actions
     secondary:
-      "bg-zus-navy text-white hover:bg-zus-navy-dark focus:ring-2 focus:ring-zus-navy focus:ring-offset-2",
+      "bg-zus-navy text-white hover:bg-zus-navy-dark focus:ring-4 focus:ring-zus-navy focus:ring-offset-2",
     // Success: Green for confirmations
     success:
-      "bg-zus-green text-white hover:bg-zus-green-dark focus:ring-2 focus:ring-zus-green focus:ring-offset-2",
+      "bg-zus-green text-white hover:bg-zus-green-dark focus:ring-4 focus:ring-zus-green focus:ring-offset-2",
     // Ghost: Outline style with green
     ghost:
-      "bg-transparent border-2 border-zus-green text-zus-green hover:bg-zus-green-light focus:ring-2 focus:ring-zus-green focus:ring-offset-2",
+      "bg-transparent border-2 border-zus-green text-zus-green hover:bg-zus-green-light focus:ring-4 focus:ring-zus-green focus:ring-offset-2",
   };
 
   // ZUS Spacing: 12px vertical, 24px horizontal for md buttons
@@ -47,6 +47,8 @@ export function Button({
   return (
     <button
       disabled={disabled || loading}
+      aria-busy={loading}
+      aria-disabled={disabled || loading}
       className={cn(
         baseClasses,
         variantClasses[variant],
@@ -61,6 +63,7 @@ export function Button({
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <circle
             className="opacity-25"

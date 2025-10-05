@@ -123,6 +123,11 @@ export function InputWithSlider({
             step={step}
             value={sliderValue}
             onChange={handleSliderChange}
+            aria-label={`${label} (suwak)`}
+            aria-valuemin={min}
+            aria-valuemax={max}
+            aria-valuenow={sliderValue}
+            aria-valuetext={`${sliderValue}${suffix ? ` ${suffix}` : ""}`}
             className="w-full appearance-none cursor-pointer slider-zus"
             style={{
               accentColor: "#00843D",

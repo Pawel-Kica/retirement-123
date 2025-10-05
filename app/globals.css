@@ -47,3 +47,143 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* ============================================
+   WCAG 2.0 Accessibility Enhancements
+   ============================================ */
+
+/* Enhanced focus indicators for keyboard navigation */
+*:focus {
+  outline: 3px solid var(--color-zus-green);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 3px solid var(--color-zus-green);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-zus-grey-500: #616161;
+    --color-zus-grey-700: #303030;
+    --color-zus-grey-900: #000000;
+  }
+
+  button, a {
+    font-weight: 600;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip link styles */
+.skip-link:focus {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 9999;
+  background: var(--color-zus-green);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
+
+/* Ensure minimum touch target sizes (44x44px) */
+button,
+a,
+input[type="button"],
+input[type="submit"],
+input[type="checkbox"],
+input[type="radio"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Improve text contrast on colored backgrounds */
+.bg-zus-green,
+.bg-zus-navy,
+.bg-zus-orange {
+  color: white;
+}
+
+.bg-zus-green-light {
+  color: var(--color-zus-grey-900);
+}
+
+/* Focus within for complex components */
+*:focus-within {
+  outline-color: var(--color-zus-green);
+}
+
+/* Screen reader only utility class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Ensure form labels are always visible */
+label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-zus-grey-900);
+}
+
+/* Improve disabled state visibility */
+:disabled,
+[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Better error visibility */
+[aria-invalid="true"] {
+  border-color: var(--color-zus-error) !important;
+  border-width: 2px;
+}
+
+/* Live regions announcement support */
+[aria-live] {
+  position: relative;
+}
+
+/* Ensure adequate spacing for readability */
+p, li, td, th {
+  line-height: 1.6;
+}
+
+/* Minimum font size for readability */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}

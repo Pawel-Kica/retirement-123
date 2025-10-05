@@ -145,6 +145,8 @@ function InteractiveBackground() {
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
       style={{ opacity: 0.4 }}
+      aria-hidden="true"
+      role="presentation"
     />
   );
 }
@@ -153,7 +155,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <main className="min-h-[calc(100vh-92px)] bg-gradient-to-br from-white via-zus-green-light to-white relative overflow-hidden">
+    <div className="min-h-[calc(100vh-92px)] bg-gradient-to-br from-white via-zus-green-light to-white relative overflow-hidden">
       <InteractiveBackground />
 
       <div className="relative z-10">
@@ -250,6 +252,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

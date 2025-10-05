@@ -5,6 +5,7 @@ import {
   setPostalCode,
   markAskedAboutPostalCode,
 } from "@/lib/utils/postalCodeStorage";
+import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 
 interface PostalCodeModalProps {
   isOpen: boolean;
@@ -19,6 +20,25 @@ export function PostalCodeModal({
 }: PostalCodeModalProps) {
   const [postalCode, setPostalCodeState] = useState("");
   const [error, setError] = useState("");
+  const modalRef = useFocusTrap(isOpen);
+
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        handleSkip();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -68,15 +88,25 @@ export function PostalCodeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="postal-code-title"
+      onClick={handleSkip}
+    >
+      <div
+        ref={modalRef}
+        className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-6 border-b border-zus-grey-300">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-zus-green-light rounded-full flex items-center justify-center">
-              <LuMapPin className="w-5 h-5 text-zus-green" />
+              <LuMapPin className="w-5 h-5 text-zus-green" aria-hidden="true" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zus-grey-900">
+              <h2 id="postal-code-title" className="text-xl font-bold text-zus-grey-900">
                 Kod pocztowy
               </h2>
               <p className="text-sm text-zus-grey-600">Opcjonalne</p>
@@ -84,9 +114,10 @@ export function PostalCodeModal({
           </div>
           <button
             onClick={handleSkip}
-            className="text-zus-grey-500 hover:text-zus-grey-900 transition-colors"
+            className="text-zus-grey-500 hover:text-zus-grey-900 transition-colors focus:outline-none focus:ring-2 focus:ring-zus-green rounded"
+            aria-label="Pomiń dodawanie kodu pocztowego"
           >
-            <LuX className="w-6 h-6" />
+            <LuX className="w-6 h-6" aria-hidden="true" />
           </button>
         </div>
 
@@ -110,18 +141,20 @@ export function PostalCodeModal({
               onChange={(e) => handlePostalCodeChange(e.target.value)}
               placeholder="np. 31-422"
               maxLength={6}
-              className={`w-full px-4 py-3 text-lg font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 transition-all ${
+              aria-invalid={error ? "true" : "false"}
+              aria-describedby={error ? "postal-code-error" : "postal-code-hint"}
+              className={`w-full px-4 py-3 text-lg font-semibold border-2 rounded-lg focus:outline-none focus:ring-4 transition-all ${
                 error
                   ? "border-zus-error focus:border-zus-error focus:ring-zus-error/20"
                   : "border-zus-grey-300 focus:border-zus-green focus:ring-zus-green/20"
               }`}
             />
             {error && (
-              <p className="mt-2 text-sm text-zus-error flex items-center gap-1">
-                <span>⚠</span> {error}
+              <p id="postal-code-error" className="mt-2 text-sm text-zus-error flex items-center gap-1" role="alert">
+                <span aria-hidden="true">⚠</span> {error}
               </p>
             )}
-            <p className="mt-2 text-xs text-zus-grey-600">
+            <p id="postal-code-hint" className="mt-2 text-xs text-zus-grey-600">
               Format: XX-XXX (np. 00-001, 31-422, 99-999)
             </p>
           </div>

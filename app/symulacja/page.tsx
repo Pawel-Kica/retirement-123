@@ -424,7 +424,7 @@ export default function SimulacjaPage() {
         onSave={handlePostalCodeSave}
       />
 
-      <main className="min-h-screen bg-gradient-to-br from-zus-green-light via-white to-blue-50 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-zus-green-light via-white to-blue-50 py-12">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-zus-grey-900 mb-2">
@@ -508,7 +508,7 @@ export default function SimulacjaPage() {
               </div> */}
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }
