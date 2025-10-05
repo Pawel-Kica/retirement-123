@@ -33,22 +33,22 @@ export interface CalculateParams {
 
 /**
  * Main calculation function
- * Uses simplified year-by-year calculation based on user inputs
+ * Uses original calculation method with proper waloryzacja
  */
 export async function calculateSimulation(
   params: CalculateParams
 ): Promise<SimulationResults> {
-  // Import simplified calculation engine
-  const { calculateSimulationSimplified } = await import(
-    "./simplifiedCalculation"
-  );
+  // Import original calculation engine
+  const { calculateSimulationOriginal } = await import("./originalCalculation");
 
-  // Load CPI data for accurate inflation calculations
+  // Load all data including prognosis data
   const data = await loadAllData();
 
-  // Use simplified calculation with CPI data
-  return calculateSimulationSimplified({
+  // Use original calculation with proper waloryzacja
+  return calculateSimulationOriginal({
     ...params,
     cpiData: data.cpi,
+    prognosisData: data.prognosisVariants[1].data, // Use variant 1 (Pośredni)
+    prognosisVariant: 1,
   });
 }

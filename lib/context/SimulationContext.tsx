@@ -20,7 +20,7 @@ import {
   LifeEvent,
 } from "../types";
 import { calculateSimulation } from "../engine";
-import { calculateExpectedPensionFromCareer } from "../engine/simplifiedCalculation";
+import { calculateExpectedPensionFromCareer } from "../engine/originalCalculation";
 import { loadAllData } from "../data/loader";
 import {
   saveSimulationToHistory,
@@ -428,17 +428,16 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
           state.inputs.employmentPeriods,
       };
 
-      // Check if career path has been modified (contract periods, gap periods, or life events)
+      // Check if career path has been modified (only contract periods, not life events or gaps)
       const hasCareerModifications = 
-        state.dashboardModifications.contractPeriods ||
-        (state.dashboardModifications.gapPeriods && state.dashboardModifications.gapPeriods.length > 0) ||
-        (state.dashboardModifications.lifeEvents && state.dashboardModifications.lifeEvents.length > 0);
+        state.dashboardModifications.contractPeriods;
 
       let expectedPensionToUse = state.expectedPension;
 
-      // Only recalculate expected pension if career path has been modified
+      // Only recalculate expected pension if contract periods have been modified
+      // Life events and gap periods should NOT change the expected pension
       if (hasCareerModifications) {
-        console.log("🔄 Career path modified, recalculating expected pension...");
+        console.log("🔄 Contract periods modified, recalculating expected pension...");
         const data = await loadAllData();
         const workHistory = syncedInputs.employmentPeriods || [];
         const retirementAge = syncedInputs.age + (syncedInputs.workEndYear - new Date().getFullYear());
@@ -455,7 +454,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
           data.cpi
         );
       } else {
-        console.log("📊 No career modifications, using existing expected pension");
+        console.log("📊 No contract modifications, keeping original expected pension");
       }
 
       const results = await calculateSimulation({
