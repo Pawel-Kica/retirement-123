@@ -13,6 +13,7 @@ interface SickLeavePanelProps {
   existingEvents: LifeEvent[];
   workStartYear: number;
   workEndYear: number;
+  maxYear?: number; // Max year (e.g., when user is 90)
   onSave: (event: LifeEvent) => void;
   onDelete?: () => void;
   onCancel: () => void;
@@ -40,6 +41,7 @@ export function SickLeavePanel({
   existingEvents,
   workStartYear,
   workEndYear,
+  maxYear,
   onSave,
   onDelete,
   onCancel,
@@ -103,8 +105,9 @@ export function SickLeavePanel({
 
   const hasErrors = errors.some((e) => e.type === "error");
 
+  const effectiveMaxYear = maxYear || workEndYear + 5;
   const years = Array.from(
-    { length: workEndYear - workStartYear + 1 },
+    { length: effectiveMaxYear - workStartYear + 1 },
     (_, i) => workStartYear + i
   );
 
@@ -128,19 +131,18 @@ export function SickLeavePanel({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Info Banner */}
-      <div className="p-4 bg-blue-50 border-l-4 border-zus-blue rounded">
-        <div className="flex items-start gap-3">
-          <Activity className="w-6 h-6 text-zus-blue flex-shrink-0 mt-0.5" />
+      <div className="p-3 bg-blue-50 border-l-4 border-zus-blue rounded">
+        <div className="flex items-start gap-2">
+          <Activity className="w-5 h-5 text-zus-blue flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-zus-grey-900 mb-1">
+            <p className="text-xs font-semibold text-zus-grey-900 mb-0.5">
               Długotrwałe zwolnienie lekarskie
             </p>
             <p className="text-xs text-zus-grey-700">
-              Podczas długotrwałego zwolnienia zdrowotnego składki
-              emerytalne są odprowadzane od zasiłku chorobowego, który jest
-              niższy niż pełne wynagrodzenie. To zmniejsza kapitał emerytalny.
+              Składki emerytalne odprowadzane od zasiłku chorobowego, który jest
+              niższy niż pełne wynagrodzenie.
             </p>
           </div>
         </div>
@@ -148,7 +150,7 @@ export function SickLeavePanel({
 
       {/* Start Date */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-1.5">
           Data rozpoczęcia
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -204,14 +206,14 @@ export function SickLeavePanel({
 
       {/* Duration in Years */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-1.5">
           Czas trwania
         </label>
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {DURATION_OPTIONS.map((duration) => (
             <label
               key={duration}
-              className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              className={`flex items-center gap-2 p-2.5 border-2 rounded-lg cursor-pointer transition-all ${
                 formData.durationYears === duration
                   ? "border-zus-green bg-zus-green-light"
                   : "border-zus-grey-300 bg-white hover:border-zus-green/50"
@@ -228,10 +230,10 @@ export function SickLeavePanel({
                     durationYears: Number(e.target.value),
                   })
                 }
-                className="w-5 h-5 accent-zus-green"
+                className="w-4 h-4 accent-zus-green"
               />
               <div className="flex-1">
-                <span className="font-semibold text-zus-grey-900">
+                <span className="font-semibold text-sm text-zus-grey-900">
                   {getDurationLabel(duration)}
                 </span>
               </div>
@@ -248,50 +250,29 @@ export function SickLeavePanel({
 
       {/* End Date Preview */}
       {endDate && (
-        <div className="p-4 bg-zus-green-light rounded-lg border border-zus-green">
-          <p className="text-sm text-zus-grey-700">
-            <strong>Koniec zwolnienia:</strong>{" "}
+        <div className="p-2 bg-zus-green-light rounded border border-zus-green">
+          <p className="text-xs text-zus-grey-700">
+            <strong>Koniec:</strong>{" "}
             {MONTHS[endDate.endMonth - 1].label} {endDate.endYear}
-          </p>
-          <p className="text-xs text-zus-grey-600 mt-1">
-            Zwolnienie trwa przez {formatYears(formData.durationYears || 1)}
           </p>
         </div>
       )}
 
       {/* Impact Warning */}
-      <div className="p-4 bg-red-50 border-l-4 border-zus-error rounded">
-        <p className="text-sm text-zus-grey-700">
-          <strong>⚠️ Wpływ na emeryturę:</strong> Długotrwałe zwolnienie
-          lekarskie zmniejszy Twój kapitał emerytalny o około 20-30%, ponieważ
-          składki są odprowadzane od niższego zasiłku chorobowego zamiast pełnej
-          pensji.
+      <div className="p-3 bg-red-50 border-l-4 border-zus-error rounded">
+        <p className="text-xs text-zus-grey-700">
+          <strong>⚠️ Wpływ:</strong> Zmniejszy kapitał emerytalny o ~20-30%,
+          składki odprowadzane od niższego zasiłku chorobowego.
         </p>
       </div>
 
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
-          Opis (opcjonalnie)
-        </label>
-        <textarea
-          value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
-          placeholder="np. Rekonwalescencja po operacji"
-          rows={3}
-          className="w-full px-4 py-2 border border-zus-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green"
-        />
-      </div>
-
       {/* Action Buttons */}
-      <div className="space-y-3 pt-4 border-t border-zus-grey-300">
-        <div className="flex gap-3">
+      <div className="space-y-2 pt-3 border-t border-zus-grey-300">
+        <div className="flex gap-2">
           <Button
             onClick={onCancel}
             variant="ghost"
-            size="lg"
+            size="md"
             className="flex-1"
           >
             Anuluj
@@ -299,20 +280,20 @@ export function SickLeavePanel({
           <Button
             onClick={handleSubmit}
             variant="success"
-            size="lg"
+            size="md"
             className="flex-1"
             disabled={hasErrors}
           >
-            {event ? "Zapisz zmiany" : "Dodaj zwolnienie"}
+            {event ? "Zapisz" : "Dodaj"}
           </Button>
         </div>
 
         {event && onDelete && (
           <>
             {showDeleteConfirm ? (
-              <div className="p-4 bg-red-50 border-2 border-zus-error rounded-lg">
-                <p className="text-sm font-semibold text-zus-error mb-3">
-                  Czy na pewno chcesz usunąć to zwolnienie lekarskie?
+              <div className="p-3 bg-red-50 border-2 border-zus-error rounded">
+                <p className="text-xs font-semibold text-zus-error mb-2">
+                  Czy na pewno chcesz usunąć?
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -321,14 +302,14 @@ export function SickLeavePanel({
                     size="sm"
                     className="flex-1"
                   >
-                    Nie, anuluj
+                    Anuluj
                   </Button>
                   <Button
                     onClick={handleDelete}
                     className="flex-1 bg-zus-error hover:bg-red-700 text-white"
                     size="sm"
                   >
-                    Tak, usuń
+                    Usuń
                   </Button>
                 </div>
               </div>
@@ -336,7 +317,7 @@ export function SickLeavePanel({
               <Button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="w-full bg-zus-error hover:bg-red-700 text-white"
-                size="lg"
+                size="md"
               >
                 Usuń zwolnienie
               </Button>

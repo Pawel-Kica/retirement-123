@@ -92,9 +92,9 @@ export function Step1WorkHistory({
   return (
     <>
       {showBackWarning && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
-            <div className="flex items-start gap-3 mb-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl relative z-50">
+            <div className="flex items-start gap-3 mb-6">
               <LuTriangleAlert className="w-6 h-6 text-zus-warning flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-lg font-bold text-zus-grey-900 mb-2">
@@ -110,7 +110,7 @@ export function Step1WorkHistory({
             <div className="flex gap-3 justify-end">
               <Button
                 type="button"
-                variant="ghost"
+                variant="secondary"
                 onClick={() => setShowBackWarning(false)}
               >
                 Anuluj
@@ -119,7 +119,6 @@ export function Step1WorkHistory({
                 type="button"
                 variant="primary"
                 onClick={confirmBack}
-                className="bg-zus-warning hover:bg-orange-600"
               >
                 Wróć i usuń dane
               </Button>
@@ -201,12 +200,12 @@ export function Step1WorkHistory({
                         </h4>
                         {entry.startYear &&
                           entry.endYear &&
-                          entry.endYear > entry.startYear && (
+                          entry.endYear >= entry.startYear && (
                             <span className="text-xs text-zus-blue bg-blue-50 px-2 py-1 rounded font-medium">
-                              {entry.endYear - entry.startYear}{" "}
-                              {entry.endYear - entry.startYear === 1
+                              {entry.endYear - entry.startYear + 1}{" "}
+                              {entry.endYear - entry.startYear + 1 === 1
                                 ? "rok"
-                                : entry.endYear - entry.startYear < 5
+                                : entry.endYear - entry.startYear + 1 < 5
                                 ? "lata"
                                 : "lat"}
                             </span>
@@ -233,7 +232,7 @@ export function Step1WorkHistory({
                           <span className="text-zus-grey-400">•</span>
                           <span>{contractTypeLabel}</span>
                           {entry.annualRaisePercentage !== undefined &&
-                            entry.annualRaisePercentage !== 3 && (
+                            entry.annualRaisePercentage !== 1 && (
                               <>
                                 <span className="text-zus-grey-400">•</span>
                                 <span className="text-zus-blue">
@@ -364,7 +363,7 @@ export function Step1WorkHistory({
 
                       {entry.startYear &&
                         entry.endYear &&
-                        entry.startYear >= entry.endYear && (
+                        entry.startYear > entry.endYear && (
                           <div className="mt-3 p-3 bg-red-50 border-l-4 border-zus-error rounded text-sm">
                             <div className="flex items-start gap-2">
                               <LuTriangleAlert className="w-4 h-4 text-zus-error flex-shrink-0 mt-0.5" />
@@ -373,8 +372,8 @@ export function Step1WorkHistory({
                                   Błąd w datach
                                 </p>
                                 <p className="text-zus-grey-700 mt-1">
-                                  Rok rozpoczęcia ({entry.startYear}) musi być
-                                  wcześniej niż rok zakończenia ({entry.endYear}
+                                  Rok rozpoczęcia ({entry.startYear}) nie może być
+                                  późniejszy niż rok zakończenia ({entry.endYear}
                                   ).
                                 </p>
                               </div>

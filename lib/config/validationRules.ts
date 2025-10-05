@@ -46,7 +46,7 @@ export function calculateYearsWorked(
   startYear: number,
   endYear: number
 ): number {
-  return Math.max(0, endYear - startYear);
+  return Math.max(0, endYear - startYear + 1);
 }
 
 export function calculateMinRetirementYearFromAge(

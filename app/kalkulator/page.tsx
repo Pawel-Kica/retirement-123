@@ -207,9 +207,8 @@ export default function Home() {
       setExpectedPension(SLIDER_MIN);
       return;
     }
-    // Clamp to min/max and round to step
-    let clampedValue = Math.max(SLIDER_MIN, Math.min(SLIDER_MAX, value));
-    clampedValue = Math.round(clampedValue / SLIDER_STEP) * SLIDER_STEP;
+    // Just clamp to min/max, no rounding during typing (rounding happens on blur in DynamicNumberInput)
+    const clampedValue = Math.max(SLIDER_MIN, Math.min(SLIDER_MAX, value));
     setPension(clampedValue);
     setExpectedPension(clampedValue);
   };
@@ -339,10 +338,10 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 max-w-7xl">
         {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-zus-grey-900 mb-2">
+        <div className="text-center mb-4">
+          <h1 className="text-3xl font-bold text-zus-grey-900 mb-1">
             Symulator Emerytalny ZUS
           </h1>
           <p className="text-base text-gray-700">
@@ -352,11 +351,11 @@ export default function Home() {
         </div>
 
         {/* Expected Pension Input - Merged Section */}
-        <Card className="mb-4">
-          <div className="flex items-start gap-3 mb-6">
+        <Card className="mb-3">
+          <div className="flex items-start gap-3 mb-4">
             <div className="flex-1 text-center">
-              <h2 className="text-xl md:text-2xl font-semibold text-zus-grey-700 mb-6">
-                Jaka emerytura Cię zadowoli?
+              <h2 className="text-xl md:text-2xl font-semibold text-zus-grey-700 mb-4">
+                Jaką chciałbyś mieć emeryturę?
               </h2>
 
               <div className="flex items-center justify-center text-3xl md:text-4xl mb-2">
@@ -370,16 +369,16 @@ export default function Home() {
                 />
               </div>
 
-              <p className="text-xs text-gray-400 mb-6">
+              <p className="text-xs text-gray-400 mb-4">
                 W dzisiejszych złotych (wartość realna)
               </p>
             </div>
           </div>
 
           {/* Colorful Gradient Slider */}
-          <div className="mb-6">
-            <div className="mb-4 text-center">
-              <p className="text-sm font-medium text-zus-grey-700 mb-2">
+          <div className="mb-4">
+            <div className="mb-3 text-center">
+              <p className="text-sm font-medium text-zus-grey-700 mb-1">
                 Przesuń suwak lub wpisz wartość
               </p>
             </div>
@@ -458,7 +457,7 @@ export default function Home() {
           </div>
 
           {/* Comparison to Average - Now Inside Same Card */}
-          <div className="border-t border-zus-grey-300 pt-6">
+          <div className="border-t border-zus-grey-300 pt-4">
             <div className="text-center">
               {(() => {
                 const avgPension = 4045.2;
@@ -549,13 +548,34 @@ export default function Home() {
           `}</style>
         </Card>
 
+        {/* Fun Fact */}
+        {fact && (
+          <Card className="mb-3 bg-gradient-to-r from-zus-blue/10 to-zus-green/10">
+            <div className="flex items-start gap-3">
+              <svg
+                className="w-6 h-6 text-zus-orange flex-shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+              </svg>
+              <div>
+                <h4 className="font-bold text-zus-grey-900 mb-1 text-base">
+                  Czy wiesz, że...
+                </h4>
+                <p className="text-sm text-gray-700">{fact}</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Distribution Chart - Split View */}
-        <Card className="mb-4">
-          <h3 className="text-lg font-bold text-zus-grey-900 mb-4 text-center">
+        <Card className="mb-3">
+          <h3 className="text-lg font-bold text-zus-grey-900 mb-3 text-center">
             Rozkład emerytur w Polsce
           </h3>
 
-          <div className="grid md:grid-cols-[60%_40%] gap-6">
+          <div className="grid md:grid-cols-[60%_40%] gap-4">
             {/* Left side: Chart */}
             <div className="flex flex-col">
               <div className="flex-1 min-h-[400px] max-h-[500px] cursor-pointer">
@@ -570,14 +590,14 @@ export default function Home() {
             <div className="min-h-[400px]">
               {activeCategory !== -1 && (
                 <div
-                  className="p-4 rounded-lg border-2 transition-all h-full flex flex-col"
+                  className="p-3 rounded-lg border-2 transition-all h-full flex flex-col"
                   style={{
                     borderColor: groups[activeCategory].color,
                     backgroundColor: `${groups[activeCategory].color}15`,
                   }}
                 >
                   {/* Header with category name and selected pension */}
-                  <div className="flex items-start gap-2 mb-4">
+                  <div className="flex items-start gap-2 mb-3">
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: groups[activeCategory].color }}
@@ -608,8 +628,8 @@ export default function Home() {
                   </div>
 
                   {/* Range and percentage */}
-                  <div className="mb-4 pb-4 border-b border-gray-300">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="mb-3 pb-3 border-b border-gray-300">
+                    <div className="flex items-center justify-between mb-1.5">
                       <span className="text-sm text-gray-600">Przedział:</span>
                       <span className="text-sm font-semibold text-gray-800">
                         {groups[activeCategory].range}
@@ -629,12 +649,12 @@ export default function Home() {
                   </div>
 
                   {/* Short description */}
-                  <p className="text-sm text-gray-700 mb-4 italic">
+                  <p className="text-sm text-gray-700 mb-3 italic">
                     {groups[activeCategory].description}
                   </p>
 
                   {/* Detailed context */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {/* Average years of work */}
                     <div>
                       <h5 className="text-sm font-bold text-zus-grey-900 mb-1">
@@ -657,10 +677,10 @@ export default function Home() {
 
                     {/* Bullet points with characteristics */}
                     <div>
-                      <h5 className="text-sm font-bold text-zus-grey-900 mb-2">
+                      <h5 className="text-sm font-bold text-zus-grey-900 mb-1.5">
                         Charakterystyka:
                       </h5>
-                      <ul className="space-y-2">
+                      <ul className="space-y-1.5">
                         {groups[activeCategory].details.bullets.map(
                           (bullet, idx) => (
                             <li
@@ -685,27 +705,6 @@ export default function Home() {
             </div>
           </div>
         </Card>
-
-        {/* Fun Fact */}
-        {fact && (
-          <Card className="mb-4 bg-gradient-to-r from-zus-blue/10 to-zus-green/10">
-            <div className="flex items-start gap-3">
-              <svg
-                className="w-6 h-6 text-zus-orange flex-shrink-0 mt-0.5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
-              </svg>
-              <div>
-                <h4 className="font-bold text-zus-grey-900 mb-1 text-base">
-                  Czy wiesz, że...
-                </h4>
-                <p className="text-sm text-gray-700">{fact}</p>
-              </div>
-            </div>
-          </Card>
-        )}
 
         {/* CTA Button */}
         <div className="text-center">

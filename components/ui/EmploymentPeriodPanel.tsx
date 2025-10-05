@@ -14,6 +14,7 @@ interface EmploymentPeriodPanelProps {
   existingPeriods: EmploymentPeriod[];
   workStartYear: number;
   workEndYear: number;
+  maxYear?: number; // Max year (e.g., when user is 90)
   onSave: (period: EmploymentPeriod) => void;
   onDelete?: () => void;
   onCancel: () => void;
@@ -45,18 +46,20 @@ export function EmploymentPeriodPanel({
   existingPeriods,
   workStartYear,
   workEndYear,
+  maxYear,
   onSave,
   onDelete,
   onCancel,
 }: EmploymentPeriodPanelProps) {
   const [formData, setFormData] = useState<Partial<EmploymentPeriod>>({
     startYear: period?.startYear || workStartYear,
-    startMonth: period?.startMonth || 1,
+    startMonth: 1, // Always January
     endYear: period?.endYear || workEndYear,
-    endMonth: period?.endMonth || 12,
+    endMonth: 12, // Always December
     monthlyGross: period?.monthlyGross || 7000,
     contractType: period?.contractType || "UOP",
     description: period?.description || "",
+    annualRaisePercentage: period?.annualRaisePercentage,
   });
 
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -86,12 +89,13 @@ export function EmploymentPeriodPanel({
     const savedPeriod: EmploymentPeriod = {
       id: period?.id || `emp-${Date.now()}`,
       startYear: formData.startYear!,
-      startMonth: formData.startMonth!,
+      startMonth: 1, // Always January
       endYear: formData.endYear!,
-      endMonth: formData.endMonth!,
+      endMonth: 12, // Always December
       monthlyGross: formData.monthlyGross!,
       contractType: formData.contractType!,
       description: formData.description,
+      annualRaisePercentage: formData.annualRaisePercentage,
     };
 
     onSave(savedPeriod);
@@ -109,23 +113,24 @@ export function EmploymentPeriodPanel({
 
   const hasErrors = errors.some((e) => e.type === "error");
 
+  const effectiveMaxYear = maxYear || workEndYear + 5;
   const years = Array.from(
-    { length: workEndYear - workStartYear + 5 },
+    { length: effectiveMaxYear - workStartYear + 1 },
     (_, i) => workStartYear + i
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Contract Type */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-3">
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-2">
           Typ zatrudnienia
         </label>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {CONTRACT_TYPES.map((type) => (
             <label
               key={type.value}
-              className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              className={`flex items-center gap-2 p-2.5 border-2 rounded-lg cursor-pointer transition-all ${
                 formData.contractType === type.value
                   ? "border-zus-green bg-zus-green-light"
                   : "border-zus-grey-300 bg-white hover:border-zus-green/50"
@@ -142,10 +147,10 @@ export function EmploymentPeriodPanel({
                     contractType: e.target.value as ContractType,
                   })
                 }
-                className="w-5 h-5 accent-zus-green"
+                className="w-4 h-4 accent-zus-green"
               />
-              <span className="text-2xl">{type.icon}</span>
-              <span className="font-semibold text-zus-grey-900">
+              <span className="text-lg">{type.icon}</span>
+              <span className="font-semibold text-sm text-zus-grey-900">
                 {type.label}
               </span>
             </label>
@@ -153,54 +158,28 @@ export function EmploymentPeriodPanel({
         </div>
       </div>
 
-      {/* Start Date */}
+      {/* Start Year */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
-          Data rozpoczęcia
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-1.5">
+          Rok rozpoczęcia
         </label>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs text-zus-grey-600 mb-1">
-              Miesiąc
-            </label>
-            <select
-              value={formData.startMonth}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  startMonth: Number(e.target.value) as Month,
-                })
-              }
-              className="w-full px-3 py-2 border border-zus-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green"
-            >
-              {MONTHS.map((month) => (
-                <option key={month.value} value={month.value}>
-                  {month.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-zus-grey-600 mb-1">Rok</label>
-            <select
-              value={formData.startYear}
-              onChange={(e) =>
-                setFormData({ ...formData, startYear: Number(e.target.value) })
-              }
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green ${
-                getFieldError("startYear")
-                  ? "border-zus-error"
-                  : "border-zus-grey-300"
-              }`}
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <select
+          value={formData.startYear}
+          onChange={(e) =>
+            setFormData({ ...formData, startYear: Number(e.target.value) })
+          }
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green ${
+            getFieldError("startYear")
+              ? "border-zus-error"
+              : "border-zus-grey-300"
+          }`}
+        >
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
         {getFieldError("startYear") && (
           <p className="text-sm text-zus-error mt-1 flex items-center gap-1">
             <AlertCircle className="w-4 h-4" />
@@ -209,54 +188,28 @@ export function EmploymentPeriodPanel({
         )}
       </div>
 
-      {/* End Date */}
+      {/* End Year */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
-          Data zakończenia
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-1.5">
+          Rok zakończenia
         </label>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs text-zus-grey-600 mb-1">
-              Miesiąc
-            </label>
-            <select
-              value={formData.endMonth}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  endMonth: Number(e.target.value) as Month,
-                })
-              }
-              className="w-full px-3 py-2 border border-zus-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green"
-            >
-              {MONTHS.map((month) => (
-                <option key={month.value} value={month.value}>
-                  {month.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-zus-grey-600 mb-1">Rok</label>
-            <select
-              value={formData.endYear}
-              onChange={(e) =>
-                setFormData({ ...formData, endYear: Number(e.target.value) })
-              }
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green ${
-                getFieldError("endYear")
-                  ? "border-zus-error"
-                  : "border-zus-grey-300"
-              }`}
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <select
+          value={formData.endYear}
+          onChange={(e) =>
+            setFormData({ ...formData, endYear: Number(e.target.value) })
+          }
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green ${
+            getFieldError("endYear")
+              ? "border-zus-error"
+              : "border-zus-grey-300"
+          }`}
+        >
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
         {getFieldError("endYear") && (
           <p className="text-sm text-zus-error mt-1 flex items-center gap-1">
             <AlertCircle className="w-4 h-4" />
@@ -266,29 +219,26 @@ export function EmploymentPeriodPanel({
       </div>
 
       {/* Duration Display */}
-      {formData.startYear &&
-        formData.startMonth &&
-        formData.endYear &&
-        formData.endMonth && (
-          <div className="p-3 bg-zus-green-light rounded-lg border border-zus-green">
-            <p className="text-sm text-zus-grey-700">
-              <strong>Czas trwania:</strong>{" "}
-              {formatDuration(
-                formData.startYear,
-                formData.startMonth,
-                formData.endYear,
-                formData.endMonth
-              )}
-            </p>
-          </div>
-        )}
+      {formData.startYear && formData.endYear && (
+        <div className="p-2 bg-zus-green-light rounded border border-zus-green">
+          <p className="text-xs text-zus-grey-700">
+            <strong>Czas trwania:</strong>{" "}
+            {formData.endYear - formData.startYear + 1}{" "}
+            {formData.endYear - formData.startYear + 1 === 1
+              ? "rok"
+              : formData.endYear - formData.startYear + 1 < 5
+              ? "lata"
+              : "lat"}
+          </p>
+        </div>
+      )}
 
       {/* Monthly Gross Salary */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-1.5">
           Wynagrodzenie miesięczne brutto
         </label>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <input
             type="number"
             value={formData.monthlyGross}
@@ -298,7 +248,7 @@ export function EmploymentPeriodPanel({
             min={1000}
             max={100000}
             step={100}
-            className={`w-full px-4 py-3 text-lg font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green ${
+            className={`w-full px-3 py-2 text-base font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green ${
               getFieldError("monthlyGross")
                 ? "border-zus-error"
                 : "border-zus-grey-300"
@@ -331,29 +281,55 @@ export function EmploymentPeriodPanel({
         )}
       </div>
 
-      {/* Description */}
+      {/* Annual Raise Percentage */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
-          Opis (opcjonalnie)
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-1.5">
+          Roczna % podwyżka (opcjonalnie)
         </label>
-        <textarea
-          value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
-          placeholder="np. Praca w firmie XYZ"
-          rows={3}
-          className="w-full px-4 py-2 border border-zus-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.annualRaisePercentage !== undefined}
+            onChange={(e) => {
+              setFormData({
+                ...formData,
+                annualRaisePercentage: e.target.checked ? 1 : undefined,
+              });
+            }}
+            className="w-4 h-4 accent-zus-green"
+          />
+          <span className="text-xs text-zus-grey-700">
+            Dodaj coroczną podwyżkę
+          </span>
+          {formData.annualRaisePercentage !== undefined && (
+            <>
+              <input
+                type="number"
+                value={formData.annualRaisePercentage}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    annualRaisePercentage: Number(e.target.value),
+                  })
+                }
+                min={0}
+                max={100}
+                step={0.5}
+                className="w-16 px-2 py-1 text-sm border border-zus-grey-300 rounded focus:outline-none focus:ring-2 focus:ring-zus-green"
+              />
+              <span className="text-xs text-zus-grey-600">% rocznie</span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="space-y-3 pt-4 border-t border-zus-grey-300">
-        <div className="flex gap-3">
+      <div className="space-y-2 pt-3 border-t border-zus-grey-300">
+        <div className="flex gap-2">
           <Button
             onClick={onCancel}
             variant="ghost"
-            size="lg"
+            size="md"
             className="flex-1"
           >
             Anuluj
@@ -361,20 +337,20 @@ export function EmploymentPeriodPanel({
           <Button
             onClick={handleSubmit}
             variant="success"
-            size="lg"
+            size="md"
             className="flex-1"
             disabled={hasErrors}
           >
-            {period ? "Zapisz zmiany" : "Dodaj okres"}
+            {period ? "Zapisz" : "Dodaj"}
           </Button>
         </div>
 
         {period && onDelete && (
           <>
             {showDeleteConfirm ? (
-              <div className="p-4 bg-red-50 border-2 border-zus-error rounded-lg">
-                <p className="text-sm font-semibold text-zus-error mb-3">
-                  Czy na pewno chcesz usunąć ten okres zatrudnienia?
+              <div className="p-3 bg-red-50 border-2 border-zus-error rounded">
+                <p className="text-xs font-semibold text-zus-error mb-2">
+                  Czy na pewno chcesz usunąć?
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -383,14 +359,14 @@ export function EmploymentPeriodPanel({
                     size="sm"
                     className="flex-1"
                   >
-                    Nie, anuluj
+                    Anuluj
                   </Button>
                   <Button
                     onClick={handleDelete}
                     className="flex-1 bg-zus-error hover:bg-red-700 text-white"
                     size="sm"
                   >
-                    Tak, usuń
+                    Usuń
                   </Button>
                 </div>
               </div>
@@ -398,9 +374,9 @@ export function EmploymentPeriodPanel({
               <Button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="w-full bg-zus-error hover:bg-red-700 text-white"
-                size="lg"
+                size="md"
               >
-                Usuń okres zatrudnienia
+                Usuń okres
               </Button>
             )}
           </>

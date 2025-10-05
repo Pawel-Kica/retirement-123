@@ -13,6 +13,7 @@ interface GapPeriodPanelProps {
   existingGaps: EmploymentGapPeriod[];
   workStartYear: number;
   workEndYear: number;
+  maxYear?: number; // Max year (e.g., when user is 90)
   onSave: (gap: EmploymentGapPeriod) => void;
   onDelete?: () => void;
   onCancel: () => void;
@@ -64,6 +65,7 @@ export function GapPeriodPanel({
   existingGaps,
   workStartYear,
   workEndYear,
+  maxYear,
   onSave,
   onDelete,
   onCancel,
@@ -116,8 +118,9 @@ export function GapPeriodPanel({
 
   const hasErrors = errors.some((e) => e.type === "error");
 
+  const effectiveMaxYear = maxYear || workEndYear + 5;
   const years = Array.from(
-    { length: workEndYear - workStartYear + 5 },
+    { length: effectiveMaxYear - workStartYear + 1 },
     (_, i) => workStartYear + i
   );
 
@@ -133,17 +136,17 @@ export function GapPeriodPanel({
   const selectedType = GAP_TYPES.find((t) => t.value === formData.kind);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Type Selection */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-3">
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-2">
           Typ przerwy
         </label>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {GAP_TYPES.map((type) => (
             <label
               key={type.value}
-              className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              className={`flex items-center gap-2 p-2.5 border-2 rounded-lg cursor-pointer transition-all ${
                 formData.kind === type.value
                   ? "border-zus-green bg-zus-green-light"
                   : "border-zus-grey-300 bg-white hover:border-zus-green/50"
@@ -160,10 +163,10 @@ export function GapPeriodPanel({
                     kind: e.target.value as EmploymentGapPeriod["kind"],
                   })
                 }
-                className="w-5 h-5 accent-zus-green"
+                className="w-4 h-4 accent-zus-green"
               />
-              <div className="text-zus-green">{type.icon}</div>
-              <span className="font-semibold text-zus-grey-900">
+              <div className="text-zus-green w-5 h-5">{React.cloneElement(type.icon as React.ReactElement, { className: 'w-5 h-5' })}</div>
+              <span className="font-semibold text-sm text-zus-grey-900">
                 {type.label}
               </span>
             </label>
@@ -173,7 +176,7 @@ export function GapPeriodPanel({
 
       {/* Start Date */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-1.5">
           Data rozpoczęcia
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -229,10 +232,10 @@ export function GapPeriodPanel({
 
       {/* Duration in Months */}
       <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
+        <label className="block text-xs font-semibold text-zus-grey-900 uppercase tracking-wide mb-1.5">
           Czas trwania (w miesiącach)
         </label>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <input
             type="number"
             value={formData.durationMonths}
@@ -245,7 +248,7 @@ export function GapPeriodPanel({
             min={1}
             max={36}
             step={1}
-            className={`w-full px-4 py-3 text-lg font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green ${
+            className={`w-full px-3 py-2 text-base font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green ${
               getFieldError("durationMonths")
                 ? "border-zus-error"
                 : "border-zus-grey-300"
@@ -283,8 +286,8 @@ export function GapPeriodPanel({
 
       {/* End Date Preview */}
       {endDate && (
-        <div className="p-4 bg-zus-green-light rounded-lg border border-zus-green">
-          <p className="text-sm text-zus-grey-700">
+        <div className="p-2 bg-zus-green-light rounded border border-zus-green">
+          <p className="text-xs text-zus-grey-700">
             <strong>Kończy się:</strong> {MONTHS[endDate.endMonth - 1].label}{" "}
             {endDate.endYear}
           </p>
@@ -292,9 +295,9 @@ export function GapPeriodPanel({
       )}
 
       {/* Impact Warning */}
-      <div className="p-4 bg-yellow-50 border-l-4 border-zus-warning rounded">
-        <p className="text-sm text-zus-grey-700">
-          <strong>ℹ️ Wpływ na emeryturę:</strong> Podczas{" "}
+      <div className="p-3 bg-yellow-50 border-l-4 border-zus-warning rounded">
+        <p className="text-xs text-zus-grey-700">
+          <strong>ℹ️ Wpływ:</strong> Podczas{" "}
           {formData.kind === "MATERNITY_LEAVE"
             ? "urlopu macierzyńskiego"
             : formData.kind === "UNPAID_LEAVE"
@@ -305,29 +308,13 @@ export function GapPeriodPanel({
         </p>
       </div>
 
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-semibold text-zus-grey-900 mb-2">
-          Opis (opcjonalnie)
-        </label>
-        <textarea
-          value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
-          placeholder="np. Urlop z powodu narodzin dziecka"
-          rows={3}
-          className="w-full px-4 py-2 border border-zus-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zus-green"
-        />
-      </div>
-
       {/* Action Buttons */}
-      <div className="space-y-3 pt-4 border-t border-zus-grey-300">
-        <div className="flex gap-3">
+      <div className="space-y-2 pt-3 border-t border-zus-grey-300">
+        <div className="flex gap-2">
           <Button
             onClick={onCancel}
             variant="ghost"
-            size="lg"
+            size="md"
             className="flex-1"
           >
             Anuluj
@@ -335,20 +322,20 @@ export function GapPeriodPanel({
           <Button
             onClick={handleSubmit}
             variant="success"
-            size="lg"
+            size="md"
             className="flex-1"
             disabled={hasErrors}
           >
-            {gap ? "Zapisz zmiany" : "Dodaj przerwę"}
+            {gap ? "Zapisz" : "Dodaj"}
           </Button>
         </div>
 
         {gap && onDelete && (
           <>
             {showDeleteConfirm ? (
-              <div className="p-4 bg-red-50 border-2 border-zus-error rounded-lg">
-                <p className="text-sm font-semibold text-zus-error mb-3">
-                  Czy na pewno chcesz usunąć tę przerwę?
+              <div className="p-3 bg-red-50 border-2 border-zus-error rounded">
+                <p className="text-xs font-semibold text-zus-error mb-2">
+                  Czy na pewno chcesz usunąć?
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -357,14 +344,14 @@ export function GapPeriodPanel({
                     size="sm"
                     className="flex-1"
                   >
-                    Nie, anuluj
+                    Anuluj
                   </Button>
                   <Button
                     onClick={handleDelete}
                     className="flex-1 bg-zus-error hover:bg-red-700 text-white"
                     size="sm"
                   >
-                    Tak, usuń
+                    Usuń
                   </Button>
                 </div>
               </div>
@@ -372,7 +359,7 @@ export function GapPeriodPanel({
               <Button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="w-full bg-zus-error hover:bg-red-700 text-white"
-                size="lg"
+                size="md"
               >
                 Usuń przerwę
               </Button>

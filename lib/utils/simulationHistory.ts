@@ -9,9 +9,9 @@ import {
 } from "../types";
 import { clearPostalCodeData } from "./postalCodeStorage";
 
-const HISTORY_KEY = "zus-simulation-history";
-const TIMELINE_PREFIX = "zus-timeline-";
-const MAX_HISTORY_ITEMS = 10;
+const HISTORY_KEY = "zus-simulation-history-v2";
+const TIMELINE_PREFIX = "zus-timeline-v2-";
+const MAX_HISTORY_ITEMS = 5;
 const CURRENT_SIMULATION_KEY = "zus-current-simulation-id";
 
 export interface UnifiedSimulationData {
@@ -229,19 +229,38 @@ export function initializeDefaultTimelineForSimulation(
   id: string,
   inputs: SimulationInputs
 ): DashboardModifications {
-  const defaultPeriod: EmploymentPeriod = {
-    id: `emp-default-${Date.now()}`,
-    startYear: inputs.workStartYear,
-    endYear: inputs.workEndYear,
-    startMonth: 1,
-    endMonth: 12,
-    monthlyGross: inputs.monthlyGross,
-    contractType: inputs.contractType || "UOP",
-    description: "Główny okres zatrudnienia",
-  };
+  let contractPeriods: EmploymentPeriod[];
+
+  // If employmentPeriods exist in inputs, use them; otherwise create a single default period
+  if (inputs.employmentPeriods && inputs.employmentPeriods.length > 0) {
+    // Convert employmentPeriods to contractPeriods format (ensure month fields exist)
+    contractPeriods = inputs.employmentPeriods.map((period, index) => ({
+      id: period.id || `emp-${Date.now()}-${index}`,
+      startYear: period.startYear,
+      endYear: period.endYear,
+      startMonth: period.startMonth || 1,
+      endMonth: period.endMonth || 12,
+      monthlyGross: period.monthlyGross,
+      contractType: period.contractType,
+      description: period.description || `Okres zatrudnienia ${index + 1}`,
+    }));
+  } else {
+    // Fallback to single period from basic inputs
+    const defaultPeriod: EmploymentPeriod = {
+      id: `emp-default-${Date.now()}`,
+      startYear: inputs.workStartYear,
+      endYear: inputs.workEndYear,
+      startMonth: 1,
+      endMonth: 12,
+      monthlyGross: inputs.monthlyGross,
+      contractType: inputs.contractType || "UOP",
+      description: "Główny okres zatrudnienia",
+    };
+    contractPeriods = [defaultPeriod];
+  }
 
   const modifications: DashboardModifications = {
-    contractPeriods: [defaultPeriod],
+    contractPeriods,
     gapPeriods: [],
     lifeEvents: [],
     customSalaries: {},

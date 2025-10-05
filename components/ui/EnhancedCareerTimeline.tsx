@@ -184,10 +184,14 @@ export function EnhancedCareerTimeline({
                   {getContractLabel(period.contractType)}
                 </div>
                 <div>
-                  {period.startMonth}/{period.startYear} - {period.endMonth}/
-                  {period.endYear}
+                  {period.startYear} - {period.endYear}
                 </div>
                 <div>{period.monthlyGross.toLocaleString("pl-PL")} zł/mc</div>
+                {period.annualRaisePercentage !== undefined && (
+                  <div className="text-zus-blue">
+                    +{period.annualRaisePercentage}% rocznie
+                  </div>
+                )}
                 {period.description && (
                   <div className="text-zus-grey-300 mt-1">
                     {period.description}

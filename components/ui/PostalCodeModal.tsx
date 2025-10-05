@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { LuMapPin, LuX } from "react-icons/lu";
 import { Button } from "./Button";
 import {
-  getPostalCode,
   setPostalCode,
   markAskedAboutPostalCode,
 } from "@/lib/utils/postalCodeStorage";
@@ -21,16 +20,6 @@ export function PostalCodeModal({
   const [postalCode, setPostalCodeState] = useState("");
   const [error, setError] = useState("");
 
-  // Load existing postal code from storage when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      const existingCode = getPostalCode();
-      if (existingCode) {
-        setPostalCodeState(existingCode);
-      }
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const validatePostalCode = (code: string): boolean => {
@@ -42,20 +31,14 @@ export function PostalCodeModal({
     const cleaned = value.replace(/[^0-9-]/g, "");
 
     if (cleaned.length <= 6) {
-      let formatted = cleaned;
-
-      if (cleaned.length >= 2 && !cleaned.includes("-")) {
-        formatted = cleaned.slice(0, 2) + "-" + cleaned.slice(2);
-      }
-
-      setPostalCodeState(formatted);
+      setPostalCodeState(cleaned);
       setError("");
     }
   };
 
   const handleSave = () => {
     if (postalCode && !validatePostalCode(postalCode)) {
-      setError("Kod pocztowy musi być w formacie XX-XXX (np. 34-222)");
+      setError("Kod pocztowy musi być w formacie XX-XXX (np. 31-422)");
       return;
     }
 
@@ -109,8 +92,8 @@ export function PostalCodeModal({
 
         <div className="p-6">
           <p className="text-zus-grey-700 mb-4">
-            Podanie kodu pocztowego może pomóc nam lepiej dopasować informacje
-            do Twojego regionu.
+            Zanim obliczymy Twoją emeryturę, możesz opcjonalnie podać kod pocztowy.
+            Pomoże nam to lepiej dopasować informacje do Twojego regionu.
           </p>
 
           <div className="mb-4">
@@ -125,7 +108,7 @@ export function PostalCodeModal({
               type="text"
               value={postalCode}
               onChange={(e) => handlePostalCodeChange(e.target.value)}
-              placeholder="np. 34-222"
+              placeholder="np. 31-422"
               maxLength={6}
               className={`w-full px-4 py-3 text-lg font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 transition-all ${
                 error
@@ -139,7 +122,7 @@ export function PostalCodeModal({
               </p>
             )}
             <p className="mt-2 text-xs text-zus-grey-600">
-              Format: XX-XXX (np. 00-001, 34-222, 99-999)
+              Format: XX-XXX (np. 00-001, 31-422, 99-999)
             </p>
           </div>
 
@@ -160,7 +143,7 @@ export function PostalCodeModal({
             onClick={handleSkip}
             className="flex-1"
           >
-            Pomiń
+            Pomiń i oblicz
           </Button>
           <Button
             type="button"
@@ -169,7 +152,7 @@ export function PostalCodeModal({
             onClick={handleSave}
             className="flex-1"
           >
-            {postalCode ? "Zapisz kod" : "Dalej bez kodu"}
+            {postalCode ? "Zapisz i oblicz" : "Oblicz bez kodu"}
           </Button>
         </div>
       </div>

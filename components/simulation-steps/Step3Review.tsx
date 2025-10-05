@@ -38,7 +38,7 @@ export function Step3Review({
 
   const yearsWorked = workHistory.reduce((sum, entry) => {
     if (entry.startYear && entry.endYear) {
-      return sum + (entry.endYear - entry.startYear);
+      return sum + (entry.endYear - entry.startYear + 1);
     }
     return sum;
   }, 0);
@@ -102,7 +102,7 @@ export function Step3Review({
           {workHistory.map((entry, index) => {
             const entryYears =
               entry.startYear && entry.endYear
-                ? entry.endYear - entry.startYear
+                ? entry.endYear - entry.startYear + 1
                 : 0;
             const endAge =
               entry.endYear && formData.age
@@ -258,7 +258,7 @@ export function Step3Review({
             ← Wstecz
           </Button>
           <Button
-            type="submit"
+            type="button"
             onClick={onSubmit}
             variant="success"
             size="lg"

@@ -42,31 +42,12 @@ export function validateEmploymentPeriod(
     const startTotalMonths = period.startYear * 12 + (period.startMonth || 1);
     const endTotalMonths = period.endYear * 12 + (period.endMonth || 12);
 
-    if (endTotalMonths <= startTotalMonths) {
+    if (endTotalMonths < startTotalMonths) {
       errors.push({
         type: "error",
         field: "endYear",
-        message: "Data zakończenia musi być późniejsza niż data rozpoczęcia",
+        message: "Data zakończenia musi być późniejsza lub równa dacie rozpoczęcia",
       });
-    }
-
-    const otherPeriods = existingPeriods.filter((p) => p.id !== editingId);
-    for (const existing of otherPeriods) {
-      const existingStart =
-        existing.startYear * 12 + (existing.startMonth || 1);
-      const existingEnd = existing.endYear * 12 + (existing.endMonth || 12);
-
-      const hasOverlap =
-        startTotalMonths <= existingEnd && endTotalMonths >= existingStart;
-
-      if (hasOverlap) {
-        errors.push({
-          type: "error",
-          field: "startYear",
-          message: `Okres pokrywa się z istniejącym okresem zatrudnienia (${existing.startMonth}/${existing.startYear} - ${existing.endMonth}/${existing.endYear})`,
-        });
-        break;
-      }
     }
   }
 

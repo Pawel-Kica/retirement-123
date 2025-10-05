@@ -38,7 +38,7 @@ export function UnifiedTimeline({
 }: UnifiedTimelineProps) {
   const yearsWorked = startYear ? Math.max(0, currentYear - startYear) : 0;
   const yearsToRetirement = endYear ? Math.max(0, endYear - currentYear) : 0;
-  const totalYears = startYear && endYear ? endYear - startYear : 0;
+  const totalYears = startYear && endYear ? endYear - startYear + 1 : 0;
   const yearTurned18 = age ? currentYear - age + 18 : undefined;
 
   // Color mapping
@@ -130,7 +130,7 @@ export function UnifiedTimeline({
     if (variant === "work-end" || variant === "full") {
       if (endYear && age) {
         const retirementAge = age + (endYear - currentYear);
-        const totalYearsWorked = startYear ? endYear - startYear : 0;
+        const totalYearsWorked = startYear ? endYear - startYear + 1 : 0;
         const totalYearsLabel =
           totalYearsWorked > 0
             ? `Rok ${endYear} • Łącznie: ${totalYearsWorked} ${

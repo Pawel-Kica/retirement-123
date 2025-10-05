@@ -17,7 +17,7 @@ export function DynamicNumberInput({
   min,
   max,
   step = 1,
-  suffix = " zł",
+  suffix = "zł",
   className = "",
   onBlur,
 }: DynamicNumberInputProps) {
@@ -33,10 +33,10 @@ export function DynamicNumberInput({
   useEffect(() => {
     if (measureRef.current) {
       const textWidth = measureRef.current.offsetWidth;
-      const suffixWidth = suffix ? 45 : 0;
-      const minWidth = 120;
-      const maxWidth = 400;
-      const padding = 24;
+      const suffixWidth = suffix ? 20 : 0;
+      const minWidth = 100;
+      const maxWidth = 300;
+      const padding = 16;
       const calculatedWidth = Math.min(
         maxWidth,
         Math.max(minWidth, textWidth + suffixWidth + padding)
@@ -47,8 +47,10 @@ export function DynamicNumberInput({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    const cleanVal = val.replace(/\s/g, "").replace(/zł/g, "").trim();
-    setInputValue(cleanVal);
+    // Only allow digits and spaces
+    const filteredVal = val.replace(/[^\d\s]/g, "");
+    const cleanVal = filteredVal.replace(/\s/g, "").trim();
+    setInputValue(filteredVal);
 
     const numVal = Number(cleanVal);
     if (!isNaN(numVal) && cleanVal !== "") {
@@ -59,7 +61,7 @@ export function DynamicNumberInput({
   const handleBlur = () => {
     const cleanVal = inputValue.replace(/\s/g, "").replace(/zł/g, "").trim();
     const numVal = Number(cleanVal);
-    
+
     if (isNaN(numVal) || cleanVal === "") {
       setInputValue(min.toLocaleString("pl-PL"));
       onChange(min);
@@ -97,10 +99,10 @@ export function DynamicNumberInput({
       <span
         ref={measureRef}
         className="absolute invisible whitespace-pre font-bold"
-        style={{ 
+        style={{
           pointerEvents: "none",
           fontSize: "inherit",
-          lineHeight: "inherit"
+          lineHeight: "inherit",
         }}
       >
         {inputValue.replace(/\s/g, " ")}
@@ -126,20 +128,19 @@ export function DynamicNumberInput({
           text-zus-grey-900
           ${className}
         `}
-        style={{ 
+        style={{
           width: `${width}px`,
           fontSize: "inherit",
-          lineHeight: "inherit"
+          lineHeight: "inherit",
         }}
         aria-label="Kwota emerytury"
       />
-      
+
       {suffix && (
-        <span className="font-bold text-zus-grey-700 pointer-events-none ml-1">
+        <span className="font-bold text-zus-grey-700 pointer-events-none ml-0.5">
           {suffix}
         </span>
       )}
     </div>
   );
 }
-

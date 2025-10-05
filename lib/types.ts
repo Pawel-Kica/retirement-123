@@ -108,6 +108,7 @@ export interface EmploymentPeriod {
   endYear: number;
   monthlyGross: number;
   contractType: ContractType;
+  annualRaisePercentage?: number;
   description?: string;
   // Optional month precision (defaults to January..December when omitted)
   startMonth?: Month;

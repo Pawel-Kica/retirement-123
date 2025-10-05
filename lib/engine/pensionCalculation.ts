@@ -67,14 +67,32 @@ export function calculateRealValue(
     return nominalPension;
   }
 
+  // Default inflation assumption for years beyond available data
+  const DEFAULT_INFLATION = 1.025; // 2.5% annual inflation assumption
+
+  // Find the last available year in CPI data
+  const availableYears = Object.keys(cpiData)
+    .filter((key) => !key.startsWith("_")) // Skip metadata
+    .map((year) => parseInt(year))
+    .filter((year) => !isNaN(year))
+    .sort((a, b) => b - a);
+
+  const lastAvailableYear = availableYears.length > 0 ? availableYears[0] : currentYear;
+
   // Calculate cumulative CPI from current year to retirement year
   let cumulativeCPI = 1.0;
 
   for (let year = currentYear + 1; year <= retirementYear; year++) {
-    const cpi = cpiData[year.toString()];
-    if (typeof cpi !== "number") {
-      throw new Error(`Brak danych CPI dla roku ${year}`);
+    let cpi: number;
+
+    // Use actual CPI data if available, otherwise use default assumption
+    if (year <= lastAvailableYear) {
+      const cpiValue = cpiData[year.toString()];
+      cpi = typeof cpiValue === "number" ? cpiValue : DEFAULT_INFLATION;
+    } else {
+      cpi = DEFAULT_INFLATION;
     }
+
     cumulativeCPI *= cpi;
   }
 

@@ -88,36 +88,31 @@ export default function SimulacjaPage() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (shouldShowPostalCodeModal()) {
-      const saved = getPostalCode();
-      if (saved) {
-        setPostalCode(saved);
-      } else {
-        setShowPostalCodeModal(true);
-      }
-    }
-  }, []);
-
   // Initialize work history defaults on mount if age and sex are already set
+  // Also update when age or sex changes in step 0 (before initialization is locked)
   useEffect(() => {
-    if (!hasInitializedDefaults && formData.age && formData.sex) {
+    if (formData.age && formData.sex) {
       const minRetirementAge = formData.sex === "F" ? 60 : 65;
       const yearTurned18 = currentYear - (formData.age - 18);
       const retirementYear = currentYear + (minRetirementAge - formData.age);
 
-      setWorkHistory([
-        {
-          id: `work-${Date.now()}`,
-          startYear: yearTurned18,
-          endYear: retirementYear,
-          monthlyGross: 7000,
-          contractType: "UOP",
-        },
-      ]);
-      setHasInitializedDefaults(true);
+      // Only update if not yet initialized, or if we're still on step 0 (currentStep === 0)
+      if (!hasInitializedDefaults || currentStep === 0) {
+        setWorkHistory([
+          {
+            id: `work-${Date.now()}`,
+            startYear: yearTurned18,
+            endYear: retirementYear,
+            monthlyGross: 7000,
+            contractType: "UOP",
+          },
+        ]);
+        if (!hasInitializedDefaults) {
+          setHasInitializedDefaults(true);
+        }
+      }
     }
-  }, [formData.age, formData.sex, hasInitializedDefaults, currentYear]);
+  }, [formData.age, formData.sex, hasInitializedDefaults, currentYear, currentStep]);
 
   const minWorkStartYear = formData.age
     ? currentYear - (formData.age - 18)
@@ -132,35 +127,11 @@ export default function SimulacjaPage() {
     (field: keyof SimulationInputs, value: any) => {
       setFormData((prev) => {
         const updated = { ...prev, [field]: value };
-
-        // Initialize work history defaults when age and sex are both set for the first time
-        if (
-          !hasInitializedDefaults &&
-          (field === "age" || field === "sex") &&
-          updated.age &&
-          updated.sex
-        ) {
-          const minRetirementAge = updated.sex === "F" ? 60 : 65;
-          // Calculate the year when user turned 18 based on their current age
-          const yearTurned18 = currentYear - (updated.age - 18);
-          const retirementYear = currentYear + (minRetirementAge - updated.age);
-
-          setWorkHistory([
-            {
-              id: `work-${Date.now()}`,
-              startYear: yearTurned18,
-              endYear: retirementYear,
-              monthlyGross: 7000,
-              contractType: "UOP",
-            },
-          ]);
-          setHasInitializedDefaults(true);
-        }
-
+        // Work history initialization is now handled by useEffect
         return updated;
       });
     },
-    [hasInitializedDefaults, currentYear]
+    []
   );
 
   const updateWorkHistoryEntry = useCallback(
@@ -251,18 +222,19 @@ export default function SimulacjaPage() {
         });
       }
 
-      if (
-        entry.startYear &&
-        entry.endYear &&
-        entry.startYear >= entry.endYear
-      ) {
-        stepErrors.push({
-          field: `work-${entry.id}-endYear`,
-          message: `Okres ${
-            index + 1
-          }: Rok zakończenia musi być późniejszy niż rok rozpoczęcia`,
-        });
-      }
+      // Don't add duplicate error - inline "Błąd w datach" message is already shown
+      // if (
+      //   entry.startYear &&
+      //   entry.endYear &&
+      //   entry.startYear >= entry.endYear
+      // ) {
+      //   stepErrors.push({
+      //     field: `work-${entry.id}-endYear`,
+      //     message: `Okres ${
+      //       index + 1
+      //     }: Rok zakończenia musi być późniejszy niż rok rozpoczęcia`,
+      //   });
+      // }
 
       // No validation needed for early retirement - just informational
 
@@ -296,7 +268,8 @@ export default function SimulacjaPage() {
         (entry) =>
           entry.startYear !== undefined &&
           entry.endYear !== undefined &&
-          entry.monthlyGross !== undefined
+          entry.monthlyGross !== undefined &&
+          entry.startYear < entry.endYear // Ensure dates are valid
       )
     );
   }, [workHistory]);
@@ -356,6 +329,7 @@ export default function SimulacjaPage() {
         endYear: entry.endYear!,
         monthlyGross: entry.monthlyGross!,
         contractType: entry.contractType,
+        annualRaisePercentage: entry.annualRaisePercentage,
       }));
 
     const workStartYear = workHistory[0]?.startYear;
@@ -384,23 +358,37 @@ export default function SimulacjaPage() {
     }
 
     setInputs(inputs);
-    await recalculate();
+    await recalculate(true);
     router.push("/wynik");
   }, [formData, workHistory, setInputs, recalculate, router]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
+      // Show postal code modal before proceeding
+      setShowPostalCodeModal(true);
+    },
+    []
+  );
+
+  const handlePostalCodeSave = useCallback(
+    (code: string) => {
+      if (code) {
+        savePostalCode(code);
+        setPostalCode(code);
+      }
+      setShowPostalCodeModal(false);
+      // Proceed with calculation after saving postal code
       proceedWithCalculation();
     },
     [proceedWithCalculation]
   );
 
-  const handlePostalCodeSave = useCallback((code: string) => {
-    savePostalCode(code);
-    setPostalCode(code);
+  const handlePostalCodeSkip = useCallback(() => {
     setShowPostalCodeModal(false);
-  }, []);
+    // Proceed with calculation even if skipped
+    proceedWithCalculation();
+  }, [proceedWithCalculation]);
 
   const handleCancel = useCallback(() => {
     router.push("/");
@@ -424,7 +412,7 @@ export default function SimulacjaPage() {
     <>
       <PostalCodeModal
         isOpen={showPostalCodeModal}
-        onClose={() => setShowPostalCodeModal(false)}
+        onClose={handlePostalCodeSkip}
         onSave={handlePostalCodeSave}
       />
 
@@ -493,7 +481,7 @@ export default function SimulacjaPage() {
                   formData={formData}
                   workHistory={workHistory}
                   currentYear={currentYear}
-                  onSubmit={proceedWithCalculation}
+                  onSubmit={() => setShowPostalCodeModal(true)}
                   onBack={handleBack}
                   isLoading={isCalculating}
                 />

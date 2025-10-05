@@ -74,13 +74,15 @@ export function Step0BasicInfo({
           </FormField>
         </FieldWithVisual>
 
-        <FieldWithVisual visual={<AgeVisual age={formData.age} />}>
+        <FieldWithVisual
+          visual={<AgeVisual age={formData.age} sex={formData.sex} />}
+        >
           <InputWithSlider
             label="Twój obecny wiek"
             value={formData.age}
             onChange={(value) => onFieldChange("age", value)}
             min={18}
-            max={100}
+            max={90}
             step={1}
             suffix="lat"
             placeholder="np. 35"
@@ -90,7 +92,7 @@ export function Step0BasicInfo({
           />
           {formData.age &&
             formData.age > 70 &&
-            formData.age <= 100 &&
+            formData.age <= 90 &&
             !getFieldError(errors, "age") && (
               <div className="mt-2 p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm text-zus-grey-700 flex items-start gap-2">
                 <LuLightbulb className="w-5 h-5 text-zus-orange flex-shrink-0 mt-0.5" />
