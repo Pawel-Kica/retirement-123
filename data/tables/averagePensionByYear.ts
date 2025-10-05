@@ -1,65 +1,47 @@
-export const averagePensionByYear = {
-  "2024": 3518.04,
-  "2025": 3650.00,
-  "2026": 3780.00,
-  "2027": 3910.00,
-  "2028": 4042.00,
-  "2029": 4176.00,
-  "2030": 4312.00,
-  "2031": 4450.00,
-  "2032": 4590.00,
-  "2033": 4732.00,
-  "2034": 4876.00,
-  "2035": 5022.00,
-  "2036": 5170.00,
-  "2037": 5320.00,
-  "2038": 5472.00,
-  "2039": 5626.00,
-  "2040": 5782.00,
-  "2041": 5940.00,
-  "2042": 6100.00,
-  "2043": 6262.00,
-  "2044": 6426.00,
-  "2045": 6592.00,
-  "2046": 6760.00,
-  "2047": 6930.00,
-  "2048": 7102.00,
-  "2049": 7276.00,
-  "2050": 7452.00,
-  "2051": 7630.00,
-  "2052": 7810.00,
-  "2053": 7992.00,
-  "2054": 8176.00,
-  "2055": 8362.00,
-  "2056": 8550.00,
-  "2057": 8740.00,
-  "2058": 8932.00,
-  "2059": 9126.00,
-  "2060": 9322.00,
-  "2061": 9520.00,
-  "2062": 9720.00,
-  "2063": 9922.00,
-  "2064": 10126.00,
-  "2065": 10332.00,
-  "2066": 10540.00,
-  "2067": 10750.00,
-  "2068": 10962.00,
-  "2069": 11176.00,
-  "2070": 11392.00,
-  "2071": 11610.00,
-  "2072": 11830.00,
-  "2073": 12052.00,
-  "2074": 12276.00,
-  "2075": 12502.00,
-  "2076": 12730.00,
-  "2077": 12960.00,
-  "2078": 13192.00,
-  "2079": 13426.00,
-  "2080": 13662.00,
-  "_metadata": {
-    "source": "ZUS - Prognoza wpływów i wydatków FUS",
-    "description": "Prognozowane średnie świadczenie emerytalne w Polsce (brutto, PLN miesięcznie)",
-    "version": "1.0",
-    "date": "2025-01"
-  }
-} as const;
+import {
+  loadPrognoza1Data,
+  calculateAveragePension,
+} from "@/lib/utils/csvParser";
+
+/**
+ * Get average pension data dynamically from prognoza1.csv
+ * Only returns years that exist in the CSV file
+ */
+export async function getAveragePensionByYear() {
+  const prognosisData = await loadPrognoza1Data();
+
+  const pensionData: Record<string, number> = {};
+
+  // Base pension for 2024 (from ZUS data)
+  const basePension2024 = 3855.23;
+
+  // Add data from prognoza1.csv (2022 onwards)
+  prognosisData.forEach((data) => {
+    if (data.year >= 2022) {
+      // Calculate pension based on inflation from 2024 base
+      const pension = calculateAveragePension(
+        2024,
+        data.year,
+        basePension2024,
+        prognosisData
+      );
+      pensionData[data.year.toString()] = Math.round(pension * 100) / 100; // Round to 2 decimal places
+    }
+  });
+
+  return {
+    ...pensionData,
+    _metadata: {
+      source: "ZUS Prognoza 2023-2080",
+      description:
+        "Prognozowane średnie świadczenie emerytalne w Polsce (brutto, PLN miesięcznie)",
+      version: "2.0",
+      date: "2025-01",
+      officialDocument:
+        "https://www.zus.pl/documents/10182/167761/Publikacja_Fundusz_Emerytalny_2023-2080.pdf/3c2c41c9-6a50-0574-4634-ee9cfa43f286?t=1674049287158",
+    },
+  };
+}
+
+// For backward compatibility, export a function that returns the data
+export const averagePensionByYear = getAveragePensionByYear;

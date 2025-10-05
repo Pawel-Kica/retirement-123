@@ -2,9 +2,9 @@
  * Data loader for JSON files
  */
 
-import { wageGrowthByYear } from '@/data/tables/wageGrowthByYear';
-import { cpiByYear } from '@/data/tables/cpiByYear';
-import { averagePensionByYear } from '@/data/tables/averagePensionByYear';
+import { getWageGrowthByYear } from '@/data/tables/wageGrowthByYear';
+import { getCpiByYear } from '@/data/tables/cpiByYear';
+import { getAveragePensionByYear } from '@/data/tables/averagePensionByYear';
 import { sickImpact } from '@/data/sickImpact';
 import { facts } from '@/data/facts';
 import { retirementAgeBySex } from '@/data/retirementAgeBySex';
@@ -37,11 +37,16 @@ export interface AllData {
  */
 export async function loadAllData(): Promise<AllData> {
     const prognosisVariants = await loadPrognosisData();
+    const [wageGrowth, cpi, avgPension] = await Promise.all([
+        getWageGrowthByYear(),
+        getCpiByYear(),
+        getAveragePensionByYear(),
+    ]);
 
     return {
-        wageGrowth: wageGrowthByYear as WageGrowthData,
-        cpi: cpiByYear as CPIData,
-        avgPension: averagePensionByYear as AveragePensionData,
+        wageGrowth: wageGrowth as WageGrowthData,
+        cpi: cpi as CPIData,
+        avgPension: avgPension as AveragePensionData,
         sickImpactM: sickImpact.M as SickImpactConfig,
         sickImpactF: sickImpact.F as SickImpactConfig,
         facts: { facts } as FactsData,

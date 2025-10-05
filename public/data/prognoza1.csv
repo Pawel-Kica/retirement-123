@@ -1,3 +1,6 @@
+# Data source: ZUS - Prognoza wpływów i wydatków Funduszu Emerytalnego do 2080 roku
+# Official document: https://www.zus.pl/documents/10182/167761/Publikacja_Fundusz_Emerytalny_2023-2080.pdf/3c2c41c9-6a50-0574-4634-ee9cfa43f286?t=1674049287158
+# This CSV contains structured data extracted from the official ZUS forecast document
 year;unemployment;inflation;pensioners_inflation;wage_growth;gdp_growth;contribution_collection
 2022;5,00;113,50;113,80;98,00;104,60;99,00
 2023;5,40;109,80;110,10;100,30;101,70;99,00

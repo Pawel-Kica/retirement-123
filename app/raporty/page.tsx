@@ -1,26 +1,68 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { averagePensionByYear } from "@/data/tables/averagePensionByYear";
-import { cpiByYear } from "@/data/tables/cpiByYear";
-import { wageGrowthByYear } from "@/data/tables/wageGrowthByYear";
+import { getAveragePensionByYear } from "@/data/tables/averagePensionByYear";
+import { getCpiByYear } from "@/data/tables/cpiByYear";
+import { getWageGrowthByYear } from "@/data/tables/wageGrowthByYear";
 
 type TabType = "pension" | "cpi" | "wages";
+
+interface DataState {
+  pensionData: [string, any][];
+  cpiData: [string, any][];
+  wagesData: [string, any][];
+  pensionMetadata: any;
+  cpiMetadata: any;
+  wagesMetadata: any;
+  loading: boolean;
+}
 
 export default function RaportyPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("pension");
+  const [dataState, setDataState] = useState<DataState>({
+    pensionData: [],
+    cpiData: [],
+    wagesData: [],
+    pensionMetadata: {},
+    cpiMetadata: {},
+    wagesMetadata: {},
+    loading: true,
+  });
 
-  const pensionData = Object.entries(averagePensionByYear).filter(
-    ([key]) => key !== "_metadata"
-  );
-  const cpiData = Object.entries(cpiByYear).filter(
-    ([key]) => key !== "_metadata"
-  );
-  const wagesData = Object.entries(wageGrowthByYear).filter(
-    ([key]) => key !== "_metadata"
-  );
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [pensionData, cpiData, wagesData] = await Promise.all([
+          getAveragePensionByYear(),
+          getCpiByYear(),
+          getWageGrowthByYear(),
+        ]);
+
+        setDataState({
+          pensionData: Object.entries(pensionData).filter(
+            ([key]) => key !== "_metadata"
+          ),
+          cpiData: Object.entries(cpiData).filter(
+            ([key]) => key !== "_metadata"
+          ),
+          wagesData: Object.entries(wagesData).filter(
+            ([key]) => key !== "_metadata"
+          ),
+          pensionMetadata: pensionData._metadata,
+          cpiMetadata: cpiData._metadata,
+          wagesMetadata: wagesData._metadata,
+          loading: false,
+        });
+      } catch (error) {
+        console.error("Error loading data:", error);
+        setDataState(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    loadData();
+  }, []);
 
   const renderTable = (
     data: [string, any][],
@@ -46,10 +88,23 @@ export default function RaportyPage() {
           <p className="text-sm text-zus-grey-700 mb-1">
             <span className="font-medium">Opis:</span> {metadata.description}
           </p>
-          <p className="text-sm text-zus-grey-600">
+          <p className="text-sm text-zus-grey-600 mb-2">
             <span className="font-medium">Wersja:</span> {metadata.version} |{" "}
             <span className="font-medium">Data:</span> {metadata.date}
           </p>
+          {metadata.officialDocument && (
+            <p className="text-sm text-zus-grey-600">
+              <span className="font-medium">Dokument oficjalny:</span>{" "}
+              <a
+                href={metadata.officialDocument}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zus-green hover:text-zus-green-700 underline"
+              >
+                ZUS - Prognoza wpływów i wydatków Funduszu Emerytalnego do 2080 roku
+              </a>
+            </p>
+          )}
         </div>
 
         <div className="overflow-x-auto">
@@ -215,12 +270,19 @@ export default function RaportyPage() {
             hidden={activeTab !== "pension"}
             aria-labelledby="pension-tab"
           >
-            {activeTab === "pension" &&
+            {dataState.loading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-zus-green"></div>
+                <p className="mt-2 text-gray-600">Ładowanie danych...</p>
+              </div>
+            ) : (
+              activeTab === "pension" &&
               renderTable(
-                pensionData,
+                dataState.pensionData,
                 "Średnia emerytura (PLN)",
-                averagePensionByYear._metadata
-              )}
+                dataState.pensionMetadata
+              )
+            )}
           </div>
           <div
             role="tabpanel"
@@ -228,8 +290,15 @@ export default function RaportyPage() {
             hidden={activeTab !== "cpi"}
             aria-labelledby="cpi-tab"
           >
-            {activeTab === "cpi" &&
-              renderTable(cpiData, "Wskaźnik CPI", cpiByYear._metadata)}
+            {dataState.loading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-zus-green"></div>
+                <p className="mt-2 text-gray-600">Ładowanie danych...</p>
+              </div>
+            ) : (
+              activeTab === "cpi" &&
+              renderTable(dataState.cpiData, "Wskaźnik CPI", dataState.cpiMetadata)
+            )}
           </div>
           <div
             role="tabpanel"
@@ -237,12 +306,19 @@ export default function RaportyPage() {
             hidden={activeTab !== "wages"}
             aria-labelledby="wages-tab"
           >
-            {activeTab === "wages" &&
+            {dataState.loading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-zus-green"></div>
+                <p className="mt-2 text-gray-600">Ładowanie danych...</p>
+              </div>
+            ) : (
+              activeTab === "wages" &&
               renderTable(
-                wagesData,
+                dataState.wagesData,
                 "Wzrost wynagrodzeń",
-                wageGrowthByYear._metadata
-              )}
+                dataState.wagesMetadata
+              )
+            )}
           </div>
         </div>
       </div>
