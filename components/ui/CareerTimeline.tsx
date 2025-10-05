@@ -100,7 +100,8 @@ export function CareerTimeline(props: CareerTimelineProps) {
         {/* Gap periods overlay */}
         {gapPeriods.map((gap) => {
           const gapStart = getPositionForYear(gap.startYear);
-          const gapEnd = getPositionForYear(gap.endYear);
+          const gapEndYear = gap.startYear + (gap.startMonth - 1 + gap.durationMonths) / 12;
+          const gapEnd = getPositionForYear(gapEndYear);
           const gapColor =
             gap.kind === "MATERNITY_LEAVE"
               ? "bg-purple-400"
