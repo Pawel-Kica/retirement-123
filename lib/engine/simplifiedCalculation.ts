@@ -14,6 +14,7 @@ import {
   ContractType,
 } from "../types";
 import { sickImpact } from "@/data/sickImpact";
+import { loadLifeExpectancyData, getLifeExpectancy } from "../utils/csvParser";
 
 // Contract contribution rates (pension capital contribution)
 // ORDER OF BENEFIT: UOP (best) > UOZ (medium) > B2B (worst)
@@ -49,9 +50,32 @@ const DEFAULT_CPI = 1.025; // 2.5% annual inflation
 const PENSION_BOOST_MULTIPLIER = 2.5;
 
 /**
- * Calculate divisor based on retirement age and sex
+ * Calculate divisor based on retirement age and sex using accurate life expectancy data
  */
-function calculateDivisor(retirementAge: number, sex: Sex): number {
+async function calculateDivisor(
+  retirementAge: number,
+  sex: Sex,
+  retirementMonth: number = 0
+): Promise<number> {
+  try {
+    // Load life expectancy data
+    const lifeExpectancyData = await loadLifeExpectancyData();
+
+    // Get life expectancy for the specific age and month
+    const lifeExpectancyMonths = getLifeExpectancy(
+      retirementAge,
+      retirementMonth,
+      lifeExpectancyData
+    );
+
+    if (lifeExpectancyMonths !== null) {
+      return Math.max(12, lifeExpectancyMonths); // Minimum 1 year
+    }
+  } catch (error) {
+    console.error("Error loading life expectancy data, using fallback:", error);
+  }
+
+  // Fallback to approximate calculation
   const base = BASE_DIVISORS[sex];
   const ageDifference = retirementAge - base.age;
   const divisor = base.months - ageDifference * 12;
@@ -243,7 +267,7 @@ function applyRetirementPrograms(
  * - Years 5-7: 5% increase per year (compound)
  * - Years 8-10: 10% increase per year (compound)
  */
-function calculateDeferralScenarios(
+async function calculateDeferralScenarios(
   baseCapital: number,
   baseDivisor: number,
   basePension: number,
@@ -275,7 +299,7 @@ function calculateDeferralScenarios(
 
     const newAge = baseRetirementAge + additionalYears;
     const newRetirementYear = baseRetirementYear + additionalYears;
-    const newDivisor = calculateDivisor(newAge, sex);
+    const newDivisor = await calculateDivisor(newAge, sex);
 
     // Back-calculate capital needed for this pension
     const newNominalPension = newRealPension;
@@ -302,7 +326,7 @@ function calculateDeferralScenarios(
 /**
  * Calculate years needed to reach expected pension
  */
-function calculateYearsNeeded(
+async function calculateYearsNeeded(
   expectedPension: number,
   basePension: number,
   baseCapital: number,
@@ -310,14 +334,14 @@ function calculateYearsNeeded(
   lastSalary: number,
   contractType: ContractType,
   sex: Sex
-): number | null {
+): Promise<number | null> {
   if (basePension >= expectedPension) return 0;
 
   for (let years = 1; years <= 15; years++) {
     const extraCapital = years * lastSalary * 12 * CONTRACT_RATES[contractType];
     const newCapital = baseCapital + extraCapital;
     const newAge = baseRetirementAge + years;
-    const newDivisor = calculateDivisor(newAge, sex);
+    const newDivisor = await calculateDivisor(newAge, sex);
     const newPension = newCapital / newDivisor;
 
     if (newPension >= expectedPension) {
@@ -399,7 +423,7 @@ export async function calculateSimulationSimplified(params: {
   const retirementYear = inputs.workEndYear;
 
   // Calculate divisor
-  const divisor = calculateDivisor(retirementAge, inputs.sex);
+  const divisor = await calculateDivisor(retirementAge, inputs.sex);
 
   // Calculate pension
   const nominalPension = finalCapital / divisor;
@@ -428,7 +452,7 @@ export async function calculateSimulationSimplified(params: {
   );
 
   // Calculate deferral scenarios
-  const deferrals = calculateDeferralScenarios(
+  const deferrals = await calculateDeferralScenarios(
     capitalBeforePrograms,
     divisor,
     realPension,
@@ -440,7 +464,7 @@ export async function calculateSimulationSimplified(params: {
   );
 
   // Calculate years needed
-  const yearsNeeded = calculateYearsNeeded(
+  const yearsNeeded = await calculateYearsNeeded(
     expectedPension,
     realPension,
     capitalBeforePrograms,

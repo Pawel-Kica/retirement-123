@@ -100,6 +100,114 @@ export function clearPrognoza1Cache(): void {
 }
 
 /**
+ * Life expectancy data structure
+ * Maps age to remaining life expectancy in months for each month of the year
+ */
+export interface LifeExpectancyData {
+  [age: number]: {
+    [month: number]: number; // month 0-11 (January-December)
+  };
+}
+
+/**
+ * Parse life-duration.csv data
+ * Format: year;0;1;2;3;4;5;6;7;8;9;10;11
+ * Where year is age and columns 0-11 represent months (January-December)
+ */
+export function parseLifeDurationCSV(csvContent: string): LifeExpectancyData {
+  const lines = csvContent.trim().split("\n");
+  const data: LifeExpectancyData = {};
+
+  // Skip header line
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const values = line.split(";");
+    const age = parseInt(values[0]);
+
+    if (isNaN(age)) continue;
+
+    data[age] = {};
+
+    // Parse months 0-11 (columns 1-12)
+    for (let month = 0; month < 12; month++) {
+      const value = values[month + 1];
+      if (value) {
+        // Convert comma decimal to dot decimal and parse
+        const lifeExpectancy = parseFloat(value.replace(",", "."));
+        if (!isNaN(lifeExpectancy)) {
+          data[age][month] = lifeExpectancy;
+        }
+      }
+    }
+  }
+
+  return data;
+}
+
+// Cache for life expectancy data
+let cachedLifeExpectancyData: LifeExpectancyData | null = null;
+let lifeExpectancyCacheTimestamp: number = 0;
+
+/**
+ * Load and parse life-duration.csv data with caching
+ */
+export async function loadLifeExpectancyData(): Promise<LifeExpectancyData> {
+  const now = Date.now();
+
+  // Return cached data if it's still valid
+  if (
+    cachedLifeExpectancyData &&
+    now - lifeExpectancyCacheTimestamp < CACHE_DURATION
+  ) {
+    return cachedLifeExpectancyData;
+  }
+
+  try {
+    const response = await fetch("/data/life-duration.csv");
+    const csvContent = await response.text();
+    const parsedData = parseLifeDurationCSV(csvContent);
+
+    // Update cache
+    cachedLifeExpectancyData = parsedData;
+    lifeExpectancyCacheTimestamp = now;
+
+    return parsedData;
+  } catch (error) {
+    console.error("Error loading life-duration.csv:", error);
+
+    // If we have cached data, return it even if it's stale
+    if (cachedLifeExpectancyData) {
+      console.warn(
+        "Using stale cached life expectancy data due to fetch error"
+      );
+      return cachedLifeExpectancyData;
+    }
+
+    return {};
+  }
+}
+
+/**
+ * Get life expectancy in months for a given age and month
+ * @param age - Age in years
+ * @param month - Month (0-11, where 0=January, 11=December)
+ * @param lifeExpectancyData - Life expectancy data
+ * @returns Life expectancy in months, or null if not available
+ */
+export function getLifeExpectancy(
+  age: number,
+  month: number,
+  lifeExpectancyData: LifeExpectancyData
+): number | null {
+  const ageData = lifeExpectancyData[age];
+  if (!ageData) return null;
+
+  return ageData[month] || null;
+}
+
+/**
  * Calculate average pension based on inflation and other factors
  * This is a simplified calculation - in reality it would be more complex
  */

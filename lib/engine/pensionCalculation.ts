@@ -4,17 +4,62 @@
  */
 
 import { Sex, CPIData } from "../types";
+import {
+  loadLifeExpectancyData,
+  getLifeExpectancy,
+  LifeExpectancyData,
+} from "../utils/csvParser";
 
 /**
- * Calculate monthly pension from total capital using statistical life expectancy
+ * Calculate monthly pension from total capital using accurate life expectancy data
  * Pension = Total Capital / Life Expectancy in Months
  *
- * Uses statistical averages:
- * - Base life expectancy at 60 (women): ~277 months (23 years)
- * - Base life expectancy at 65 (men): ~217 months (18 years)
- * - Adjusts by approximately 12 months per year of age difference
+ * Uses life-duration.csv data which provides precise life expectancy
+ * for each age and month of the year based on Polish statistical data.
  */
-export function calculatePension(
+export async function calculatePension(
+  totalCapital: number,
+  retirementAge: number,
+  sex: Sex,
+  retirementMonth: number = 0 // Default to January (0)
+): Promise<number> {
+  try {
+    // Load life expectancy data
+    const lifeExpectancyData = await loadLifeExpectancyData();
+
+    // Get life expectancy for the specific age and month
+    const lifeExpectancyMonths = getLifeExpectancy(
+      retirementAge,
+      retirementMonth,
+      lifeExpectancyData
+    );
+
+    if (lifeExpectancyMonths === null) {
+      // Fallback to approximate calculation if data not available
+      console.warn(
+        `No life expectancy data for age ${retirementAge}, month ${retirementMonth}, using fallback`
+      );
+      return calculatePensionFallback(totalCapital, retirementAge, sex);
+    }
+
+    // Ensure minimum divisor of 12 months (1 year)
+    const divisor = Math.max(12, lifeExpectancyMonths);
+
+    // Monthly pension = Total Capital / Life Expectancy in Months
+    const monthlyPension = totalCapital / divisor;
+
+    return monthlyPension;
+  } catch (error) {
+    console.error("Error loading life expectancy data, using fallback:", error);
+    return calculatePensionFallback(totalCapital, retirementAge, sex);
+  }
+}
+
+/**
+ * Fallback pension calculation using approximate statistical data
+ * Used when life expectancy data is not available
+ */
+function calculatePensionFallback(
   totalCapital: number,
   retirementAge: number,
   sex: Sex
@@ -30,7 +75,7 @@ export function calculatePension(
 
   // Adjust divisor: subtract ~12 months per year of age
   // (older retirement = shorter remaining life)
-  let divisor = base.months - (ageDifference * 12);
+  let divisor = base.months - ageDifference * 12;
 
   // Ensure minimum divisor of 12 months (1 year)
   divisor = Math.max(12, divisor);
@@ -66,7 +111,8 @@ export function calculateRealValue(
     .filter((year) => !isNaN(year))
     .sort((a, b) => b - a);
 
-  const lastAvailableYear = availableYears.length > 0 ? availableYears[0] : currentYear;
+  const lastAvailableYear =
+    availableYears.length > 0 ? availableYears[0] : currentYear;
 
   // Calculate cumulative CPI from current year to retirement year
   let cumulativeCPI = 1.0;
