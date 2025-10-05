@@ -3,66 +3,37 @@
  * Calculates nominal and real pension values
  */
 
-import { Sex, CPIData, LifeDurationData } from "../types";
+import { Sex, CPIData } from "../types";
 
 /**
- * Calculate monthly pension from total capital using life duration data
+ * Calculate monthly pension from total capital using statistical life expectancy
  * Pension = Total Capital / Life Expectancy in Months
+ *
+ * Uses statistical averages:
+ * - Base life expectancy at 60 (women): ~277 months (23 years)
+ * - Base life expectancy at 65 (men): ~217 months (18 years)
+ * - Adjusts by approximately 12 months per year of age difference
  */
 export function calculatePension(
   totalCapital: number,
   retirementAge: number,
-  sex: Sex,
-  lifeDuration: LifeDurationData
+  sex: Sex
 ): number {
-  // Get life expectancy in months for this age
-  // For simplicity, we'll use average of M and F data from lifeDuration
-  // Note: The lifeDuration data doesn't distinguish by sex in the current implementation
-  const ageData = lifeDuration[retirementAge.toString()];
+  // Base divisors from Polish statistical data
+  const baseDivisors = {
+    F: { age: 60, months: 277 }, // Women at 60
+    M: { age: 65, months: 217 }, // Men at 65
+  };
 
-  let divisor: number;
+  const base = baseDivisors[sex];
+  const ageDifference = retirementAge - base.age;
 
-  if (!ageData || typeof ageData !== 'object' || '_metadata' in ageData) {
-    // If no data found for this age, find the closest available age
-    const availableAges = Object.keys(lifeDuration)
-      .filter((key) => !key.startsWith('_'))
-      .map((age) => parseInt(age))
-      .filter((age) => !isNaN(age))
-      .sort((a, b) => b - a);
+  // Adjust divisor: subtract ~12 months per year of age
+  // (older retirement = shorter remaining life)
+  let divisor = base.months - (ageDifference * 12);
 
-    if (availableAges.length === 0) {
-      throw new Error(`Brak danych długości życia`);
-    }
-
-    // Find closest age
-    const closestAge = availableAges.reduce((prev, curr) =>
-      Math.abs(curr - retirementAge) < Math.abs(prev - retirementAge) ? curr : prev
-    );
-
-    const closestAgeData = lifeDuration[closestAge.toString()];
-    if (!closestAgeData || typeof closestAgeData !== 'object') {
-      throw new Error(`Brak danych długości życia dla wieku ${closestAge}`);
-    }
-
-    // Use month 0 as default
-    divisor = (closestAgeData as Record<string, number>)['0'];
-
-    // Adjust for age difference
-    if (retirementAge > closestAge) {
-      const yearsBeyond = retirementAge - closestAge;
-      divisor = Math.max(12, divisor - yearsBeyond * 12); // Minimum 1 year
-    } else if (retirementAge < closestAge) {
-      const yearsBefore = closestAge - retirementAge;
-      divisor = divisor + yearsBefore * 12;
-    }
-  } else {
-    // Use month 0 as default
-    divisor = (ageData as Record<string, number>)['0'];
-  }
-
-  if (!divisor) {
-    throw new Error(`Brak dzielnika dla wieku ${retirementAge}`);
-  }
+  // Ensure minimum divisor of 12 months (1 year)
+  divisor = Math.max(12, divisor);
 
   // Monthly pension = Total Capital / Divisor
   const monthlyPension = totalCapital / divisor;

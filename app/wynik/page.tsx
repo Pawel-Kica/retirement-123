@@ -97,24 +97,19 @@ export default function WynikPage() {
   useEffect(() => {
     // Small delay to allow state to be loaded from localStorage
     const checkResults = async () => {
-      // Wait a moment for any pending state updates
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       if (!state.results) {
+        // Always load from history (which now includes example by default)
         const history = getHistory();
-        if (history.length > 0) {
-          loadFromHistory(history[0].id);
-          setIsLoading(false);
-        } else {
-          router.push("/kalkulator");
-        }
-      } else {
-        setIsLoading(false);
+        loadFromHistory(history[0].id);
       }
+      setIsLoading(false);
     };
 
     checkResults();
-  }, [state.results, router, loadFromHistory, getHistory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount to avoid race conditions
 
   useEffect(() => {
     if (state.inputs && !isLoading) {
@@ -281,7 +276,13 @@ export default function WynikPage() {
             onOpenGapPanel={handleOpenGapPanel}
             onOpenSickLeavePanel={handleOpenSickLeavePanel}
             inputs={inputs}
-            sickImpactConfig={data ? (inputs.sex === "M" ? data.sickImpactM : data.sickImpactF) : undefined}
+            sickImpactConfig={
+              data
+                ? inputs.sex === "M"
+                  ? data.sickImpactM
+                  : data.sickImpactF
+                : undefined
+            }
             onUpdateInputs={updateInputs}
           />
 
@@ -304,6 +305,14 @@ export default function WynikPage() {
               className="flex-1"
             >
               Pobierz raport PDF
+            </Button>
+            <Button
+              onClick={() => router.push("/raporty")}
+              variant="secondary"
+              size="lg"
+              className="flex-1"
+            >
+              Zobacz raporty danych
             </Button>
           </div>
         </div>

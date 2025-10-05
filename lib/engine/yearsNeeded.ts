@@ -3,7 +3,7 @@
  * Iteratively extends retirement year until expected amount is reached
  */
 
-import { SalaryPathEntry, Sex, LifeDurationData, CPIData, WageGrowthData } from '../types';
+import { SalaryPathEntry, Sex, CPIData, WageGrowthData } from '../types';
 import { accumulateCapital } from './capitalAccumulation';
 import { calculatePension, calculateRealValue } from './pensionCalculation';
 
@@ -14,7 +14,6 @@ export interface CalculateYearsNeededParams {
     baseRealPension: number;
     completeSalaryPath: SalaryPathEntry[];
     sex: Sex;
-    lifeDuration: LifeDurationData;
     cpiData: CPIData;
     wageGrowthData: WageGrowthData;
     currentYear: number;
@@ -35,7 +34,6 @@ export function calculateYearsNeeded(
         baseRealPension,
         completeSalaryPath,
         sex,
-        lifeDuration,
         cpiData,
         wageGrowthData,
         currentYear,
@@ -54,10 +52,6 @@ export function calculateYearsNeeded(
 
         // Check if we have data for this year
         if (newRetirementYear > 2080) break;
-
-        // Check if life duration data exists for this age
-        const ageData = lifeDuration[newRetirementAge.toString()];
-        if (!ageData || typeof ageData !== 'object' || '_metadata' in ageData) break;
 
         // Get extended salary path
         const extendedPath = completeSalaryPath.filter(
@@ -80,8 +74,7 @@ export function calculateYearsNeeded(
         const newNominalPension = calculatePension(
             newTotalCapital,
             newRetirementAge,
-            sex,
-            lifeDuration
+            sex
         );
 
         const newRealPension = calculateRealValue(

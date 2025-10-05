@@ -3,7 +3,7 @@
  * Shows what happens if user works +1, +2, +5 years longer
  */
 
-import { DeferralScenario, SalaryPathEntry, Sex, LifeDurationData, CPIData, WageGrowthData } from '../types';
+import { DeferralScenario, SalaryPathEntry, Sex, CPIData, WageGrowthData } from '../types';
 import { accumulateCapital } from './capitalAccumulation';
 import { calculatePension, calculateRealValue } from './pensionCalculation';
 
@@ -14,7 +14,6 @@ export interface CalculateDeferralScenariosParams {
     baseRealPension: number;
     completeSalaryPath: SalaryPathEntry[]; // Full path including potential future years
     sex: Sex;
-    lifeDuration: LifeDurationData;
     cpiData: CPIData;
     wageGrowthData: WageGrowthData;
     currentYear: number;
@@ -38,7 +37,6 @@ export function calculateDeferralScenarios(
         baseRealPension,
         completeSalaryPath,
         sex,
-        lifeDuration,
         cpiData,
         wageGrowthData,
         currentYear,
@@ -50,13 +48,6 @@ export function calculateDeferralScenarios(
     for (const additionalYears of deferralYears) {
         const newRetirementYear = baseRetirementYear + additionalYears;
         const newRetirementAge = baseRetirementAge + additionalYears;
-
-        // Check if life duration data exists for this age
-        const ageData = lifeDuration[newRetirementAge.toString()];
-        if (!ageData || typeof ageData !== 'object' || '_metadata' in ageData) {
-            console.warn(`Brak danych długości życia dla wieku ${newRetirementAge}, pomijam scenariusz +${additionalYears}`);
-            continue;
-        }
 
         // Get salary path up to new retirement year
         const extendedPath = completeSalaryPath.filter(
@@ -83,8 +74,7 @@ export function calculateDeferralScenarios(
         const newNominalPension = calculatePension(
             newTotalCapital,
             newRetirementAge,
-            sex,
-            lifeDuration
+            sex
         );
 
         const newRealPension = calculateRealValue(

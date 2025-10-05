@@ -12,6 +12,9 @@ interface DeferralScenariosProps {
 export function DeferralScenarios({ results }: DeferralScenariosProps) {
   const [viewMode, setViewMode] = useState<"bar" | "line" | "table">("bar");
 
+  // Safety check for deferrals
+  const deferrals = results.deferrals || [];
+
   return (
     <Card className="mb-8">
       <div className="flex justify-between items-center mb-6">
@@ -61,14 +64,14 @@ export function DeferralScenarios({ results }: DeferralScenariosProps) {
             data={{
               labels: [
                 `Bazowy`,
-                ...results.deferrals.map((d) => `+${d.additionalYears} lat`),
+                ...deferrals.map((d) => `+${d.additionalYears} lat`),
               ],
               datasets: [
                 {
                   label: "Emerytura realna (zł)",
                   data: [
                     results.realPension,
-                    ...results.deferrals.map((d) => d.realPension),
+                    ...deferrals.map((d) => d.realPension),
                   ],
                   backgroundColor: "#00843D",
                   borderRadius: 8,
@@ -99,15 +102,12 @@ export function DeferralScenarios({ results }: DeferralScenariosProps) {
             data={{
               labels: [
                 "Bazowy",
-                ...results.deferrals.map((d) => `+${d.additionalYears}`),
+                ...deferrals.map((d) => `+${d.additionalYears}`),
               ],
               datasets: [
                 {
                   label: "Wzrost emerytury (%)",
-                  data: [
-                    0,
-                    ...results.deferrals.map((d) => d.percentIncrease),
-                  ],
+                  data: [0, ...deferrals.map((d) => d.percentIncrease)],
                   borderColor: "#00843D",
                   backgroundColor: "rgba(0, 132, 61, 0.1)",
                   fill: true,
@@ -140,7 +140,7 @@ export function DeferralScenarios({ results }: DeferralScenariosProps) {
                 </td>
                 <td className="p-3 text-right">-</td>
               </tr>
-              {results.deferrals.map((def) => (
+              {deferrals.map((def) => (
                 <tr
                   key={def.additionalYears}
                   className="border-b hover:bg-zus-green-light"

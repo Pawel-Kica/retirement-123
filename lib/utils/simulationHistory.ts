@@ -8,6 +8,11 @@ import {
   DashboardModifications,
 } from "../types";
 import { clearPostalCodeData } from "./postalCodeStorage";
+import {
+  getExampleSimulation,
+  getExampleTimeline,
+  EXAMPLE_SIMULATION_ID,
+} from "./exampleSimulation";
 
 const HISTORY_KEY = "zus-simulation-history-v2";
 const TIMELINE_PREFIX = "zus-timeline-v2-";
@@ -42,8 +47,11 @@ export function saveSimulationToHistory(
 ): SimulationHistoryEntry {
   const currentId = getCurrentSimulationId();
 
-  // If forceNewEntry is true, always create a new ID, otherwise reuse current
-  const id = forceNewEntry
+  // Never use the example simulation ID - always create a new one if current is example
+  const shouldCreateNew =
+    forceNewEntry || currentId === EXAMPLE_SIMULATION_ID;
+
+  const id = shouldCreateNew
     ? `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     : currentId ||
       `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -59,17 +67,19 @@ export function saveSimulationToHistory(
   };
 
   const history = getSimulationHistory();
+  // Filter out the example simulation before saving
+  const realHistory = history.filter((h) => h.id !== EXAMPLE_SIMULATION_ID);
 
-  const existingIndex = history.findIndex((h) => h.id === id);
+  const existingIndex = realHistory.findIndex((h) => h.id === id);
   let updatedHistory;
 
-  if (existingIndex >= 0 && !forceNewEntry) {
+  if (existingIndex >= 0 && !shouldCreateNew) {
     // Update existing entry
-    updatedHistory = [...history];
+    updatedHistory = [...realHistory];
     updatedHistory[existingIndex] = entry;
   } else {
     // Add new entry at the beginning
-    updatedHistory = [entry, ...history].slice(0, MAX_HISTORY_ITEMS);
+    updatedHistory = [entry, ...realHistory].slice(0, MAX_HISTORY_ITEMS);
   }
 
   try {
@@ -88,21 +98,28 @@ export function saveSimulationToHistory(
 }
 
 export function getSimulationHistory(): SimulationHistoryEntry[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return [getExampleSimulation()];
 
   try {
     const stored = localStorage.getItem(HISTORY_KEY);
-    if (!stored) return [];
+    const history = stored
+      ? (JSON.parse(stored) as SimulationHistoryEntry[])
+      : [];
 
-    const history = JSON.parse(stored) as SimulationHistoryEntry[];
-    return history.slice(0, MAX_HISTORY_ITEMS);
+    // Always append the example simulation at the end
+    return [...history.slice(0, MAX_HISTORY_ITEMS), getExampleSimulation()];
   } catch (error) {
     console.error("Failed to load simulation history:", error);
-    return [];
+    return [getExampleSimulation()];
   }
 }
 
 export function loadSimulationById(id: string): SimulationHistoryEntry | null {
+  // Check if requesting the example simulation
+  if (id === EXAMPLE_SIMULATION_ID) {
+    return getExampleSimulation();
+  }
+
   const history = getSimulationHistory();
   return history.find((entry) => entry.id === id) || null;
 }
@@ -111,6 +128,9 @@ export function saveTimelineForSimulation(
   id: string,
   modifications: DashboardModifications
 ): void {
+  // Don't save timeline for example simulation
+  if (id === EXAMPLE_SIMULATION_ID) return;
+
   try {
     const key = `${TIMELINE_PREFIX}${id}`;
     localStorage.setItem(key, JSON.stringify(modifications));
@@ -122,6 +142,11 @@ export function saveTimelineForSimulation(
 export function loadTimelineForSimulation(
   id: string
 ): DashboardModifications | null {
+  // Return example timeline for example simulation
+  if (id === EXAMPLE_SIMULATION_ID) {
+    return getExampleTimeline();
+  }
+
   if (typeof window === "undefined") return null;
 
   try {

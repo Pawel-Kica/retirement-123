@@ -70,20 +70,6 @@ export interface RetirementAgeData {
   note: string;
 }
 
-export interface LifeDurationData {
-  _metadata: {
-    source: string;
-    description: string;
-    version: string;
-    date: string;
-    unit: string; // "months"
-  };
-  [age: string]:
-    | {
-        [month: string]: number; // remaining months of life
-      }
-    | object;
-}
 
 // ==========================================
 // NOWE TYPY - Rozszerzona funkcjonalność
