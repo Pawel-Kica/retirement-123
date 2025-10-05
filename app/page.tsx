@@ -174,11 +174,11 @@ export default function Home() {
             <div className="mb-6">
               <VerticalCarousel
                 phrases={[
-                  "Precyzyjnie Obliczona",
-                  "Realistycznie Zaplanowana",
-                  "Dokładnie Prognozowana",
-                  "Mądrze Zaprognozowana",
-                  "Pewnie Oszacowana",
+                  "Sprawdź Swoją Emeryturę" ,
+                  "Zaplanuj Swoją Przyszłość",
+                  "Poznaj Realne Wyliczenia",
+                  "Odkryj Swoją Przyszłość",
+                  "Dowiedz Się Ile Dostaniesz"
                 ]}
                 interval={3000}
                 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-zus-green to-zus-blue bg-clip-text text-transparent"
