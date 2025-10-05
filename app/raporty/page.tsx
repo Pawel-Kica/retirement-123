@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { averagePensionByYear } from "@/data/tables/averagePensionByYear";
 import { cpiByYear } from "@/data/tables/cpiByYear";
@@ -53,27 +53,29 @@ export default function RaportyPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full">
+          <table
+            className="min-w-full"
+            role="table"
+            aria-label={metadata.description}
+          >
             <thead>
               <tr className="bg-gray-50 border-b-2 border-zus-green">
                 {columns.map((_, colIndex) => (
-                  <>
+                  <React.Fragment key={`header-${colIndex}`}>
                     <th
-                      key={`year-${colIndex}`}
+                      scope="col"
                       className="px-4 py-3 text-left text-base font-bold text-zus-grey-900"
                     >
                       Rok
                     </th>
                     <th
-                      key={`value-${colIndex}`}
+                      scope="col"
                       className="px-4 py-3 text-left text-base font-bold text-zus-grey-900"
                     >
                       {valueLabel}
                     </th>
-                    {colIndex < columns.length - 1 && (
-                      <th key={`spacer-${colIndex}`} className="w-8"></th>
-                    )}
-                  </>
+                    {colIndex < columns.length - 1 && <th className="w-8"></th>}
+                  </React.Fragment>
                 ))}
               </tr>
             </thead>
@@ -89,28 +91,20 @@ export default function RaportyPage() {
                     const item = column[rowIndex];
                     if (!item) {
                       return (
-                        <>
-                          <td key={`empty-year-${colIndex}`}></td>
-                          <td key={`empty-value-${colIndex}`}></td>
-                          {colIndex < columns.length - 1 && (
-                            <td key={`empty-spacer-${colIndex}`}></td>
-                          )}
-                        </>
+                        <React.Fragment key={`empty-${rowIndex}-${colIndex}`}>
+                          <td></td>
+                          <td></td>
+                          {colIndex < columns.length - 1 && <td></td>}
+                        </React.Fragment>
                       );
                     }
                     const [year, value] = item;
                     return (
-                      <>
-                        <td
-                          key={`year-${colIndex}`}
-                          className="px-4 py-3 text-base text-zus-grey-800"
-                        >
+                      <React.Fragment key={`data-${rowIndex}-${colIndex}`}>
+                        <td className="px-4 py-3 text-base text-zus-grey-800">
                           {year}
                         </td>
-                        <td
-                          key={`value-${colIndex}`}
-                          className="px-4 py-3 text-base text-zus-grey-800"
-                        >
+                        <td className="px-4 py-3 text-base text-zus-grey-800">
                           {typeof value === "number"
                             ? value.toLocaleString("pl-PL", {
                                 minimumFractionDigits: 2,
@@ -119,12 +113,9 @@ export default function RaportyPage() {
                             : value}
                         </td>
                         {colIndex < columns.length - 1 && (
-                          <td
-                            key={`spacer-${colIndex}`}
-                            className="border-r border-gray-300"
-                          ></td>
+                          <td className="border-r border-gray-300"></td>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </tr>
@@ -137,7 +128,7 @@ export default function RaportyPage() {
   };
 
   return (
-    <main className="bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] py-8">
         <h1 className="text-5xl font-bold text-zus-grey-900 mb-8 text-center">
           Raporty Danych
@@ -145,7 +136,11 @@ export default function RaportyPage() {
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           {/* Tabs */}
-          <div className="border-b border-gray-200 mb-6 relative">
+          <div
+            className="border-b border-gray-200 mb-6 relative"
+            role="tablist"
+            aria-label="Źródła danych"
+          >
             {/* Back Button - Top Left */}
             <button
               onClick={() => router.back()}
@@ -167,10 +162,16 @@ export default function RaportyPage() {
               </svg>
               <span className="text-sm font-medium">Powrót</span>
             </button>
-            <nav className="flex space-x-4 justify-center" aria-label="Tabs">
+            <nav
+              className="flex space-x-4 justify-center"
+              aria-label="Wybór źródła danych"
+            >
               <button
+                role="tab"
+                aria-selected={activeTab === "pension"}
+                aria-controls="pension-panel"
                 onClick={() => setActiveTab("pension")}
-                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors ${
+                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors focus:outline-none focus:ring-2 focus:ring-zus-green ${
                   activeTab === "pension"
                     ? "bg-zus-green text-white"
                     : "text-gray-600 hover:text-zus-green hover:bg-gray-50"
@@ -179,8 +180,11 @@ export default function RaportyPage() {
                 Średnia Emerytura
               </button>
               <button
+                role="tab"
+                aria-selected={activeTab === "cpi"}
+                aria-controls="cpi-panel"
                 onClick={() => setActiveTab("cpi")}
-                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors ${
+                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors focus:outline-none focus:ring-2 focus:ring-zus-green ${
                   activeTab === "cpi"
                     ? "bg-zus-green text-white"
                     : "text-gray-600 hover:text-zus-green hover:bg-gray-50"
@@ -189,8 +193,11 @@ export default function RaportyPage() {
                 Wskaźnik CPI
               </button>
               <button
+                role="tab"
+                aria-selected={activeTab === "wages"}
+                aria-controls="wages-panel"
                 onClick={() => setActiveTab("wages")}
-                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors ${
+                className={`py-3 px-6 rounded-t-lg font-medium text-base transition-colors focus:outline-none focus:ring-2 focus:ring-zus-green ${
                   activeTab === "wages"
                     ? "bg-zus-green text-white"
                     : "text-gray-600 hover:text-zus-green hover:bg-gray-50"
@@ -202,22 +209,43 @@ export default function RaportyPage() {
           </div>
 
           {/* Table Content */}
-          {activeTab === "pension" &&
-            renderTable(
-              pensionData,
-              "Średnia emerytura (PLN)",
-              averagePensionByYear._metadata
-            )}
-          {activeTab === "cpi" &&
-            renderTable(cpiData, "Wskaźnik CPI", cpiByYear._metadata)}
-          {activeTab === "wages" &&
-            renderTable(
-              wagesData,
-              "Wzrost wynagrodzeń",
-              wageGrowthByYear._metadata
-            )}
+          <div
+            role="tabpanel"
+            id="pension-panel"
+            hidden={activeTab !== "pension"}
+            aria-labelledby="pension-tab"
+          >
+            {activeTab === "pension" &&
+              renderTable(
+                pensionData,
+                "Średnia emerytura (PLN)",
+                averagePensionByYear._metadata
+              )}
+          </div>
+          <div
+            role="tabpanel"
+            id="cpi-panel"
+            hidden={activeTab !== "cpi"}
+            aria-labelledby="cpi-tab"
+          >
+            {activeTab === "cpi" &&
+              renderTable(cpiData, "Wskaźnik CPI", cpiByYear._metadata)}
+          </div>
+          <div
+            role="tabpanel"
+            id="wages-panel"
+            hidden={activeTab !== "wages"}
+            aria-labelledby="wages-tab"
+          >
+            {activeTab === "wages" &&
+              renderTable(
+                wagesData,
+                "Wzrost wynagrodzeń",
+                wageGrowthByYear._metadata
+              )}
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

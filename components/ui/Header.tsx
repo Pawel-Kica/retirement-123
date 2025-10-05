@@ -17,53 +17,77 @@ export function Header() {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+      <header
+        className="bg-white border-b border-gray-200 shadow-sm"
+        role="banner"
+      >
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            {/* Logo */}
-            <Link href="/" className="flex-shrink-0">
-              <Image
-                src="/logoZUSnoweRozwiniecie.png"
-                alt="ZUS - Zakład Ubezpieczeń Społecznych"
-                width={340}
-                height={60}
-                className="h-10 md:h-12 lg:h-14 w-auto"
-                priority
-              />
-            </Link>
+            {/* Logo and Admin Panel */}
+            <div className="flex items-center gap-4">
+              <Link href="/" className="flex-shrink-0">
+                <Image
+                  src="/logoZUSnoweRozwiniecie.png"
+                  alt="ZUS - Zakład Ubezpieczeń Społecznych"
+                  width={340}
+                  height={60}
+                  className="h-10 md:h-12 lg:h-14 w-auto"
+                  priority
+                />
+              </Link>
+
+              <Link
+                href="/admin"
+                className="hidden lg:inline-flex px-4 py-2.5 border-2 border-[rgb(0,65,110)] text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white rounded font-medium transition-colors whitespace-nowrap cursor-pointer"
+              >
+                Admin Panel
+              </Link>
+            </div>
 
             {/* Hamburger Menu Button - Visible on tablet and mobile */}
             <button
-              className="lg:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 cursor-pointer"
+              className="lg:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-zus-green rounded"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Menu"
+              aria-label="Menu główne"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
             >
               <span
-                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${isMenuOpen ? "rotate-45 translate-y-2" : ""
-                  }`}
+                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${
+                  isMenuOpen ? "rotate-45 translate-y-2" : ""
+                }`}
               ></span>
               <span
-                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${isMenuOpen ? "opacity-0" : ""
-                  }`}
+                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${
+                  isMenuOpen ? "opacity-0" : ""
+                }`}
               ></span>
               <span
-                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${isMenuOpen ? "-rotate-45 -translate-y-2" : ""
-                  }`}
+                className={`w-6 h-0.5 bg-[rgb(0,65,110)] transition-all ${
+                  isMenuOpen ? "-rotate-45 -translate-y-2" : ""
+                }`}
               ></span>
             </button>
 
             {/* Navigation and Actions - Desktop */}
-            <div className="hidden lg:flex items-center gap-3 flex-wrap">
+            <nav
+              className="hidden lg:flex items-center gap-3 flex-wrap"
+              aria-label="Nawigacja główna"
+            >
               {/* Kontakt */}
               <Link
                 href="#"
-                className="text-gray-700 hover:text-[rgb(0,65,110)] font-medium transition-colors cursor-pointer"
+                className="text-gray-700 hover:text-[rgb(0,65,110)] font-medium transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-zus-green rounded px-2 py-1"
               >
                 Kontakt
               </Link>
 
               {/* Language Selector */}
-              <button className="flex items-center gap-1 text-gray-700 hover:text-[rgb(0,65,110)] font-medium transition-colors cursor-pointer">
+              <button
+                className="flex items-center gap-1 text-gray-700 hover:text-[rgb(0,65,110)] font-medium transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-zus-green rounded px-2 py-1"
+                aria-label="Wybierz język"
+                aria-haspopup="true"
+              >
                 <span>PL</span>
                 <svg
                   className="w-4 h-4"
@@ -120,25 +144,6 @@ export function Header() {
                   </text>
                 </svg>
               </div>
-
-              {/* Registration Button */}
-              <Link
-                href="#"
-                className="px-4 py-2.5 border-2 border-[rgb(0,65,110)] text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white rounded font-medium transition-colors whitespace-nowrap flex items-center gap-2 cursor-pointer"
-              >
-                Zarejestruj w PUE/eZUS
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </Link>
 
               {/* Login Button */}
               <Link
@@ -207,24 +212,27 @@ export function Header() {
                   Unia Europejska
                 </span>
               </div>
-            </div>
+            </nav>
           </div>
 
           {/* Mobile and Tablet Menu */}
-          <div
-            className={`lg:hidden overflow-hidden transition-all duration-300 ${isMenuOpen
-              ? "max-h-[1000px] opacity-100 mt-4"
-              : "max-h-0 opacity-0"
-              }`}
+          <nav
+            id="mobile-menu"
+            className={`lg:hidden overflow-hidden transition-all duration-300 ${
+              isMenuOpen
+                ? "max-h-[1000px] opacity-100 mt-4"
+                : "max-h-0 opacity-0"
+            }`}
+            aria-label="Nawigacja mobilna"
           >
             <div className="flex flex-col gap-4 pb-4">
               {/* Main Actions - Full width buttons */}
               <Link
-                href="#"
-                className="w-full px-4 py-3 bg-[rgb(255,179,79)] hover:bg-[rgb(255,179,79)]/90 text-[rgb(0,65,110)] rounded font-medium transition-colors flex items-center justify-between cursor-pointer"
+                href="/admin"
+                className="w-full px-4 py-3 border-2 border-[rgb(0,65,110)] text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white rounded font-medium transition-colors flex items-center justify-between cursor-pointer"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <span>Zaloguj do PUE/eZUS</span>
+                <span>Admin Panel</span>
                 <svg
                   className="w-5 h-5"
                   fill="currentColor"
@@ -240,10 +248,10 @@ export function Header() {
 
               <Link
                 href="#"
-                className="w-full px-4 py-3 border-2 border-[rgb(0,65,110)] text-[rgb(0,65,110)] hover:bg-[rgb(0,65,110)] hover:text-white rounded font-medium transition-colors flex items-center justify-between cursor-pointer"
+                className="w-full px-4 py-3 bg-[rgb(255,179,79)] hover:bg-[rgb(255,179,79)]/90 text-[rgb(0,65,110)] rounded font-medium transition-colors flex items-center justify-between cursor-pointer"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <span>Zarejestruj w PUE/eZUS</span>
+                <span>Zaloguj do PUE/eZUS</span>
                 <svg
                   className="w-5 h-5"
                   fill="currentColor"
@@ -377,7 +385,7 @@ export function Header() {
                 </div>
               </div>
             </div>
-          </div>
+          </nav>
         </div>
       </header>
     </>
