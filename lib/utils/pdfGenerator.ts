@@ -123,6 +123,59 @@ export const generatePDFReport = async (data: PDFReportData): Promise<void> => {
   );
   yPos += 12;
 
+  // Historia zatrudnienia
+  if (inputs.employmentPeriods && inputs.employmentPeriods.length > 0) {
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("HISTORIA ZATRUDNIENIA", 10, yPos);
+    yPos += 8;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+
+    inputs.employmentPeriods.forEach((period, index) => {
+      // Check if we need a new page
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.text(`Okres ${index + 1}:`, 10, yPos);
+      yPos += 6;
+
+      doc.setFont("helvetica", "normal");
+      doc.text(`  Lata: ${period.startYear} - ${period.endYear}`, 10, yPos);
+      yPos += 6;
+      doc.text(
+        `  Wynagrodzenie: ${formatPLN(period.monthlyGross)}`,
+        10,
+        yPos
+      );
+      yPos += 6;
+      doc.text(`  Typ umowy: ${getContractTypeLabel(period.contractType)}`, 10, yPos);
+      yPos += 6;
+
+      if (period.annualRaisePercentage) {
+        doc.text(
+          `  Podwyzka roczna: ${period.annualRaisePercentage}%`,
+          10,
+          yPos
+        );
+        yPos += 6;
+      }
+
+      if (period.description) {
+        doc.text(`  Opis: ${period.description}`, 10, yPos);
+        yPos += 6;
+      }
+
+      yPos += 3; // Extra spacing between periods
+    });
+
+    yPos += 6;
+  }
+
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.text("DODATKOWE INFORMACJE", 10, yPos);

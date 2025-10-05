@@ -526,6 +526,7 @@ export function Step1WorkHistory({
                               <div className="p-2 bg-white border-2 border-zus-grey-300 rounded peer-checked:border-zus-green peer-checked:bg-zus-green-light hover:border-zus-green transition-all text-center">
                                 <div className="text-xl mb-1">💼</div>
                                 <div className="text-xs font-semibold">UOP</div>
+                                <div className="text-xs text-zus-grey-600 mt-0.5">19.52%</div>
                               </div>
                             </label>
                             <label className="cursor-pointer">
@@ -548,6 +549,7 @@ export function Step1WorkHistory({
                                 <div className="text-xs font-semibold">
                                   Zlecenie
                                 </div>
+                                <div className="text-xs text-zus-grey-600 mt-0.5">15.5%</div>
                               </div>
                             </label>
                             <label className="cursor-pointer">
@@ -568,6 +570,7 @@ export function Step1WorkHistory({
                               <div className="p-2 bg-white border-2 border-zus-grey-300 rounded peer-checked:border-zus-green peer-checked:bg-zus-green-light hover:border-zus-green transition-all text-center">
                                 <div className="text-xl mb-1">🏢</div>
                                 <div className="text-xs font-semibold">B2B</div>
+                                <div className="text-xs text-zus-grey-600 mt-0.5">8%</div>
                               </div>
                             </label>
                           </div>

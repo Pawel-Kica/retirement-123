@@ -100,7 +100,17 @@ export default function WynikPage() {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       if (!state.results) {
-        // If no results, redirect to home page
+        // Try to load from history before redirecting
+        const history = getHistory();
+        if (history && history.length > 0) {
+          // Load the most recent simulation
+          const mostRecent = history[0];
+          loadFromHistory(mostRecent.id);
+          setIsLoading(false);
+          return;
+        }
+
+        // If no results and no history, redirect to home page
         router.push("/");
         return;
       }

@@ -210,6 +210,40 @@ export function PDFPreviewModal({
             </div>
           </div>
 
+          {/* Historia zatrudnienia */}
+          {inputs.employmentPeriods && inputs.employmentPeriods.length > 0 && (
+            <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+              <h3 className="text-lg font-bold text-zus-grey-900 mb-3">
+                Historia zatrudnienia
+              </h3>
+              <div className="space-y-4">
+                {inputs.employmentPeriods.map((period, index) => (
+                  <div
+                    key={period.id}
+                    className="bg-white rounded p-3 border border-purple-200"
+                  >
+                    <div className="font-bold text-zus-grey-900 mb-2">
+                      Okres {index + 1}:
+                    </div>
+                    <div className="space-y-1 text-sm text-zus-grey-800 ml-4">
+                      <div>
+                        Lata: {period.startYear} - {period.endYear}
+                      </div>
+                      <div>Wynagrodzenie: {formatPLN(period.monthlyGross)}</div>
+                      <div>Typ umowy: {getContractTypeLabel(period.contractType)}</div>
+                      {period.annualRaisePercentage && (
+                        <div>Podwyżka roczna: {period.annualRaisePercentage}%</div>
+                      )}
+                      {period.description && (
+                        <div>Opis: {period.description}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Additional Info */}
           <div className="bg-gray-50 border border-zus-grey-300 rounded-lg p-4">
             <h3 className="text-lg font-bold text-zus-grey-900 mb-3">

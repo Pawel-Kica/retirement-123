@@ -94,20 +94,23 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       setCurrentSimId(simId);
       const entry = loadSimulationById(simId);
       if (entry) {
+        const timeline = loadTimelineForSimulation(simId);
+
+        // Sync inputs.employmentPeriods with timeline contractPeriods
+        const syncedInputs = timeline?.contractPeriods
+          ? {
+              ...entry.inputs,
+              employmentPeriods: timeline.contractPeriods,
+            }
+          : entry.inputs;
+
         setState((prev) => ({
           ...prev,
           expectedPension: entry.expectedPension,
-          inputs: entry.inputs,
+          inputs: syncedInputs,
           results: entry.results,
+          dashboardModifications: timeline || prev.dashboardModifications,
         }));
-
-        const timeline = loadTimelineForSimulation(simId);
-        if (timeline) {
-          setState((prev) => ({
-            ...prev,
-            dashboardModifications: timeline,
-          }));
-        }
       }
     }
 
@@ -231,7 +234,26 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       if (!state.inputs || !currentSimulationId) return;
 
       const updatedInputs = { ...state.inputs, ...newInputs };
-      setState((prev) => ({ ...prev, inputs: updatedInputs }));
+
+      // If employmentPeriods are provided in newInputs, also sync to contractPeriods
+      if (newInputs.employmentPeriods) {
+        const updatedMods = {
+          ...state.dashboardModifications,
+          contractPeriods: newInputs.employmentPeriods,
+        };
+        saveTimelineForSimulation(currentSimulationId, updatedMods);
+      }
+
+      setState((prev) => ({
+        ...prev,
+        inputs: updatedInputs,
+        dashboardModifications: newInputs.employmentPeriods
+          ? {
+              ...prev.dashboardModifications,
+              contractPeriods: newInputs.employmentPeriods,
+            }
+          : prev.dashboardModifications,
+      }));
 
       updateSimulationInputs(currentSimulationId, newInputs);
 
@@ -240,7 +262,12 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         const results = await calculateSimulation({
           inputs: updatedInputs,
           expectedPension: state.expectedPension,
-          modifications: state.dashboardModifications,
+          modifications: newInputs.employmentPeriods
+            ? {
+                ...state.dashboardModifications,
+                contractPeriods: newInputs.employmentPeriods,
+              }
+            : state.dashboardModifications,
         });
         setState((prev) => {
           saveSimulationToHistory(
@@ -364,13 +391,45 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
     setIsCalculating(true);
     try {
+      // Sync inputs.employmentPeriods with dashboardModifications.contractPeriods before calculation
+      const syncedInputs = {
+        ...state.inputs,
+        employmentPeriods:
+          state.dashboardModifications.contractPeriods ||
+          state.inputs.employmentPeriods,
+      };
+
       const results = await calculateSimulation({
-        inputs: state.inputs,
+        inputs: syncedInputs,
         expectedPension: state.expectedPension,
         modifications: state.dashboardModifications,
       });
 
-      setResults(results, isNewSimulation);
+      // Update both inputs and results in a single atomic state update
+      setState((prev) => {
+        let simId = currentSimulationId;
+        if (isNewSimulation || !currentSimulationId) {
+          simId = createNewSimulation();
+          setCurrentSimId(simId);
+        }
+
+        if (syncedInputs && results) {
+          console.log("💾 Saving simulation to history with synced inputs");
+          saveSimulationToHistory(
+            prev.expectedPension,
+            syncedInputs,
+            results,
+            prev.dashboardModifications,
+            isNewSimulation
+          );
+        }
+
+        return {
+          ...prev,
+          inputs: syncedInputs,
+          results,
+        };
+      });
     } catch (error) {
       console.error("Calculation error:", error);
       throw error;
@@ -413,20 +472,23 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       setCurrentSimId(id);
       setCurrentSimulationId(id);
 
+      const timeline = loadTimelineForSimulation(id);
+
+      // Sync inputs.employmentPeriods with timeline contractPeriods
+      const syncedInputs = timeline?.contractPeriods
+        ? {
+            ...entry.inputs,
+            employmentPeriods: timeline.contractPeriods,
+          }
+        : entry.inputs;
+
       setState((prev) => ({
         ...prev,
         expectedPension: entry.expectedPension,
-        inputs: entry.inputs,
+        inputs: syncedInputs,
         results: entry.results,
+        dashboardModifications: timeline || prev.dashboardModifications,
       }));
-
-      const timeline = loadTimelineForSimulation(id);
-      if (timeline) {
-        setState((prev) => ({
-          ...prev,
-          dashboardModifications: timeline,
-        }));
-      }
     }
   }, []);
 
@@ -447,8 +509,26 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       saveTimelineForSimulation(currentSimulationId, updatedMods);
     }
 
+    // Calculate workStartYear and workEndYear from all periods
+    let workStartYear = state.inputs?.workStartYear;
+    let workEndYear = state.inputs?.workEndYear;
+
+    if (periods.length > 0) {
+      workStartYear = Math.min(...periods.map((p) => p.startYear));
+      workEndYear = Math.max(...periods.map((p) => p.endYear));
+    }
+
+    // Update both dashboardModifications AND inputs.employmentPeriods to keep them in sync
     setState((prev) => ({
       ...prev,
+      inputs: prev.inputs
+        ? {
+            ...prev.inputs,
+            employmentPeriods: periods,
+            workStartYear: workStartYear!,
+            workEndYear: workEndYear!,
+          }
+        : prev.inputs,
       dashboardModifications: {
         ...prev.dashboardModifications,
         contractPeriods: periods,

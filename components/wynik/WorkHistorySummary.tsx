@@ -184,52 +184,6 @@ export function WorkHistorySummary({ inputs }: WorkHistorySummaryProps) {
           );
         })}
       </div>
-
-      {/* Salary Progression */}
-      {inputs.employmentPeriods.length > 1 && (
-        <div className="mt-6 pt-6 border-t border-zus-grey-300">
-          <h3 className="text-lg font-bold text-zus-grey-900 mb-3">
-            Wzrost wynagrodzenia
-          </h3>
-          <div className="bg-gradient-to-r from-orange-50 to-purple-50 rounded-lg p-4 border border-purple-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-zus-grey-600 mb-1">Od</div>
-                <div className="text-xl font-bold text-orange-600">
-                  {formatPLN(inputs.employmentPeriods[0].monthlyGross)}
-                </div>
-              </div>
-              <TrendingUp className="w-8 h-8 text-zus-green" />
-              <div>
-                <div className="text-xs text-zus-grey-600 mb-1">Do</div>
-                <div className="text-xl font-bold text-purple-600">
-                  {formatPLN(
-                    inputs.employmentPeriods[
-                      inputs.employmentPeriods.length - 1
-                    ].monthlyGross
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="mt-3 text-center">
-              <span className="text-sm text-zus-grey-700">
-                Wzrost o{" "}
-                <strong className="text-zus-green">
-                  {(
-                    ((inputs.employmentPeriods[
-                      inputs.employmentPeriods.length - 1
-                    ].monthlyGross -
-                      inputs.employmentPeriods[0].monthlyGross) /
-                      inputs.employmentPeriods[0].monthlyGross) *
-                    100
-                  ).toFixed(1)}
-                  %
-                </strong>
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
     </Card>
   );
 }

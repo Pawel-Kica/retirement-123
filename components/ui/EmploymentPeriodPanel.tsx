@@ -35,10 +35,10 @@ const MONTHS: { value: Month; label: string }[] = [
   { value: 12, label: "Grudzień" },
 ];
 
-const CONTRACT_TYPES: { value: ContractType; label: string; icon: string }[] = [
-  { value: "UOP", label: "Umowa o Pracę", icon: "💼" },
-  { value: "UOZ", label: "Umowa Zlecenie", icon: "📝" },
-  { value: "B2B", label: "Działalność / B2B", icon: "🏢" },
+const CONTRACT_TYPES: { value: ContractType; label: string; icon: string; rate: string }[] = [
+  { value: "UOP", label: "Umowa o Pracę", icon: "💼", rate: "19.52%" },
+  { value: "UOZ", label: "Umowa Zlecenie", icon: "📝", rate: "15.5%" },
+  { value: "B2B", label: "Działalność / B2B", icon: "🏢", rate: "8%" },
 ];
 
 export function EmploymentPeriodPanel({
@@ -150,9 +150,14 @@ export function EmploymentPeriodPanel({
                 className="w-4 h-4 accent-zus-green"
               />
               <span className="text-lg">{type.icon}</span>
-              <span className="font-semibold text-sm text-zus-grey-900">
-                {type.label}
-              </span>
+              <div className="flex-1">
+                <span className="font-semibold text-sm text-zus-grey-900">
+                  {type.label}
+                </span>
+                <span className="ml-2 text-xs text-zus-grey-600 font-medium">
+                  ({type.rate})
+                </span>
+              </div>
             </label>
           ))}
         </div>

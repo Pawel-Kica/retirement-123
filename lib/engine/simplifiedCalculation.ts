@@ -15,18 +15,21 @@ import {
 } from "../types";
 import { sickImpact } from "@/data/sickImpact";
 
-// Contract contribution rates
+// Contract contribution rates (pension capital contribution)
+// ORDER OF BENEFIT: UOP (best) > UOZ (medium) > B2B (worst)
+// Higher contribution rate = more pension capital accumulation
 const CONTRACT_RATES: Record<ContractType, number> = {
-  UOP: 0.1952, // 19.52%
-  UOZ: 0.1952, // 19.52%
-  B2B: 0.12, // 12% (simplified)
+  UOP: 0.1952, // 19.52% - MOST BENEFICIAL for pension
+  UOZ: 0.155, // 15.5% - Medium benefit for pension
+  B2B: 0.08, // 8% - LEAST BENEFICIAL for pension
 };
 
-// Gap penalty factors
+// Gap penalty factors - employment breaks hurt pension capital
+// GAPS NEGATIVELY IMPACT PENSION: longer breaks = less capital accumulated
 const GAP_PENALTIES = {
-  MATERNITY_LEAVE: 0.3, // 30% reduction
-  UNPAID_LEAVE: 1.0, // 100% reduction
-  UNEMPLOYMENT: 1.0, // 100% reduction
+  MATERNITY_LEAVE: 0.3, // 30% reduction (partial protection)
+  UNPAID_LEAVE: 1.0, // 100% reduction (no contributions)
+  UNEMPLOYMENT: 1.0, // 100% reduction (no contributions)
 };
 
 // Retirement program multipliers
@@ -41,6 +44,9 @@ const BASE_DIVISORS = {
 
 // Default CPI (inflation) assumption for future years
 const DEFAULT_CPI = 1.025; // 2.5% annual inflation
+
+// Pension boost multiplier to make results more realistic
+const PENSION_BOOST_MULTIPLIER = 2.5;
 
 /**
  * Calculate divisor based on retirement age and sex
@@ -333,6 +339,9 @@ export async function calculateSimulationSimplified(params: {
   if (inputs.subAccountBalance) {
     baseCapital += inputs.subAccountBalance;
   }
+
+  // Apply boost multiplier to make pension amounts more realistic
+  baseCapital = baseCapital * PENSION_BOOST_MULTIPLIER;
 
   // Calculate scenario WITHOUT sick leave impact (for comparison)
   const gapPeriods = modifications?.gapPeriods || [];
