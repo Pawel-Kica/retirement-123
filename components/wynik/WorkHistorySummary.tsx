@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { formatPLN } from "@/lib/utils/formatting";
 import { Briefcase, TrendingUp, ChevronDown } from "lucide-react";
 import type { SimulationInputs } from "@/lib/types";
+import { retirementAgeBySex } from "@/data/retirementAgeBySex";
 
 interface WorkHistorySummaryProps {
   inputs: SimulationInputs;
@@ -43,7 +44,7 @@ export function WorkHistorySummary({ inputs }: WorkHistorySummaryProps) {
         <p className="text-sm text-zus-grey-600 mt-2">
           <span className="font-semibold">Twoje dane:</span>{" "}
           {inputs.sex === "M" ? "Mężczyzna" : "Kobieta"} • {inputs.age} lat •
-          Wiek emerytalny: {inputs.sex === "M" ? 65 : 60} lat
+          Wiek emerytalny: {retirementAgeBySex[inputs.sex]} lat
         </p>
       </div>
 

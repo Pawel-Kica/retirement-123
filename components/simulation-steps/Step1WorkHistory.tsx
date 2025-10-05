@@ -7,6 +7,7 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
 import { InputWithSlider } from "@/components/ui/InputWithSlider";
 import { ContractType, SimulationInputs } from "@/lib/types";
+import { retirementAgeBySex } from "@/data/retirementAgeBySex";
 import {
   LuTrash2,
   LuPlus,
@@ -274,7 +275,7 @@ export function Step1WorkHistory({
                           max={
                             formData.age && formData.sex
                               ? currentYear +
-                                ((formData.sex === "F" ? 60 : 65) -
+                                (retirementAgeBySex[formData.sex] -
                                   formData.age) -
                                 1
                               : currentYear + 30
@@ -341,7 +342,7 @@ export function Step1WorkHistory({
                                 type="button"
                                 onClick={() => {
                                   const minRetirementAge =
-                                    formData.sex === "F" ? 60 : 65;
+                                    retirementAgeBySex[formData.sex];
                                   const minRetirementYear =
                                     currentYear +
                                     (minRetirementAge - formData.age!);
@@ -390,7 +391,7 @@ export function Step1WorkHistory({
                               const retirementAge =
                                 formData.age + (entry.endYear - currentYear);
                               const minRetirementAge =
-                                formData.sex === "F" ? 60 : 65;
+                                retirementAgeBySex[formData.sex];
                               const isEarly = retirementAge < minRetirementAge;
 
                               if (isEarly) {

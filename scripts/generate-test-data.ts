@@ -73,14 +73,15 @@ async function generateTestData() {
             // 50% chance of being beyond retirement age
             const isBeyondRetirement = Math.random() > 0.5;
             const sex = Math.random() > 0.5 ? 'M' : 'F';
+            const retirementAge = sex === 'M' ? 65 : 60;
 
             let age: number;
             if (isBeyondRetirement) {
                 // Generate age beyond retirement age
-                age = sex === 'M' ? getRandomInt(65, 70) : getRandomInt(60, 67);
+                age = getRandomInt(retirementAge, retirementAge + 5);
             } else {
                 // Generate age below retirement age
-                age = sex === 'M' ? getRandomInt(25, 64) : getRandomInt(25, 59);
+                age = getRandomInt(25, retirementAge - 1);
             }
             const salary = getRandomFloat(4000, 20000);
             const hasL4 = Math.random() > 0.5;

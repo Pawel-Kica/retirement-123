@@ -5,10 +5,9 @@
 import wageGrowthData from '@/data/wageGrowthByYear.json';
 import cpiData from '@/data/cpiByYear.json';
 import avgPensionData from '@/data/averagePensionByYear.json';
-import sickImpactMData from '@/data/sickImpactM.json';
-import sickImpactFData from '@/data/sickImpactF.json';
-import factsData from '@/data/facts.json';
-import retirementAgeData from '@/data/retirementAgeBySex.json';
+import { sickImpact } from '@/data/sickImpact';
+import { facts } from '@/data/facts';
+import { retirementAgeBySex } from '@/data/retirementAgeBySex';
 import lifeDurationData from '@/data/lifeDuration.json';
 import { loadPrognosisData } from './prognosisLoader';
 
@@ -46,10 +45,10 @@ export async function loadAllData(): Promise<AllData> {
         wageGrowth: wageGrowthData as WageGrowthData,
         cpi: cpiData as CPIData,
         avgPension: avgPensionData as AveragePensionData,
-        sickImpactM: sickImpactMData as SickImpactConfig,
-        sickImpactF: sickImpactFData as SickImpactConfig,
-        facts: factsData as FactsData,
-        retirementAge: retirementAgeData as RetirementAgeData,
+        sickImpactM: sickImpact.M as SickImpactConfig,
+        sickImpactF: sickImpact.F as SickImpactConfig,
+        facts: { facts } as FactsData,
+        retirementAge: retirementAgeBySex as RetirementAgeData,
         lifeDuration: lifeDurationData as LifeDurationData,
         prognosisVariants,
     };
@@ -59,8 +58,7 @@ export async function loadAllData(): Promise<AllData> {
  * Get a random fact from facts.json
  */
 export function getRandomFact(): string {
-    const facts = factsData as FactsData;
-    return facts.facts[Math.floor(Math.random() * facts.facts.length)];
+    return facts[Math.floor(Math.random() * facts.length)];
 }
 
 /**

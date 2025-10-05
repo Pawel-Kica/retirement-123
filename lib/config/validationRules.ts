@@ -1,4 +1,5 @@
 import { Sex } from "../types";
+import { retirementAgeBySex } from "@/data/retirementAgeBySex";
 
 export const VALIDATION_CONSTANTS = {
   MIN_WORKING_AGE: 18,
@@ -10,11 +11,8 @@ export const VALIDATION_CONSTANTS = {
   MAX_RETIREMENT_YEAR: 2080,
 } as const;
 
-// Use static retirement ages instead of loading from async data
-export const RETIREMENT_AGES = {
-  M: 65, // Standard retirement age for men
-  F: 60, // Standard retirement age for women
-} as const;
+// Use static retirement ages from data
+export const RETIREMENT_AGES = retirementAgeBySex;
 
 export function calculateBirthYear(
   currentAge: number,

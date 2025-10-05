@@ -7,6 +7,7 @@ import { UnifiedTimeline } from "@/components/ui/UnifiedTimeline";
 import { PostalCodeModal } from "@/components/ui/PostalCodeModal";
 import { useSimulation } from "@/lib/context/SimulationContext";
 import { SimulationInputs, ContractType, EmploymentPeriod } from "@/lib/types";
+import { retirementAgeBySex } from "@/data/retirementAgeBySex";
 import {
   validateSimulationInputs,
   getFieldError as getFieldErrorUtil,
@@ -92,7 +93,7 @@ export default function SimulacjaPage() {
   // Also update when age or sex changes in step 0 (before initialization is locked)
   useEffect(() => {
     if (formData.age && formData.sex) {
-      const minRetirementAge = formData.sex === "F" ? 60 : 65;
+      const minRetirementAge = retirementAgeBySex[formData.sex];
       const yearTurned18 = currentYear - (formData.age - 18);
       const retirementYear = currentYear + (minRetirementAge - formData.age);
 
@@ -189,7 +190,7 @@ export default function SimulacjaPage() {
 
   const validateStep1 = useCallback(() => {
     const stepErrors: any[] = [];
-    const minRetirementAge = formData.sex === "F" ? 60 : 65;
+    const minRetirementAge = formData.sex ? retirementAgeBySex[formData.sex] : 65;
 
     if (workHistory.length === 0) {
       stepErrors.push({
