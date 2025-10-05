@@ -56,7 +56,6 @@ export default function SimulacjaPage() {
     age: 35,
     sex: "M",
     includeZwolnienieZdrowotne: false,
-    earlyRetirement: false,
     retirementPrograms: {
       ppk: {
         enabled: false,
@@ -265,15 +264,7 @@ export default function SimulacjaPage() {
         });
       }
 
-      if (index === workHistory.length - 1 && entry.endYear && formData.age) {
-        const retirementAge = formData.age + (entry.endYear - currentYear);
-        if (retirementAge < minRetirementAge && !formData.earlyRetirement) {
-          stepErrors.push({
-            field: `work-${entry.id}-endYear`,
-            message: `Wiek emerytalny (${retirementAge} lat) jest niższy od minimalnego (${minRetirementAge} lat). Zaznacz "Wcześniejsza emerytura" jeśli masz do niej prawo.`,
-          });
-        }
-      }
+      // No validation needed for early retirement - just informational
 
       if (index > 0) {
         const prevEntry = workHistory[index - 1];
@@ -382,7 +373,6 @@ export default function SimulacjaPage() {
       accountBalance: formData.accountBalance,
       subAccountBalance: formData.subAccountBalance,
       includeZwolnienieZdrowotne: formData.includeZwolnienieZdrowotne || false,
-      earlyRetirement: formData.earlyRetirement || false,
       retirementPrograms: formData.retirementPrograms,
       employmentPeriods: employmentPeriods,
     };

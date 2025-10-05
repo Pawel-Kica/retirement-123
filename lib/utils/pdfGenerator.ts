@@ -104,12 +104,6 @@ export const generatePDFReport = async (data: PDFReportData): Promise<void> => {
   yPos += 6;
   doc.text(`Wiek emerytalny: ${retirementAge} lat`, 10, yPos);
   yPos += 6;
-  doc.text(
-    `Wczesniejsza emerytura: ${inputs.earlyRetirement ? "Tak" : "Nie"}`,
-    10,
-    yPos
-  );
-  yPos += 6;
   doc.text(`Typ umowy: ${getContractTypeLabel(inputs.contractType)}`, 10, yPos);
   yPos += 6;
   doc.text(
@@ -157,7 +151,9 @@ export const generatePDFReport = async (data: PDFReportData): Promise<void> => {
   );
   yPos += 6;
   doc.text(
-    `Zwolnienia lekarskie: ${inputs.includeZwolnienieZdrowotne ? "Uwzglednione" : "Pominiete"}`,
+    `Zwolnienia lekarskie: ${
+      inputs.includeZwolnienieZdrowotne ? "Uwzglednione" : "Pominiete"
+    }`,
     10,
     yPos
   );

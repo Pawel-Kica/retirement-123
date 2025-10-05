@@ -28,11 +28,13 @@ export function Step3Review({
   onBack,
   isLoading,
 }: Step3Props) {
-  const lastEntry = workHistory[workHistory.length - 1];
+  // Find the maximum (latest) end year from all work history entries
+  const maxEndYear = workHistory.reduce((max, entry) => {
+    return entry.endYear && entry.endYear > max ? entry.endYear : max;
+  }, 0);
+
   const retirementAge =
-    formData.age && lastEntry?.endYear
-      ? formData.age + (lastEntry.endYear - currentYear)
-      : 0;
+    formData.age && maxEndYear ? formData.age + (maxEndYear - currentYear) : 0;
 
   const yearsWorked = workHistory.reduce((sum, entry) => {
     if (entry.startYear && entry.endYear) {
@@ -59,7 +61,7 @@ export function Step3Review({
             <LuClipboardList className="w-5 h-5 text-zus-green flex-shrink-0" />
             <span>Dane podstawowe</span>
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="flex justify-between sm:flex-col">
               <div className="text-sm text-zus-grey-600">Wiek</div>
               <div className="text-lg font-bold text-zus-grey-900">
@@ -70,6 +72,18 @@ export function Step3Review({
               <div className="text-sm text-zus-grey-600">Płeć</div>
               <div className="text-lg font-bold text-zus-grey-900">
                 {formData.sex === "M" ? "Mężczyzna" : "Kobieta"}
+              </div>
+            </div>
+            <div className="flex justify-between sm:flex-col">
+              <div className="text-sm text-zus-grey-600">Łączny staż</div>
+              <div className="text-lg font-bold text-zus-grey-900">
+                {yearsWorked} lat
+              </div>
+            </div>
+            <div className="flex justify-between sm:flex-col">
+              <div className="text-sm text-zus-grey-600">Wiek emerytalny</div>
+              <div className="text-lg font-bold text-zus-grey-900">
+                {retirementAge} lat
               </div>
             </div>
           </div>
@@ -85,72 +99,73 @@ export function Step3Review({
             </span>
           </h3>
 
-          {workHistory.map((entry, index) => (
-            <div
-              key={entry.id}
-              className="mb-3 p-3 bg-white rounded border border-zus-grey-300"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-semibold text-zus-grey-900">
-                  Okres {index + 1}
-                  {index === workHistory.length - 1 && (
-                    <span className="ml-2 text-xs text-zus-green bg-zus-green-light px-2 py-1 rounded">
-                      Emerytura
-                    </span>
-                  )}
-                </h4>
-                <span className="text-xs text-zus-grey-600">
-                  {entry.contractType === "UOP"
-                    ? "💼 UOP"
-                    : entry.contractType === "UOZ"
-                    ? "📝 Zlecenie"
-                    : "🏢 B2B"}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="text-zus-grey-600">Początek:</span>
-                  <span className="ml-2 font-semibold">{entry.startYear}</span>
-                </div>
-                <div>
-                  <span className="text-zus-grey-600">Koniec:</span>
-                  <span className="ml-2 font-semibold">{entry.endYear}</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-zus-grey-600">Wynagrodzenie:</span>
-                  <span className="ml-2 font-semibold text-zus-green">
-                    {entry.monthlyGross?.toLocaleString("pl-PL")} zł/mc
+          {workHistory.map((entry, index) => {
+            const entryYears =
+              entry.startYear && entry.endYear
+                ? entry.endYear - entry.startYear
+                : 0;
+            const endAge =
+              entry.endYear && formData.age
+                ? formData.age + (entry.endYear - currentYear)
+                : null;
+
+            return (
+              <div
+                key={entry.id}
+                className="mb-3 p-3 bg-white rounded border border-zus-grey-300"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-semibold text-zus-grey-900">
+                    Okres {index + 1}
+                    {index === workHistory.length - 1 && (
+                      <span className="ml-2 text-xs text-zus-green bg-zus-green-light px-2 py-1 rounded">
+                        Emerytura
+                      </span>
+                    )}
+                  </h4>
+                  <span className="text-xs text-zus-grey-600">
+                    {entry.contractType === "UOP"
+                      ? "💼 UOP"
+                      : entry.contractType === "UOZ"
+                      ? "📝 Zlecenie"
+                      : "🏢 B2B"}
                   </span>
                 </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-zus-grey-600">Początek:</span>
+                    <span className="ml-2 font-semibold">
+                      {entry.startYear}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-zus-grey-600">Koniec:</span>
+                    <span className="ml-2 font-semibold">{entry.endYear}</span>
+                  </div>
+                  <div>
+                    <span className="text-zus-grey-600">Staż:</span>
+                    <span className="ml-2 font-semibold">{entryYears} lat</span>
+                  </div>
+                  {endAge !== null && (
+                    <div>
+                      <span className="text-zus-grey-600">
+                        Wiek końca pracy:
+                      </span>
+                      <span className="ml-2 font-semibold">{endAge} lat</span>
+                    </div>
+                  )}
+                  <div className="col-span-2">
+                    <span className="text-zus-grey-600">Wynagrodzenie:</span>
+                    <span className="ml-2 font-semibold text-zus-green">
+                      {entry.monthlyGross?.toLocaleString("pl-PL")} zł/mc
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           <div className="mt-4 pt-3 border-t border-zus-navy/20 grid grid-cols-2 gap-3 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-zus-grey-600">Łączny staż:</span>
-              <span className="font-bold text-zus-green">
-                {yearsWorked} lat
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-zus-grey-600">Wiek emerytalny:</span>
-              <span className="font-bold text-zus-green">
-                {retirementAge} lat
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-zus-grey-600">Wcześniejsza emerytura:</span>
-              <span
-                className={`font-semibold ${
-                  formData.earlyRetirement
-                    ? "text-zus-green"
-                    : "text-zus-grey-500"
-                }`}
-              >
-                {formData.earlyRetirement ? "✓ Tak" : "✗ Nie"}
-              </span>
-            </div>
             <div className="flex justify-between items-center">
               <span className="text-zus-grey-600">PPK:</span>
               <span
@@ -163,7 +178,7 @@ export function Step3Review({
                 {formData.retirementPrograms?.ppk.enabled ? "✓ Tak" : "✗ Nie"}
               </span>
             </div>
-            <div className="flex justify-between items-center col-span-2">
+            <div className="flex justify-between items-center">
               <span className="text-zus-grey-600">IKZE:</span>
               <span
                 className={`font-semibold ${
@@ -245,9 +260,9 @@ export function Step3Review({
           <Button
             type="submit"
             onClick={onSubmit}
-            variant="primary"
+            variant="success"
             size="lg"
-            className="flex-1 bg-zus-orange hover:bg-orange-600"
+            className="flex-1"
             disabled={isLoading}
           >
             {isLoading ? (

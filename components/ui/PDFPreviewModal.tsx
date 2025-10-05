@@ -181,14 +181,6 @@ export function PDFPreviewModal({
               </div>
               <div className="bg-white rounded p-3">
                 <div className="text-xs font-semibold text-zus-grey-600 uppercase tracking-wide mb-1">
-                  Wcześniejsza emerytura
-                </div>
-                <div className="text-sm font-bold text-zus-grey-900">
-                  {inputs.earlyRetirement ? "✓ Tak" : "✗ Nie"}
-                </div>
-              </div>
-              <div className="bg-white rounded p-3">
-                <div className="text-xs font-semibold text-zus-grey-600 uppercase tracking-wide mb-1">
                   Typ umowy
                 </div>
                 <div className="text-sm font-bold text-zus-grey-900">
@@ -249,7 +241,9 @@ export function PDFPreviewModal({
                   Zwolnienia lekarskie
                 </div>
                 <div className="text-sm font-bold text-zus-grey-900">
-                  {inputs.includeZwolnienieZdrowotne ? "✓ Uwzględnione" : "✗ Pominięte"}
+                  {inputs.includeZwolnienieZdrowotne
+                    ? "✓ Uwzględnione"
+                    : "✗ Pominięte"}
                 </div>
               </div>
             </div>

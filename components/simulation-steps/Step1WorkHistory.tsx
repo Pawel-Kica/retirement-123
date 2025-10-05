@@ -190,19 +190,33 @@ export function Step1WorkHistory({
                         title={isCollapsed ? "Rozwiń" : "Zwiń"}
                       >
                         {isCollapsed ? (
-                          <LuChevronDown className="w-5 h-5 text-zus-grey-700" />
+                          <LuChevronDown className="w-5 h-5 text-zus-grey-700 transition-transform duration-200" />
                         ) : (
-                          <LuChevronUp className="w-5 h-5 text-zus-grey-700" />
+                          <LuChevronUp className="w-5 h-5 text-zus-grey-700 transition-transform duration-200" />
                         )}
                       </button>
-                      <h4 className="font-semibold text-zus-grey-900">
-                        Okres {index + 1}
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-zus-grey-900">
+                          Okres {index + 1}
+                        </h4>
+                        {entry.startYear &&
+                          entry.endYear &&
+                          entry.endYear > entry.startYear && (
+                            <span className="text-xs text-zus-blue bg-blue-50 px-2 py-1 rounded font-medium">
+                              {entry.endYear - entry.startYear}{" "}
+                              {entry.endYear - entry.startYear === 1
+                                ? "rok"
+                                : entry.endYear - entry.startYear < 5
+                                ? "lata"
+                                : "lat"}
+                            </span>
+                          )}
                         {index === workHistory.length - 1 && (
-                          <span className="ml-2 text-xs text-zus-green bg-zus-green-light px-2 py-1 rounded">
+                          <span className="text-xs text-zus-green bg-zus-green-light px-2 py-1 rounded">
                             Rok emerytury
                           </span>
                         )}
-                      </h4>
+                      </div>
                       {isCollapsed && (
                         <div className="flex items-center gap-3 text-sm text-zus-grey-700 ml-2">
                           <span>
@@ -242,110 +256,109 @@ export function Step1WorkHistory({
                     )}
                   </div>
 
-                  {!isCollapsed && (
-                    <>
-                      <div className="space-y-4">
-                        <div>
-                          <InputWithSlider
-                            label="Rok rozpoczęcia"
-                            value={entry.startYear}
-                            onChange={(value) =>
-                              onWorkHistoryUpdate(entry.id, "startYear", value)
-                            }
-                            min={minWorkStartYear}
-                            max={
-                              formData.age && formData.sex
-                                ? currentYear +
-                                  ((formData.sex === "F" ? 60 : 65) -
-                                    formData.age) -
-                                  1
-                                : currentYear + 30
-                            }
-                            step={1}
-                            suffix=""
-                            placeholder="np. 2010"
-                            required
-                            error={getFieldError(
-                              errors,
-                              `work-${entry.id}-startYear`
-                            )}
-                            hint={
-                              entry.startYear && formData.age
-                                ? `Wiek: ${
-                                    formData.age -
-                                    (currentYear - entry.startYear)
-                                  } lat`
-                                : undefined
-                            }
-                          />
-                        </div>
+                  <div
+                    className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                      isCollapsed
+                        ? "max-h-0 opacity-0"
+                        : "max-h-[2000px] opacity-100"
+                    }`}
+                  >
+                    <div className="space-y-4">
+                      <div>
+                        <InputWithSlider
+                          label="Rok rozpoczęcia"
+                          value={entry.startYear}
+                          onChange={(value) =>
+                            onWorkHistoryUpdate(entry.id, "startYear", value)
+                          }
+                          min={minWorkStartYear}
+                          max={
+                            formData.age && formData.sex
+                              ? currentYear +
+                                ((formData.sex === "F" ? 60 : 65) -
+                                  formData.age) -
+                                1
+                              : currentYear + 30
+                          }
+                          step={1}
+                          suffix=""
+                          placeholder="np. 2010"
+                          required
+                          error={getFieldError(
+                            errors,
+                            `work-${entry.id}-startYear`
+                          )}
+                          hint={
+                            entry.startYear && formData.age
+                              ? `Wiek: ${
+                                  formData.age - (currentYear - entry.startYear)
+                                } lat`
+                              : undefined
+                          }
+                        />
+                      </div>
 
-                        <div>
-                          <div className="flex items-start gap-2">
-                            <div className="flex-1">
-                              <InputWithSlider
-                                label={
-                                  index === workHistory.length - 1
-                                    ? "Rok zakończenia pracy / przejścia na emeryturę"
-                                    : "Rok zakończenia"
-                                }
-                                value={entry.endYear}
-                                onChange={(value) =>
+                      <div>
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1">
+                            <InputWithSlider
+                              label={
+                                index === workHistory.length - 1
+                                  ? "Rok zakończenia pracy / przejścia na emeryturę"
+                                  : "Rok zakończenia"
+                              }
+                              value={entry.endYear}
+                              onChange={(value) =>
+                                onWorkHistoryUpdate(entry.id, "endYear", value)
+                              }
+                              min={minWorkStartYear}
+                              max={
+                                formData.age
+                                  ? currentYear + (90 - formData.age)
+                                  : 2080
+                              }
+                              step={1}
+                              suffix=""
+                              placeholder="np. 2050"
+                              required
+                              error={getFieldError(
+                                errors,
+                                `work-${entry.id}-endYear`
+                              )}
+                              hint={
+                                entry.endYear && formData.age
+                                  ? `Wiek emerytalny: ${
+                                      formData.age +
+                                      (entry.endYear - currentYear)
+                                    } lat`
+                                  : undefined
+                              }
+                            />
+                          </div>
+                          {index === workHistory.length - 1 &&
+                            formData.age &&
+                            formData.sex && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const minRetirementAge =
+                                    formData.sex === "F" ? 60 : 65;
+                                  const minRetirementYear =
+                                    currentYear +
+                                    (minRetirementAge - formData.age!);
                                   onWorkHistoryUpdate(
                                     entry.id,
                                     "endYear",
-                                    value
-                                  )
-                                }
-                                min={minWorkStartYear}
-                                max={
-                                  formData.age
-                                    ? currentYear + (90 - formData.age)
-                                    : 2080
-                                }
-                                step={1}
-                                suffix=""
-                                placeholder="np. 2050"
-                                required
-                                error={getFieldError(
-                                  errors,
-                                  `work-${entry.id}-endYear`
-                                )}
-                                hint={
-                                  entry.endYear && formData.age
-                                    ? `Wiek emerytalny: ${
-                                        formData.age +
-                                        (entry.endYear - currentYear)
-                                      } lat`
-                                    : undefined
-                                }
-                              />
-                            </div>
-                            {index === workHistory.length - 1 &&
-                              formData.age &&
-                              formData.sex && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const minRetirementAge =
-                                      formData.sex === "F" ? 60 : 65;
-                                    const minRetirementYear =
-                                      currentYear +
-                                      (minRetirementAge - formData.age!);
-                                    onWorkHistoryUpdate(
-                                      entry.id,
-                                      "endYear",
-                                      minRetirementYear
-                                    );
-                                  }}
-                                  className="mt-8 px-3 py-2 bg-zus-green text-white rounded hover:bg-zus-green-dark transition-colors text-sm font-medium whitespace-nowrap flex items-center gap-1 h-[40px]"
-                                  title="Ustaw minimalny wiek emerytalny"
-                                >
-                                  <LuCalendar className="w-4 h-4" />
-                                  Min. wiek
-                                </button>
-                              )}
-                          </div>
+                                    minRetirementYear
+                                  );
+                                }}
+                                className="mt-8 px-3 py-2 bg-zus-green text-white rounded hover:bg-zus-green-dark transition-colors text-sm font-medium whitespace-nowrap flex items-center gap-1 h-[40px]"
+                                title="Ustaw minimalny wiek emerytalny"
+                              >
+                                <LuCalendar className="w-4 h-4" />
+                                Min. wiek
+                              </button>
+                            )}
                         </div>
                       </div>
 
@@ -381,26 +394,23 @@ export function Step1WorkHistory({
                                 formData.sex === "F" ? 60 : 65;
                               const isEarly = retirementAge < minRetirementAge;
 
-                              if (isEarly && !formData.earlyRetirement) {
+                              if (isEarly) {
                                 return (
                                   <div className="p-3 bg-orange-50 border-l-4 border-zus-warning rounded text-sm">
                                     <div className="flex items-start gap-2">
                                       <LuTriangleAlert className="w-4 h-4 text-zus-warning flex-shrink-0 mt-0.5" />
                                       <div>
                                         <p className="font-semibold text-zus-grey-900">
-                                          Wiek poniżej standardowego wieku
-                                          emerytalnego
+                                          Praca kończy się przed wiekiem
+                                          emerytalnym
                                         </p>
                                         <p className="text-zus-grey-700 mt-1">
-                                          Planujesz przejść na emeryturę w wieku{" "}
+                                          Planowany koniec pracy:{" "}
                                           {retirementAge} lat. Standardowy wiek
-                                          emerytalny dla{" "}
-                                          {formData.sex === "F"
-                                            ? "kobiet"
-                                            : "mężczyzn"}{" "}
-                                          to {minRetirementAge} lat. Zaznacz
-                                          opcję "Wcześniejsza emerytura"
-                                          poniżej, jeśli masz do niej prawo.
+                                          emerytalny to {minRetirementAge} lat.
+                                          Emerytura zostanie obliczona na
+                                          podstawie zgromadzonego kapitału do
+                                          roku zakończenia pracy.
                                         </p>
                                       </div>
                                     </div>
@@ -416,11 +426,7 @@ export function Step1WorkHistory({
                                           Wiek emerytalny: {retirementAge} lat
                                         </p>
                                         <p className="text-zus-grey-700">
-                                          {isEarly
-                                            ? `Wcześniejsza emerytura (${
-                                                minRetirementAge - retirementAge
-                                              } lat przed standardowym wiekiem)`
-                                            : `Osiągniesz standardowy wiek emerytalny`}
+                                          Osiągniesz standardowy wiek emerytalny
                                         </p>
                                       </div>
                                     </div>
@@ -567,8 +573,8 @@ export function Step1WorkHistory({
                           </div>
                         </FormField>
                       </div>
-                    </>
-                  )}
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -592,62 +598,6 @@ export function Step1WorkHistory({
               </p>
             </div>
           </div>
-
-          {(() => {
-            const lastEntry = workHistory[workHistory.length - 1];
-            const showEarlyRetirement =
-              lastEntry?.endYear && formData.age && formData.sex;
-            const retirementAge = showEarlyRetirement
-              ? formData.age! + (lastEntry.endYear! - currentYear)
-              : 0;
-            const minRetirementAge = formData.sex === "F" ? 60 : 65;
-            const needsEarlyRetirement =
-              retirementAge > 0 && retirementAge < minRetirementAge;
-
-            return (
-              <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.earlyRetirement || false}
-                    onChange={(e) =>
-                      onFieldChange("earlyRetirement", e.target.checked)
-                    }
-                    className="mt-1 w-5 h-5 text-zus-green border-zus-grey-300 rounded focus:ring-zus-green focus:ring-2"
-                  />
-                  <div className="flex-1">
-                    <div className="font-semibold text-zus-grey-900 flex items-center gap-2">
-                      <LuTriangleAlert className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                      <span>
-                        Wcześniejsza emerytura (służby mundurowe, specjalne
-                        zawody)
-                      </span>
-                    </div>
-                    <div className="text-sm text-zus-grey-700 mt-1">
-                      {needsEarlyRetirement ? (
-                        <>
-                          <strong className="text-zus-warning">Uwaga:</strong>{" "}
-                          Przy planowanym wieku emerytalnym {retirementAge} lat,
-                          musisz mieć prawo do wcześniejszej emerytury. Dotyczy
-                          to m.in.: policjantów, strażaków, żołnierzy, górników
-                          oraz innych zawodów w szczególnych warunkach.
-                        </>
-                      ) : (
-                        <>
-                          Zaznacz, jeśli masz prawo do wcześniejszej emerytury
-                          przed osiągnięciem standardowego wieku emerytalnego (
-                          {formData.sex === "F" ? "60" : "65"} lat dla{" "}
-                          {formData.sex === "F" ? "kobiet" : "mężczyzn"}).
-                          Dotyczy to m.in.: policjantów, strażaków, żołnierzy,
-                          górników oraz innych zawodów w szczególnych warunkach.
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </label>
-              </div>
-            );
-          })()}
         </div>
 
         <div className="mt-8 pt-6 border-t border-zus-grey-300">

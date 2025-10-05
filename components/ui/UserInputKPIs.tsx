@@ -68,8 +68,6 @@ export function UserInputKPIs({
           fieldsToUpdate.workStartYear = editedValues.workStartYear;
         if (editedValues.workEndYear !== inputs.workEndYear)
           fieldsToUpdate.workEndYear = editedValues.workEndYear;
-        if (editedValues.earlyRetirement !== inputs.earlyRetirement)
-          fieldsToUpdate.earlyRetirement = editedValues.earlyRetirement;
         if (editedValues.contractType !== inputs.contractType)
           fieldsToUpdate.contractType = editedValues.contractType;
         if (
@@ -82,8 +80,12 @@ export function UserInputKPIs({
           fieldsToUpdate.accountBalance = editedValues.accountBalance;
         if (editedValues.subAccountBalance !== inputs.subAccountBalance)
           fieldsToUpdate.subAccountBalance = editedValues.subAccountBalance;
-        if (editedValues.includeZwolnienieZdrowotne !== inputs.includeZwolnienieZdrowotne)
-          fieldsToUpdate.includeZwolnienieZdrowotne = editedValues.includeZwolnienieZdrowotne;
+        if (
+          editedValues.includeZwolnienieZdrowotne !==
+          inputs.includeZwolnienieZdrowotne
+        )
+          fieldsToUpdate.includeZwolnienieZdrowotne =
+            editedValues.includeZwolnienieZdrowotne;
         if (editedValues.postalCode !== inputs.postalCode) {
           fieldsToUpdate.postalCode = editedValues.postalCode;
           // Also save postal code to local storage
@@ -136,10 +138,6 @@ export function UserInputKPIs({
       value: `${retirementAge} lat`,
     },
     {
-      label: "Wcześniejsza emerytura",
-      value: inputs.earlyRetirement ? "✓ Tak" : "✗ Nie",
-    },
-    {
       label: "Typ umowy",
       value: getContractTypeLabel(inputs.contractType),
     },
@@ -172,7 +170,9 @@ export function UserInputKPIs({
     },
     {
       label: "Zwolnienia lekarskie",
-      value: inputs.includeZwolnienieZdrowotne ? "✓ Uwzględnione" : "✗ Pominięte",
+      value: inputs.includeZwolnienieZdrowotne
+        ? "✓ Uwzględnione"
+        : "✗ Pominięte",
     },
     {
       label: "Kod pocztowy",
@@ -387,27 +387,6 @@ export function UserInputKPIs({
                   <option value="B2B">B2B</option>
                 </select>
               </div>
-              <div className="bg-white rounded p-2">
-                <div className="text-[10px] font-semibold text-zus-grey-600 uppercase tracking-wide mb-0.5">
-                  Wcześniejsza emerytura
-                </div>
-                <label className="flex items-center gap-1 mt-1">
-                  <input
-                    type="checkbox"
-                    checked={displayInputs.earlyRetirement || false}
-                    onChange={(e) =>
-                      setEditedValues((prev) => ({
-                        ...prev,
-                        earlyRetirement: e.target.checked,
-                      }))
-                    }
-                    className="w-4 h-4 accent-zus-green"
-                  />
-                  <span className="text-xs font-bold text-zus-grey-900">
-                    {displayInputs.earlyRetirement ? "Tak" : "Nie"}
-                  </span>
-                </label>
-              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-white rounded p-2">
@@ -606,7 +585,9 @@ export function UserInputKPIs({
                   className="w-4 h-4 accent-zus-green"
                 />
                 <span className="text-xs font-bold text-zus-grey-900">
-                  {displayInputs.includeZwolnienieZdrowotne ? "Uwzględnione" : "Pominięte"}
+                  {displayInputs.includeZwolnienieZdrowotne
+                    ? "Uwzględnione"
+                    : "Pominięte"}
                 </span>
               </label>
             </div>

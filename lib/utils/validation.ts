@@ -114,25 +114,7 @@ export function validateSimulationInputs(
     });
   }
 
-  // Minimum retirement age validation (unless early retirement for special professions)
-  if (
-    inputs.age &&
-    inputs.sex &&
-    inputs.workEndYear &&
-    !inputs.earlyRetirement
-  ) {
-    const retirementAge = inputs.age + (inputs.workEndYear - currentYear);
-    const minRetirementAge = inputs.sex === "F" ? 60 : 65;
-
-    if (retirementAge < minRetirementAge) {
-      errors.push({
-        field: "workEndYear",
-        message: `Minimalny wiek emerytalny dla ${
-          inputs.sex === "F" ? "kobiet" : "mężczyzn"
-        } to ${minRetirementAge} lat. Przy tym roku zakończenia będziesz mieć ${retirementAge} lat. Zaznacz opcję wcześniejszej emerytury, jeśli dotyczy Cię specjalny tryb (np. służby mundurowe).`,
-      });
-    }
-  }
+  // No validation for early retirement - informational only
 
   // Optional balance validation
   if (inputs.accountBalance !== undefined && inputs.accountBalance < 0) {

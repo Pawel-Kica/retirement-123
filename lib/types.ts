@@ -174,7 +174,6 @@ export interface SimulationInputs {
   subAccountBalance?: number;
   includeZwolnienieZdrowotne: boolean;
   postalCode?: string;
-  earlyRetirement?: boolean; // Special professions (police, firefighters, etc.)
 
   // ========== NOWE POLA ==========
   contractType?: ContractType; // Typ umowy (domyślnie UOP)
